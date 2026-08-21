@@ -37,12 +37,14 @@ Lỗi nghiệp vụ trả `success: false`; lỗi HTTP/không mong đợi phải
 
 ## Khoảng trống cần xử lý
 
-Một số lời gọi đang tồn tại trong UI nhưng dispatcher Supabase chưa có hoặc mới trả thông báo “đang được chuyển sang Supabase”, nổi bật:
+Kết quả audit ngày 2026-08-22: UI có 65 method literal, Supabase đã triển khai 52 và còn 13 method. Các khoảng trống hiện tại:
 
-- Hồ sơ/tài liệu bất động sản, chi phí, PDF/email.
+- Hồ sơ/tài liệu bất động sản, chi phí, chống trùng và email bộ hồ sơ.
 - Chào giá lead và chuyển lead thành nguồn hàng.
-- Quản lý user, chuyển giao công việc, trash/restore.
-- AI, tạo hợp đồng và một số import hàng loạt.
+- Khôi phục bản ghi từ thùng rác.
+- AI và tạo/xuất hợp đồng.
+
+Danh sách method và hướng xử lý chi tiết nằm trong `docs/modules/PENDING_CAPABILITIES.md`.
 
 Không được giả định một nút xuất hiện trên UI nghĩa là đã được Supabase hỗ trợ. Chạy `npm run audit:contract` để có danh sách literal method hiện tại. Các lời gọi động như `gsRun(backendFn, ...)` phải review thủ công.
 

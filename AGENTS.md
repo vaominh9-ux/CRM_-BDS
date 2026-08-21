@@ -1,6 +1,6 @@
 # Hướng dẫn làm việc cho agent
 
-Tệp này là chỉ dẫn gốc cho mọi agent sửa mã trong repository. Đọc `README.md` và các tài liệu trong `docs/` trước khi thay đổi hành vi nghiệp vụ.
+Tệp này là chỉ dẫn gốc cho mọi agent sửa mã trong repository. Bắt đầu từ `docs/INDEX.md`, sau đó đọc tài liệu phân hệ liên quan trước khi thay đổi hành vi nghiệp vụ.
 
 ## Nguyên tắc bắt buộc
 
@@ -11,6 +11,7 @@ Tệp này là chỉ dẫn gốc cho mọi agent sửa mã trong repository. Đ�
 5. Công thức tiền, trạng thái và phân quyền trong `docs/BUSINESS_RULES.md` là bất biến. Nếu thay đổi, cập nhật migration, backend, giao diện, kiểm thử và tài liệu trong cùng thay đổi.
 6. Tạo migration mới, không sửa migration đã áp dụng. Tên migration dùng thời gian tăng dần: `YYYYMMDDHHMM_mo_ta.sql`.
 7. Bảo toàn các thay đổi đang có của người dùng. Không reset/checkout các tệp không thuộc phạm vi công việc.
+8. Khi sửa một phân hệ, cập nhật file tương ứng trong `docs/modules/` nếu nguồn dữ liệu, API, bất biến, rủi ro hoặc checklist kiểm thử thay đổi.
 
 ## Bản đồ nguồn sự thật
 
