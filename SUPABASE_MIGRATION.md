@@ -1,47 +1,41 @@
-# Kế hoạch chuyển CRM sang Supabase
+# Trạng thái Supabase và migration
 
 ## Trạng thái hiện tại
 
-- Giao diện localhost vẫn dùng backend JSON hiện tại và chưa bị thay đổi.
-- Schema PostgreSQL ban đầu nằm trong `supabase/migrations/`.
-- RLS đã được thiết kế cho Admin, Manager và Agent.
-- Thanh toán giao dịch được khóa theo giao dịch và chặn thu vượt.
-- Công thức hoa hồng được tạo trực tiếp trong PostgreSQL.
-- Công cụ kiểm kê dữ liệu nguồn: `scripts/audit-supabase-readiness.mjs`.
-- Công cụ nhập dữ liệu: `scripts/migrate-to-supabase.mjs`.
-- Công cụ đối chiếu sau nhập: `scripts/verify-supabase-migration.mjs`.
+Ứng dụng localhost **đã có đường kết nối Supabase**. `server.js` chọn `supabase-backend.js` khi đủ biến môi trường; nếu thiếu mới quay về `local-backend.js` và JSON. Không dùng nội dung lịch sử của tài liệu này để kết luận rằng giao diện luôn chạy JSON.
 
-## Kết quả đối chiếu nguồn ngày 21/08/2026
+Schema hiện được tạo bởi:
 
-| Chỉ số | Giá trị chuẩn |
-|---|---:|
-| Tổng giá trị giao dịch | 21.556.080.000 đ |
-| Đã thu | 13.360.690.000 đ |
-| Còn lại | 8.195.390.000 đ |
-| Tổng hoa hồng | 291.870.000 đ |
-| Phần hoa hồng nhân viên | 116.748.000 đ |
-| Tiền thuê đã thu | 305.500.000 đ |
-| Công nợ thuê tại ngày đối chiếu | 23.970.000 đ |
+1. `202608210001_initial_crm_schema.sql`
+2. `202608210002_enforce_property_scope.sql`
+3. `202608210003_property_images_bucket.sql`
 
-Một lịch sử gia hạn của hợp đồng `#3` còn dùng PKR trong hai trường tiền thuê cũ/mới. Công cụ nhập chuyển hai giá trị này theo hệ số nguồn `94` và ghi rõ vào báo cáo migration.
+Các migration này có thể đã chạy trên project hiện tại. **Không chạy lại migration dữ liệu hoặc reset database** nếu chưa sao lưu và chưa xác nhận đích đến.
 
-## Thông tin cần có trước khi chạy trên Supabase
+## Cấu hình
 
-1. URL dự án Supabase.
-2. Service role key, chỉ dùng cục bộ cho lần nhập dữ liệu và không đưa vào frontend.
-3. Mật khẩu tạm tối thiểu 12 ký tự cho tài khoản staging.
-4. Một dự án Supabase staging trống; không chạy lần đầu trên production.
+Sao chép `.env.supabase.example` thành `.env.supabase.local` và điền trên máy:
 
-Sao chép `.env.supabase.example` thành `.env.supabase.local` rồi điền các giá trị trên.
-
-## Trình tự chạy
-
-```powershell
-node scripts/audit-supabase-readiness.mjs
-supabase db push
-node --env-file=.env.supabase.local scripts/migrate-to-supabase.mjs
-node --env-file=.env.supabase.local scripts/verify-supabase-migration.mjs
+```dotenv
+SUPABASE_URL=https://PROJECT_REF.supabase.co
+SUPABASE_PUBLISHABLE_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+CRM_SOURCE_FILE=./data/local-crm-data.json
+MIGRATION_DEFAULT_PASSWORD=...
 ```
 
-Chỉ bắt đầu kết nối giao diện sau khi báo cáo `verify` không còn sai lệch.
+Không commit hoặc gửi service-role key/mật khẩu qua chat. Publishable key có thể dùng ở client, service-role key tuyệt đối chỉ ở server.
 
+## Quy trình an toàn
+
+```powershell
+npm run check
+npm run audit:data
+npm run verify:business
+```
+
+Nếu cần thay schema, tạo migration mới có timestamp lớn hơn; không sửa các file đã áp dụng. Nếu cần nhập lại dữ liệu, phải có snapshot, kế hoạch xử lý ID/trùng lặp và báo cáo đối chiếu tổng tiền.
+
+## Lưu ý về kiểm chứng
+
+`scripts/verify-supabase-migration.mjs` so sánh snapshot nguồn với Supabase. Supabase có thể đã có bản ghi phát sinh sau migration hoặc dữ liệu nguồn cũ có đơn vị khác, nên chênh lệch phải được phân loại. Không tự động ghi đè dữ liệu chỉ để làm báo cáo “khớp”. Công thức nghiệp vụ chuẩn nằm trong `docs/BUSINESS_RULES.md`.

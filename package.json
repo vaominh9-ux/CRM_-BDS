@@ -5,6 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node --env-file-if-exists=.env.supabase.local server.js",
+    "check": "node scripts/project-health.mjs",
+    "audit:data": "node scripts/audit-supabase-readiness.mjs",
+    "audit:contract": "node scripts/audit-api-contract.mjs",
+    "verify:business": "node --env-file-if-exists=.env.supabase.local scripts/verify-business-logic.mjs",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:reset": "supabase db reset",
