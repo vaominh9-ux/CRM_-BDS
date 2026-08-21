@@ -7171,7 +7171,7 @@
                 </span>
               </div>
               <div className="pd-meta-actions" style={{ marginBottom: '16px' }}>
-                <button className="btn btn-secondary btn-sm" onClick={waShare} title="Chia sẻ qua Zalo"><i className="fas fa-comment-dots" style={{ color: '#25D366' }}></i> Chia sẻ</button>
+                <button className="btn btn-secondary btn-sm" onClick={waShare} title="Chia sẻ qua Zalo"><ZaloIcon size={16} style={{ marginRight: 5 }} /> Chia sẻ Zalo</button>
                 <button className="btn btn-secondary btn-sm" onClick={doBrochure} disabled={busy} title="Tờ giới thiệu PDF"><i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-file-pdf')}></i> Tờ giới thiệu</button>
                 <button className="btn btn-secondary btn-sm" onClick={doEmail} title="Gửi tin đăng qua email"><i className="fas fa-envelope"></i> Email</button>
                 <button className="btn btn-secondary btn-sm" onClick={doCopy} title="Sao chép liên kết cổng"><i className="fas fa-link"></i> Liên kết</button>
@@ -7324,7 +7324,7 @@
                         <span className="kb-agent"><i className="fas fa-user-tie"></i>{l.assignedAgent || 'Unassigned'} · {fmtDate(l.created)}</span>
                         <span className="kb-acts">
                           <button title="Lead 360" onClick={() => onAction('view', l)}><i className="fas fa-id-card-clip"></i></button>
-                          <button title="Nhắn Zalo" onClick={() => onAction('wa', l)}><i className="fas fa-comment-dots"></i></button>
+                          <button title="Nhắn Zalo" onClick={() => onAction('wa', l)}><ZaloIcon size={15} /></button>
                           {canEdit && <button title="Edit" onClick={() => onAction('edit', l)}><i className="fas fa-edit"></i></button>}
                         </span>
                       </div>
@@ -7377,7 +7377,7 @@
                 <div className="pd-fact"><div className="k">Trạng thái</div><div className="v">{viEnum(source.status || '—')}</div></div>
               </div>
               <div className="customer-quick-footer">
-                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><i className="fas fa-comment-dots"></i> Liên hệ Zalo</button>}
+                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><ZaloIcon size={18} style={{ marginRight: 6 }} /> Liên hệ Zalo</button>}
                 <p className="customer-quick-note"><i className="fas fa-circle-info"></i> Thông tin này chưa liên kết với hồ sơ khách hàng tiềm năng.</p>
               </div>
             </div>
@@ -10544,7 +10544,7 @@
                     <div className="pd-share-row">
                       <button className="btn btn-secondary btn-sm" title="Chia sẻ qua Zalo"
                               onClick={() => window.open('https://zalo.me/?text=' + encodeURIComponent(prop.title + ' — ' + pkrShort(prop.price) + '\n' + portalLink), '_blank')}>
-                        <i className="fas fa-comment-dots" style={{ color: '#0068FF' }}></i> Zalo
+                        <ZaloIcon size={16} style={{ marginRight: 4 }} /> Zalo
                       </button>
                       <button className="btn btn-secondary btn-sm" title="Sao chép liên kết"
                               onClick={() => { try { navigator.clipboard.writeText(portalLink); Swal.fire({ icon: 'success', title: 'Đã sao chép liên kết!', timer: 1200, showConfirmButton: false }); } catch (e) {} }}>
