@@ -3898,15 +3898,16 @@
       ['build','Generating…'],['agreement','Generating…']];
     const mutVerb = (fn) => { const m = MUT_VERBS.find(([p]) => fn.indexOf(p) === 0); return m ? m[1] : null; };
     function ProcessingOverlay({ profileImage }) {
+      const { branding } = useAgencyBranding();
       const [, force] = useState(0);
       useEffect(() => { const cb = () => force((n) => n + 1); _proc.subs.add(cb); return () => _proc.subs.delete(cb); }, []);
       if (!_proc.n) return null;
       return (
         <div className="proc-overlay" role="status" aria-live="polite" aria-busy="true">
-          <img src={profileImage || APP_LOGO} className="proc-logo" alt="Ảnh đại diện"
+          <img src={branding.logo || profileImage || APP_LOGO} className="proc-logo" alt="Ảnh đại diện"
             onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = APP_LOGO; }} />
           <div className="proc-bar"><span></span></div>
-          <div className="proc-label">{_proc.verb || 'Processing…'}</div>
+          <div className="proc-label">{_proc.verb || 'Đang xử lý…'}</div>
         </div>
       );
     }
@@ -4665,7 +4666,7 @@
 
             <div className="sidebar-user-info">
               <div className="sidebar-profile-image">
-                <BrandLogo logo={profileImage || branding.logo} alt="Ảnh đại diện" />
+                <BrandLogo logo={branding.logo || profileImage} alt="Ảnh đại diện" />
               </div>
               <div className="sidebar-user-name">{user}</div>
               <div className="sidebar-user-role">{role}</div>
