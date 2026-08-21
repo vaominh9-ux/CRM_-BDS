@@ -480,25 +480,39 @@ const appHandler = async (req, res) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  fs.readFile(HTML_PATH, 'utf8', (err, rawData) => {
-    if (err) {
-      res.writeHead(500);
-      res.end('<h1>500 - Lỗi máy chủ khi đọc tệp HTML</h1><p>' + err.message + '</p>');
-      return;
+  let rawData;
+  const possiblePaths = [
+    path.join(__dirname, 'code-appscript', 'index.html'),
+    path.join(process.cwd(), 'code-appscript', 'index.html'),
+    path.join(__dirname, '..', 'code-appscript', 'index.html'),
+    path.resolve('code-appscript', 'index.html')
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      try {
+        rawData = fs.readFileSync(p, 'utf8');
+        break;
+      } catch (_) {}
     }
+  }
 
-    // Replace Apps Script template tags for local preview
-    let output = rawData
-      .replace(/<\?!=\s*defaultThemeVars\s*\?>/g, '')
-      .replace(/<\?!=\s*deepLink\s*\?>/g, '')
-      .replace(/<\?!=\s*appUrl\s*\?>/g, '');
+  if (!rawData) {
+    res.writeHead(500);
+    res.end('<h1>500 - Lỗi máy chủ khi đọc tệp HTML</h1><p>Không tìm thấy file index.html</p>');
+    return;
+  }
 
-    // Inject Google Script Run Mock Bridge before </head>
-    output = output.replace('</head>', `${GOOGLE_SCRIPT_RUN_MOCK}</head>`);
+  // Replace Apps Script template tags for local preview
+  let output = rawData
+    .replace(/<\?!=\s*defaultThemeVars\s*\?>/g, '')
+    .replace(/<\?!=\s*deepLink\s*\?>/g, '')
+    .replace(/<\?!=\s*appUrl\s*\?>/g, '');
 
-    res.writeHead(200);
-    res.end(output);
-  });
+  // Inject Google Script Run Mock Bridge before </head>
+  output = output.replace('</head>', `${GOOGLE_SCRIPT_RUN_MOCK}</head>`);
+
+  res.writeHead(200);
+  res.end(output);
 };
 
 const server = http.createServer(appHandler);
