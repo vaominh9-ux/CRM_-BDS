@@ -1,0 +1,31 @@
+{
+  "name": "app-crm-bds",
+  "version": "2.0.0",
+  "description": "Hệ thống Quản trị & Khớp Nhu Cầu Bất Động Sản Chuyên Nghiệp (CRM BDS)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env.supabase.local server.js",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:audit": "node scripts/audit-supabase-readiness.mjs",
+    "supabase:migrate:data": "node --env-file-if-exists=.env.supabase.local scripts/migrate-to-supabase.mjs",
+    "supabase:import:vn-addresses": "node --env-file-if-exists=.env.supabase.local scripts/import-vietnam-admin-locations.mjs",
+    "supabase:verify": "node --env-file-if-exists=.env.supabase.local scripts/verify-supabase-migration.mjs"
+  },
+  "keywords": [
+    "crm",
+    "bat-dong-san",
+    "real-estate",
+    "google-apps-script",
+    "smart-matching"
+  ],
+  "author": "BDS Master Pro",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.3"
+  },
+  "devDependencies": {
+    "supabase": "^2.115.0"
+  }
+}
