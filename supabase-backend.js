@@ -9,6 +9,13 @@ const IMAGE_BUCKET = 'property-images';
 const enabled = Boolean(SUPABASE_URL && PUBLISHABLE_KEY && SERVICE_KEY);
 const ok = (data = {}) => ({ success: true, ...data });
 const fail = (message) => ({ success: false, message });
+const DEFAULT_AGENCY_BRANDING = Object.freeze({
+  name: 'RS Estates',
+  logo: '',
+  phone: '0901 234 567',
+  address: 'Hà Nội & TP. Hồ Chí Minh, Việt Nam',
+  slogan: 'Nền tảng bất động sản cao cấp hàng đầu'
+});
 
 async function request(path, { method = 'GET', body, jwt, admin = false, headers: extraHeaders = {} } = {}) {
   const key = admin ? SERVICE_KEY : PUBLISHABLE_KEY;
@@ -151,6 +158,37 @@ async function getAppConfig(jwt){const rows=await select('app_settings','setting
 async function getUserSettings(jwt){const p=await currentProfile(jwt);return ok({settings:{profileImage:p.profile_image||'',themeMode:p.theme_mode||'light',customColors:JSON.stringify(p.custom_colors||{})}});}
 async function updateUserSettings(args,jwt){const p=await currentProfile(jwt),settings=args[1]||args[0]||{};let colors;if(has(settings,'customColors')){if(!settings.customColors)colors={};else if(typeof settings.customColors==='string'){try{colors=JSON.parse(settings.customColors);}catch{colors={};}}else colors=settings.customColors;}await patchRow('profiles',p.id,{profile_image:settings.profileImage,theme_mode:settings.themeMode,custom_colors:colors,updated_at:new Date().toISOString()},jwt);await audit(jwt,'Settings Updated','Cập nhật tùy chọn tài khoản');return ok({message:'Đã lưu cài đặt tài khoản'});}
 
+function normalizeAgencyBranding(value = {}) {
+  const branding = { ...DEFAULT_AGENCY_BRANDING, ...(value || {}) };
+  return {
+    name: String(branding.name || DEFAULT_AGENCY_BRANDING.name).trim().slice(0, 160),
+    logo: String(branding.logo || '').trim().slice(0, 2_000_000),
+    phone: String(branding.phone || '').trim().slice(0, 80),
+    address: String(branding.address || '').trim().slice(0, 500),
+    slogan: String(branding.slogan || '').trim().slice(0, 300)
+  };
+}
+
+async function getAgencyBranding(jwt) {
+  const rows = await select('app_settings','setting_value',jwt,'&setting_key=eq.crm&limit=1');
+  return ok({ branding: normalizeAgencyBranding(rows[0]?.setting_value?.branding) });
+}
+
+async function saveAgencyBranding(args,jwt) {
+  const profile = await currentProfile(jwt);
+  if (profile.role_key !== 'Admin') return fail('Chỉ Quản trị viên mới có quyền đổi nhận diện công ty');
+  const rows = await select('app_settings','setting_value',jwt,'&setting_key=eq.crm&limit=1');
+  const config = rows[0]?.setting_value || {};
+  const branding = normalizeAgencyBranding(args[0]);
+  await request('/rest/v1/app_settings?setting_key=eq.crm',{
+    method:'PATCH',
+    jwt,
+    body:{setting_value:{...config,branding},updated_at:new Date().toISOString(),updated_by:profile.id}
+  });
+  await audit(jwt,'Agency Branding Updated',`Đổi nhận diện: ${branding.name}`);
+  return ok({message:'Đã lưu nhận diện thương hiệu công ty thành công!',branding});
+}
+
 const PAGE_META = [
   ['dashboard','Tổng quan','TỔNG QUAN'],['ai','Trợ lý AI','TỔNG QUAN'],
   ['properties','Bất động sản','CRM'],['leads','Khách hàng tiềm năng','CRM'],['followups','Chăm sóc khách hàng','CRM'],['appointments','Lịch hẹn','CRM'],
@@ -170,12 +208,13 @@ function locationPath(locations, id) {
 }
 
 async function getPublicPortal() {
-  const [properties,locations,amenities,links,images] = await Promise.all([
+  const [properties,locations,amenities,links,images,settings] = await Promise.all([
     adminSelect('properties','id,reference_code,title,slug,description,property_type,listing_type,status,price_vnd,rent_frequency,area_size,area_unit,bedrooms,bathrooms,location_id,address,latitude,longitude,is_featured,views_count,published_at','&deleted_at=is.null&published_at=not.is.null&status=in.(Available,Reserved)&order=published_at.desc'),
     adminSelect('locations','id,name,level,parent_id','&deleted_at=is.null&order=id.asc'),
     adminSelect('amenities','id,name,icon','&deleted_at=is.null&order=name.asc'),
     adminSelect('property_amenities','property_id,amenity_id'),
-    adminSelect('property_images','property_id,storage_path,sort_order','&order=sort_order.asc')
+    adminSelect('property_images','property_id,storage_path,sort_order','&order=sort_order.asc'),
+    adminSelect('app_settings','setting_value','&setting_key=eq.crm&limit=1')
   ]);
   const amenityMap = new Map(amenities.map(item=>[Number(item.id),{name:item.name,icon:item.icon||''}]));
   const linksByProperty = new Map(), imagesByProperty = new Map();
@@ -184,7 +223,8 @@ async function getPublicPortal() {
   return ok({
     properties:properties.map(item=>({id:item.id,referenceCode:item.reference_code,title:item.title,slug:item.slug,description:item.description||'',propertyType:item.property_type,listingType:item.listing_type,status:item.status,price:Number(item.price_vnd||0),rentFrequency:item.rent_frequency||'',areaSize:Number(item.area_size||0),areaUnit:item.area_unit||'m²',bedrooms:item.bedrooms,bathrooms:item.bathrooms,locationId:item.location_id,locationPath:locationPath(locations,item.location_id),address:item.address||'',latitude:item.latitude,longitude:item.longitude,isFeatured:item.is_featured?1:0,viewsCount:Number(item.views_count||0),images:imagesByProperty.get(Number(item.id))||[],amenities:linksByProperty.get(Number(item.id))||[],publishedAt:item.published_at})),
     locations:locations.map(item=>({id:item.id,parentId:item.parent_id||null,name:item.name,level:item.level})),
-    amenities:amenities.map(item=>({id:item.id,name:item.name,icon:item.icon||''}))
+    amenities:amenities.map(item=>({id:item.id,name:item.name,icon:item.icon||''})),
+    branding:normalizeAgencyBranding(settings[0]?.setting_value?.branding)
   });
 }
 
@@ -613,10 +653,10 @@ async function run(method,args=[],authorization=''){
   if(!jwt) return fail('Phiên đăng nhập Supabase không hợp lệ');
   if(method==='brochurePdf') return brochurePdf(args,jwt);
   const readHandlers={
-    getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getRbacMatrix
+    getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getAgencyBranding,getRbacMatrix
   };
   const mutationHandlers={
-    updateUserSettings,toggleRbac,setAppConfig,
+    updateUserSettings,saveAgencyBranding,toggleRbac,setAppConfig,
     addProperty,updateProperty,deleteProperty,uploadPropertyImage,addLead,updateLead,deleteLead,assignLead,
     addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,completeAppointment,
     addDeal,updateDeal,deleteDeal,addDealPayment,markAgentPaid,
