@@ -5924,6 +5924,46 @@
         ConfirmPassword: ''
       });
       const [saving, setSaving] = useState(false);
+      const [uploading, setUploading] = useState(false);
+      const fileInputRef = useRef(null);
+
+      const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn một tệp hình ảnh' });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploading(true);
+          const base64Data = event.target.result;
+
+          google.script.run
+            .withSuccessHandler((result) => {
+              setUploading(false);
+              if (result.success) {
+                google.script.run
+                  .withSuccessHandler((r) => {
+                    if (r.success) {
+                      Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã cập nhật ảnh đại diện!', timer: 2000, showConfirmButton: false });
+                    }
+                  })
+                  .updateUserSettings(currentUser, { profileImage: result.fileUrl });
+              } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+              }
+            })
+            .withFailureHandler((err) => {
+              setUploading(false);
+              Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            })
+            .uploadFile(base64Data, file.name, 'profile');
+        };
+        reader.readAsDataURL(file);
+      };
 
       const handleSubmit = (e) => {
         e.preventDefault();
