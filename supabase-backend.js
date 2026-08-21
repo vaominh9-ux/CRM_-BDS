@@ -426,6 +426,53 @@ async function uploadPropertyImage(args,jwt){
   return ok({url:`${SUPABASE_URL}/storage/v1/object/public/${IMAGE_BUCKET}/${encoded}`,path:storagePath});
 }
 
+
+async function uploadFile(args, jwt) {
+  const [dataUrl, filename, folder = 'general'] = args;
+  const p = await currentProfile(jwt);
+
+  if (folder === 'profile' || folder === 'avatars') {
+    return uploadProfileImage([dataUrl, filename], jwt);
+  }
+
+  const match = String(dataUrl || '').match(/^data:([^;]+);base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (!match) return fail('Dữ liệu tệp không hợp lệ');
+  const mime = match[1].toLowerCase();
+  const bytes = Buffer.from(match[2].replace(/\s/g, ''), 'base64');
+  if (!bytes.length || bytes.length > 10 * 1024 * 1024) return fail('Tệp phải có dung lượng từ 1 byte đến 10 MB');
+
+  await ensureImageBucket();
+  const ext = String(filename || '').split('.').pop() || 'bin';
+  const base = String(filename || 'file').replace(/\.[^.]+$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'file';
+  const storagePath = `${folder}/${p.id}/${Date.now()}-${Math.random().toString(36).slice(2, 9)}-${base}.${ext}`;
+  const encoded = storagePath.split('/').map(enc).join('/');
+
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${IMAGE_BUCKET}/${encoded}`, {
+    method: 'POST',
+    headers: {
+      apikey: SERVICE_KEY,
+      Authorization: `Bearer ${SERVICE_KEY}`,
+      'Content-Type': mime,
+      'x-upsert': 'false'
+    },
+    body: bytes
+  });
+
+  if (!response.ok) {
+    throw new Error(`Tải tệp thất bại: ${await response.text()}`);
+  }
+
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${IMAGE_BUCKET}/${encoded}`;
+  await audit(jwt, 'File Uploaded', `${folder}: ${base}.${ext}`);
+  return ok({
+    fileId: storagePath,
+    fileUrl: publicUrl,
+    url: publicUrl,
+    fileName: filename || `${base}.${ext}`,
+    message: 'Đã tải tệp lên thành công'
+  });
+}
+
 async function uploadProfileImage(args,jwt){
   const [dataUrl,filename]=args,p=await currentProfile(jwt);
   const match=String(dataUrl||'').match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/i);
@@ -1071,7 +1118,7 @@ async function run(method,args=[],authorization=''){
     getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getAgencyBranding,getRbacMatrix
   };
   const mutationHandlers={
-    updateUserSettings,uploadProfileImage,saveAgencyBranding,toggleRbac,setAppConfig,
+    updateUserSettings,uploadProfileImage,uploadFile,saveAgencyBranding,toggleRbac,setAppConfig,
     addUser,updateUser,deleteUser,updateMyAccount,reassignAgentWork,bulkImportUsers,
     addProperty,updateProperty,deleteProperty,uploadPropertyImage,addLead,updateLead,deleteLead,assignLead,
     addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,completeAppointment,
