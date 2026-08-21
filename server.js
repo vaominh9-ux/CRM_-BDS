@@ -378,10 +378,27 @@ const GOOGLE_SCRIPT_RUN_MOCK = `
       }
     };
 
-    function authHeaders() {
+    async function authHeaders() {
       try {
         const session = JSON.parse(localStorage.getItem('userSession') || '{}');
-        const token = session && session.authSession && session.authSession.accessToken;
+        let authSession = session && session.authSession;
+        const needsRefresh = authSession && authSession.refreshToken && (
+          !window.__crmAuthRefreshedAt || Number(authSession.expiresAt || 0) <= Date.now() + 60000
+        );
+        if (needsRefresh) {
+          const refreshResponse = await fetch('/api/run/refreshAuthSession', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ args: [authSession.refreshToken] })
+          });
+          const refreshed = await refreshResponse.json();
+          if (refreshResponse.ok && refreshed.success && refreshed.authSession) {
+            authSession = refreshed.authSession;
+            session.authSession = authSession;
+            localStorage.setItem('userSession', JSON.stringify(session));
+            window.__crmAuthRefreshedAt = Date.now();
+          }
+        }
+        const token = authSession && authSession.accessToken;
         return Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {});
       } catch (error) {
         return { 'Content-Type': 'application/json' };
@@ -397,7 +414,7 @@ const GOOGLE_SCRIPT_RUN_MOCK = `
     workbookMethods.forEach((method) => {
       API[method] = async (...args) => {
         const response = await fetch('/api/run/' + encodeURIComponent(method), {
-          method: 'POST', headers: authHeaders(), body: JSON.stringify({ args })
+          method: 'POST', headers: await authHeaders(), body: JSON.stringify({ args })
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || 'Local API error');
@@ -421,7 +438,7 @@ const GOOGLE_SCRIPT_RUN_MOCK = `
           return async function(...args) {
             try {
               const response = await fetch('/api/run/' + encodeURIComponent(prop), {
-                method: 'POST', headers: authHeaders(), body: JSON.stringify({ args })
+                method: 'POST', headers: await authHeaders(), body: JSON.stringify({ args })
               });
               const res = await response.json();
               if (!response.ok) throw new Error(res.message || 'Local API error');
@@ -443,7 +460,7 @@ const GOOGLE_SCRIPT_RUN_MOCK = `
 </script>
 `;
 
-const server = http.createServer(async (req, res) => {
+const appHandler = async (req, res) => {
   if (req.url && req.url.startsWith('/api/run/')) {
     const method = decodeURIComponent(req.url.slice('/api/run/'.length).split('?')[0]);
     try {
@@ -471,7 +488,7 @@ const server = http.createServer(async (req, res) => {
     let output = rawData
       .replace(/<\?!=\s*defaultThemeVars\s*\?>/g, '')
       .replace(/<\?!=\s*deepLink\s*\?>/g, '')
-      .replace(/<\?!=\s*appUrl\s*\?>/g, `http://localhost:${PORT}`);
+      .replace(/<\?!=\s*appUrl\s*\?>/g, '');
 
     // Inject Google Script Run Mock Bridge before </head>
     output = output.replace('</head>', `${GOOGLE_SCRIPT_RUN_MOCK}</head>`);
@@ -479,12 +496,18 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200);
     res.end(output);
   });
-});
+};
 
-server.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 BĐS MASTER CRM ĐANG CHẠY TRÊN LOCALHOST:`);
-  console.log(`👉 http://localhost:${PORT}`);
-  console.log(`👤 Tài khoản mặc định: admin  | Mật khẩu: admin123`);
-  console.log(`====================================================`);
-});
+const server = http.createServer(appHandler);
+
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🚀 BĐS MASTER CRM ĐANG CHẠY TRÊN LOCALHOST:`);
+    console.log(`👉 http://localhost:${PORT}`);
+    console.log(`👤 Tài khoản mặc định: admin  | Mật khẩu: admin123`);
+    console.log(`====================================================`);
+  });
+}
+
+module.exports = appHandler;
