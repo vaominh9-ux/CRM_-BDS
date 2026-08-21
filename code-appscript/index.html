@@ -5467,7 +5467,7 @@
                   className: 'dt-actions actions-3',
                   width: '106px',
                   render: (d, t, row) => `<div class="table-actions slots-3">
-                    ${canEdit ? `<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>` : ''}
+                    ${canEdit ? `<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>` : ''}
                     ${canDel ? `<button class="action-icon assign-icon" data-action="reassign" title="Reassign work"><i class="fas fa-people-arrows"></i></button>` : ''}
                     ${canDel ? `<button class="action-icon delete-icon" data-action="delete" title="Deactivate"><i class="fas fa-user-slash"></i></button>` : ''}
                     ${!canEdit && !canDel ? '<span style="color:#999;">—</span>' : ''}
@@ -5704,7 +5704,7 @@
                   options={targets.map((u) => ({ value: u.Username, label: u.Username + ' (' + u.Role + ')' }))}
                   value={toUser} onChange={setToUser} placeholder="Pick a user…" required={true} />
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving || !toUser}>
                     {saving ? <><i className="fas fa-spinner fa-spin"></i> Moving…</> : <><i className="fas fa-people-arrows"></i> Reassign All</>}
                   </button>
@@ -6747,10 +6747,10 @@
           { data: 'status', title: 'Status', render: (d, t) => t === 'display' ? badge(d) : d },
           { data: 'assignedAgent', title: 'Agent', render: (d) => esc(d || '—') },
           { data: 'viewsCount', title: 'Views', render: (d, t) => t === 'display' ? Number(d || 0).toLocaleString('en-US') : d },
-          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-3', width: '106px', render: () => `<div class="table-actions slots-3">
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-3', width: '106px', render: () => `<div class="table-actions slots-3">
             <button class="action-icon view-icon" data-action="view" title="Details"><i class="fas fa-eye"></i></button>
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
-            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
         createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để xem nhanh thông tin'); },
         order: []
@@ -6770,7 +6770,7 @@
             </div>
             <div className="filters-grid">
               <div className="filter-group">
-                <label><i className="fas fa-magnifying-glass"></i> Search</label>
+                <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
                 <input className="filter-input" value={filters.search} placeholder="Title, ref, type, agent…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
               </div>
               <SearchableDropdown label="Property Type" icon="fas fa-house" options={opts(ENUMS.propertyType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="All Types" />
@@ -7238,7 +7238,7 @@
                   </div>))}
               {tab === 'docs' && (
                 <>
-                  {canEdit && <div className="form-group"><label><i className="fas fa-file-arrow-up"></i> Tải tài liệu lên <small style={{ color: '#999', textTransform: 'none' }}>(hợp đồng, CNIC, giấy chuyển nhượng — không công khai)</small></label>
+                  {canEdit && <div className="form-group"><label><i className="fas fa-file-arrow-up"></i> Tải tài liệu lên <small style={{ color: '#999', textTransform: 'none' }}>(hợp đồng, CCCD/CMND, giấy tờ chuyển nhượng — không công khai)</small></label>
                     <input type="file" className="file-input" onChange={addDoc} disabled={busy} /></div>}
                   {(prop.documents || []).length === 0 ? <p style={{ color: '#789', padding: 12 }}>Chưa có tài liệu đính kèm.</p>
                     : (prop.documents || []).map((doc, i) => (
@@ -7906,7 +7906,7 @@
                   )}
                 </div>
                 <div className="form-group">
-                  <label><i className="fas fa-align-left"></i> Notes</label>
+                  <label><i className="fas fa-align-left"></i> Ghi chú</label>
                   <textarea rows="3" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="What needs to happen / what happened…"></textarea>
                 </div>
                 <div className="form-actions">
@@ -8891,23 +8891,23 @@
         <div className="modal-overlay">
           <div className="modal" style={{ maxWidth: 560 }}>
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Edit Owner #' + owner.id : 'Add Owner'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Chỉnh sửa chủ sở hữu #' + owner.id : 'Thêm chủ sở hữu'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 <div className="form-grid">
-                  <div className="form-group"><label><i className="fas fa-user"></i> Name *</label><input value={form.name} onChange={setEv('name')} required /></div>
+                  <div className="form-group"><label><i className="fas fa-user"></i> Họ và tên *</label><input value={form.name} onChange={setEv('name')} required /></div>
                   <div className="form-group"><label><i className="fas fa-phone"></i> Điện thoại * <small style={{ color: '#999', textTransform: 'none' }}>(khóa định danh)</small></label><input value={form.phone} onChange={setEv('phone')} required placeholder="+92300…" /></div>
                   <div className="form-group"><label><i className="fas fa-envelope"></i> Email</label><input type="email" value={form.email} onChange={setEv('email')} /></div>
-                  <div className="form-group"><label><i className="fas fa-id-card"></i> CNIC</label><input value={form.cnic} onChange={setEv('cnic')} placeholder="35201-…" /></div>
+                  <div className="form-group"><label><i className="fas fa-id-card"></i> Số CCCD / CMND</label><input value={form.cnic} onChange={setEv('cnic')} placeholder="Nhập số CCCD/CMND..." /></div>
                 </div>
-                <div className="form-group"><label><i className="fas fa-location-dot"></i> Address</label><input value={form.address} onChange={setEv('address')} /></div>
+                <div className="form-group"><label><i className="fas fa-location-dot"></i> Địa chỉ</label><input value={form.address} onChange={setEv('address')} /></div>
                 <div className="form-group"><label><i className="fas fa-align-left"></i> Notes</label><textarea rows="2" value={form.notes} onChange={setEv('notes')}></textarea></div>
                 <div className="form-actions">
                   <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update Owner' : 'Add Owner'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật chủ sở hữu' : 'Thêm chủ sở hữu'}</>}
                   </button>
                 </div>
               </form>
@@ -8948,7 +8948,7 @@
                 <div className="pd-facts">
                   <div className="pd-fact"><div className="k">Điện thoại</div><div className="v">{owner.phone}</div></div>
                   <div className="pd-fact"><div className="k">Email</div><div className="v">{owner.email || '—'}</div></div>
-                  <div className="pd-fact"><div className="k">CNIC</div><div className="v">{owner.cnic || '—'}</div></div>
+                  <div className="pd-fact"><div className="k">Số CCCD / CMND</div><div className="v">{owner.cnic || '—'}</div></div>
                   <div className="pd-fact"><div className="k">Địa chỉ</div><div className="v">{owner.address || '—'}</div></div>
                   <div className="pd-fact"><div className="k">Ngày tạo</div><div className="v">{fmtDate(owner.created)}</div></div>
                   <div className="pd-fact"><div className="k">Ghi chú</div><div className="v">{owner.notes || '—'}</div></div>
@@ -8984,10 +8984,10 @@
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
 
       const kpi = useMemo(() => { const r = rows || []; return [
-        [r.length, 'Owners', 'fa-user-tie', 'bg-navy'],
-        [r.filter((o) => o.propertyCount > 0).length, 'With Listings', 'fa-building', 'bg-info'],
-        [r.reduce((s, o) => s + (o.propertyCount || 0), 0), 'Linked Properties', 'fa-link', 'bg-success'],
-        [pkrShort(r.reduce((s, o) => s + (o.totalBusiness || 0), 0)), 'Total Business', 'fa-sack-dollar', 'bg-warning']
+        [r.length, 'Tổng chủ sở hữu', 'fa-user-tie', 'bg-navy'],
+        [r.filter((o) => o.propertyCount > 0).length, 'Có BĐS gửi bán/thuê', 'fa-building', 'bg-info'],
+        [r.reduce((s, o) => s + (o.propertyCount || 0), 0), 'BĐS liên kết', 'fa-link', 'bg-success'],
+        [pkrShort(r.reduce((s, o) => s + (o.totalBusiness || 0), 0)), 'Tổng doanh số', 'fa-sack-dollar', 'bg-warning']
       ]; }, [rows]);
 
       const downloadTemplate = () => downloadCSV('owners_template.csv', 'Name,Phone,Email,CNIC,Address,Notes\nOwner 99,03005000099,owner99@demo.com,,DHA Lahore,\n');
@@ -9010,7 +9010,7 @@
         else if (action === 'wa') waOpen(o.phone);
         else if (action === 'edit') { setEditing(o); setShowModal(true); }
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Delete owner "' + o.name + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+          Swal.fire({ icon: 'warning', title: 'Xóa chủ sở hữu "' + o.name + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteOwner', o.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); }
               else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
@@ -9020,16 +9020,16 @@
       const tableRef = useDataTable('ownersTable', rows === undefined ? null : rows, () => ({
         search: { search: filters.search },
         columns: [
-          { data: 'name', title: 'Owner', render: (d, t, o) => t === 'display'
+          { data: 'name', title: 'Chủ sở hữu', render: (d, t, o) => t === 'display'
               ? '<button type="button" class="table-record-link" data-action="view" title="Xem hồ sơ chủ sở hữu"><strong>' + esc(d) + '</strong><span class="record-phone">' + esc(o.phone) + '</span></button>'
               : d },
           { data: 'email', title: 'Email', render: (d) => esc(d || '—') },
-          { data: 'address', title: 'Address', render: (d) => esc(d || '—') },
-          { data: 'propertyCount', title: 'Properties' },
-          { data: 'totalBusiness', title: 'Business', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
-          { data: 'created', title: 'Since', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
+          { data: 'address', title: 'Địa chỉ', render: (d) => esc(d || '—') },
+          { data: 'propertyCount', title: 'Số BĐS' },
+          { data: 'totalBusiness', title: 'Tổng doanh số', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
+          { data: 'created', title: 'Ngày tạo', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
           { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-4', width: '140px', render: () => `<div class="table-actions slots-4">
-            <button class="action-icon view-icon" data-action="view" title="Owner 360"><i class="fas fa-id-card-clip"></i></button>
+            <button class="action-icon view-icon" data-action="view" title="Hồ sơ chủ sở hữu 360"><i class="fas fa-id-card-clip"></i></button>
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
             ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
@@ -9043,13 +9043,13 @@
         <>
           <KpiRow items={kpi} />
           <div className="filters-section">
-            <div className="filters-header"><h3><i className="fas fa-filter"></i> Filters</h3>
-              <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ search: '' })}><i className="fas fa-rotate-left"></i> Clear</button>
+            <div className="filters-header"><h3><i className="fas fa-filter"></i> Bộ lọc</h3>
+              <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ search: '' })}><i className="fas fa-rotate-left"></i> Xóa lọc</button>
             </div>
             <div className="filters-grid">
               <div className="filter-group">
                 <label><i className="fas fa-magnifying-glass"></i> Search</label>
-                <input className="filter-input" value={filters.search} placeholder="Name, phone, address…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                <input className="filter-input" value={filters.search} placeholder="Tên, số điện thoại, địa chỉ, CCCD…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
               </div>
             </div>
           </div>
