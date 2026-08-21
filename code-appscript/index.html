@@ -8050,7 +8050,7 @@
           <div className="data-section">
             <input type="file" id="apptCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'LeadPhone', 'bulkImportAppointments', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
-            {calView && <CalendarGrid appts={visible} />}
+            {calView && <CalendarGrid appts={visible} onSelectAppt={(a) => { setEditing(a); setShowModal(true); }} />}
             {loading ? (!calView && <TableSkeleton rows={8} columns={7} />)
               : <div style={{ overflowX: 'auto', display: calView ? 'none' : 'block' }}><table id="apptTable" className="display" style={{ width: '100%' }}></table></div>}
           </div>
@@ -10208,7 +10208,7 @@
     }
 
     // ============== Appointments month calendar (list <-> grid toggle, derived) ==============
-    function CalendarGrid({ appts }) {
+    function CalendarGrid({ appts, onSelectAppt }) {
       const [ym, setYm] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
       const first = new Date(ym.y, ym.m, 1);
       const start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7)); // Monday grid
@@ -10221,23 +10221,33 @@
         <div className="cal-wrap">
           <div className="cal-nav">
             <button className="btn btn-secondary btn-sm" onClick={() => mv(-1)}><i className="fas fa-chevron-left"></i></button>
-            <h4><i className="fas fa-calendar"></i> {first.toLocaleString('en-US', { month: 'long', year: 'numeric' })}</h4>
+            <h4><i className="fas fa-calendar-days text-accent" style={{ marginRight: 6 }}></i>Tháng {first.getMonth() + 1}, {first.getFullYear()}</h4>
             <button className="btn btn-secondary btn-sm" onClick={() => mv(1)}><i className="fas fa-chevron-right"></i></button>
           </div>
           <div className="cal-grid">
-            {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d) => <div key={d} className="cal-head">{d}</div>)}
-            {cells.map((d, i) => (
-              <div key={i} className={'cal-cell' + (d.getMonth() !== ym.m ? ' out' : '') + (key(d) === today ? ' today' : '')}>
-                <div className="d">{d.getDate()}</div>
-                {(byDay[key(d)] || []).slice(0, 3).map((a) => (
-                  <div key={a.id} className={'cal-ev' + (a.status === 'Completed' ? ' done' : ['Cancelled', 'No Show'].indexOf(a.status) !== -1 ? ' bad' : '')}
-                       title={a.leadName + ' · ' + (a.propertyRef || '') + ' · ' + fmtDT(a.scheduledAt) + ' · ' + a.status}>
-                    {new Date(a.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} {a.leadName}
-                  </div>
-                ))}
-                {(byDay[key(d)] || []).length > 3 && <div style={{ fontSize: 10, color: '#789' }}>+{byDay[key(d)].length - 3} more</div>}
-              </div>
-            ))}
+            {['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật'].map((d) => <div key={d} className="cal-head">{d}</div>)}
+            {cells.map((d, i) => {
+              const dayList = byDay[key(d)] || [];
+              return (
+                <div key={i} className={'cal-cell' + (d.getMonth() !== ym.m ? ' out' : '') + (key(d) === today ? ' today' : '')}>
+                  <div className="d">{d.getDate()}</div>
+                  {dayList.slice(0, 3).map((a) => (
+                    <div key={a.id} className={'cal-ev' + (a.status === 'Completed' ? ' done' : ['Cancelled', 'No Show'].indexOf(a.status) !== -1 ? ' bad' : '')}
+                         onClick={() => onSelectAppt && onSelectAppt(a)}
+                         style={{ cursor: 'pointer' }}
+                         title={a.leadName + ' · ' + (a.propertyRef || '') + ' · ' + fmtDT(a.scheduledAt) + ' · ' + viEnum(a.status)}>
+                      {new Date(a.scheduledAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} {a.leadName}
+                    </div>
+                  ))}
+                  {dayList.length > 3 && (
+                    <div style={{ fontSize: 10.5, color: 'var(--navy-accent)', cursor: 'pointer', fontWeight: 600, marginTop: 2 }}
+                         onClick={() => onSelectAppt && onSelectAppt(dayList[3])}>
+                      +{dayList.length - 3} lịch khác...
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       );
