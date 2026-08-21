@@ -209,6 +209,9 @@ const nullableNumber = (value) => value === undefined ? undefined : (value === '
 const nullableText = (value) => value === undefined ? undefined : (value === '' || value === null ? null : String(value));
 const has = (object,key) => Object.prototype.hasOwnProperty.call(object,key);
 const slugify = (value) => String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const vietnamDate = (value = new Date()) => new Intl.DateTimeFormat('en-CA',{
+  timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'
+}).format(new Date(value));
 
 async function profileId(username,jwt,fallback) {
   if (!username) return fallback || null;
@@ -383,6 +386,25 @@ async function appointmentBody(data,jwt,isNew=false){const p=await currentProfil
 async function addAppointment(args,jwt){const row=await insertRow('appointments',await appointmentBody(args[0]||{},jwt,true),jwt);await audit(jwt,'Appointment Added',row?`#${row.id}`:'');return ok({id:row?.id,message:'Đã thêm lịch hẹn'});}
 async function updateAppointment(args,jwt){const d=args[0]||{};await patchRow('appointments',d.id,await appointmentBody(d,jwt,false),jwt);await audit(jwt,'Appointment Updated',`#${d.id}`);return ok({message:'Đã cập nhật lịch hẹn'});}
 async function deleteAppointment(args,jwt){return softDelete('appointments',args[0],jwt,'Appointment');}
+async function completeAppointment(args,jwt){
+  const [rawId,data={}] = args, id=Number(rawId), allowedInterest=new Set(['Hot','Warm','Cold']);
+  if(!id)return fail('Lịch hẹn không hợp lệ');
+  const rows=await select('appointments','id,lead_id,status',jwt,`&id=eq.${id}&deleted_at=is.null&limit=1`);
+  const appointment=rows[0];
+  if(!appointment)return fail('Không tìm thấy lịch hẹn hoặc bạn không có quyền cập nhật');
+  if(['Cancelled','Completed'].includes(appointment.status))return fail(`Lịch hẹn đã ở trạng thái ${appointment.status}`);
+  const interest=allowedInterest.has(data.interestLevel)?data.interestLevel:null;
+  const profile=await currentProfile(jwt);
+  await patchRow('appointments',id,{status:'Completed',feedback:String(data.feedback||'').slice(0,2000),interest_level:interest,
+    updated_at:new Date().toISOString(),updated_by:profile.id},jwt);
+  await audit(jwt,'Appointment Completed',`#${id}${interest?` [${interest}]`:''}`);
+  let suggestNegotiating=false;
+  if(interest==='Hot'&&appointment.lead_id){
+    const leads=await select('leads','id,status',jwt,`&id=eq.${Number(appointment.lead_id)}&deleted_at=is.null&limit=1`);
+    suggestNegotiating=Boolean(leads[0]&&!['Negotiating','Won','Lost'].includes(leads[0].status));
+  }
+  return ok({message:'Đã hoàn thành lịch xem',suggestNegotiating,leadId:appointment.lead_id||null});
+}
 
 async function dealBody(data,jwt,isNew=false){const p=await currentProfile(jwt),agent=(isNew||has(data,'agent'))?await profileId(data.agent,jwt,p.id):undefined,status=data.status||(isNew?'Token':undefined);return clean({deal_type:data.dealType,property_id:data.propertyId===undefined?undefined:Number(data.propertyId),lead_id:nullableNumber(data.leadId),buyer_name:data.buyerName,buyer_phone:data.buyerPhone,agent_id:agent,deal_amount_vnd:data.dealAmount===undefined?undefined:Number(data.dealAmount),commission_pct:data.commissionPct===undefined?undefined:Number(data.commissionPct),agent_share_pct:data.agentSharePct===undefined?undefined:Number(data.agentSharePct),agent_paid_at:nullableText(data.agentPaidAt),token_amount_vnd:data.tokenAmount===undefined?undefined:Number(data.tokenAmount||0),status,closed_at:status==='Completed'?(data.closedAt||new Date().toISOString()):nullableText(data.closedAt),cancellation_reason:nullableText(data.cancellationReason),notes:data.notes,created_by:isNew?p.id:undefined,updated_at:new Date().toISOString(),updated_by:p.id});}
 async function addDeal(args,jwt){const row=await insertRow('deals',await dealBody(args[0]||{},jwt,true),jwt);await audit(jwt,'Deal Added',row?`#${row.id}`:'');return ok({id:row?.id,message:'Đã thêm giao dịch'});}
@@ -390,6 +412,108 @@ async function updateDeal(args,jwt){const d=args[0]||{};await patchRow('deals',d
 async function deleteDeal(args,jwt){return softDelete('deals',args[0],jwt,'Deal');}
 async function addDealPayment(args,jwt){const [dealId,data]=args;await request('/rest/v1/rpc/record_deal_payment',{method:'POST',jwt,body:{target_deal_id:Number(dealId),payment_amount_vnd:Number(data.amount),payment_method:data.method||'Cash',payment_reference:data.reference||'',payment_notes:data.notes||'',payment_time:data.date||data.paidAt||new Date().toISOString()}});await audit(jwt,'Deal Payment Added',`#${dealId}`);return ok({message:'Đã ghi nhận thanh toán'});}
 async function markAgentPaid(args,jwt){const id=args[0],p=await currentProfile(jwt);await patchRow('deals',id,{agent_paid_at:new Date().toISOString(),updated_at:new Date().toISOString(),updated_by:p.id},jwt);await audit(jwt,'Agent Commission Paid',`#${id}`);return ok({message:'Đã ghi nhận thanh toán hoa hồng'});}
+
+async function tenancyContext(rawId,jwt){
+  const id=Number(rawId);
+  if(!id)return null;
+  const rows=await select('tenancies','id,property_id,monthly_rent_vnd,security_deposit_vnd,start_date,end_date,status,properties(id,status)',jwt,`&id=eq.${id}&deleted_at=is.null&limit=1`);
+  return rows[0]||null;
+}
+async function collectRent(args,jwt){
+  const [rawId,data={}] = args, tenancy=await tenancyContext(rawId,jwt);
+  if(!tenancy)return fail('Không tìm thấy hợp đồng thuê hoặc bạn không có quyền cập nhật');
+  if(tenancy.status!=='Active')return fail('Hợp đồng thuê đã kết thúc');
+  const month=String(data.month||'').slice(0,7), amount=Number(data.amount), methods=new Set(['Cash','Bank Transfer','Cheque','Online']);
+  if(!/^\d{4}-\d{2}$/.test(month))return fail('Tháng thu tiền phải có định dạng YYYY-MM');
+  if(!Number.isFinite(amount)||amount<=0)return fail('Số tiền thu phải lớn hơn 0');
+  const profile=await currentProfile(jwt);
+  try{
+    await insertRow('rent_payments',{tenancy_id:tenancy.id,rent_month:`${month}-01`,amount_vnd:Math.round(amount),paid_at:data.paidAt||new Date().toISOString(),
+      method:methods.has(data.method)?data.method:'Cash',reference:nullableText(data.ref||data.reference),received_by:profile.id},jwt);
+  }catch(error){
+    if(/rent_payments_tenancy_id_rent_month_key|duplicate key/i.test(String(error.message||'')))return fail(`Tiền thuê tháng ${month} đã được ghi nhận`);
+    throw error;
+  }
+  await audit(jwt,'Rent Collected',`#${tenancy.id} ${month} ${Math.round(amount)} VND`);
+  return ok({message:`Đã thu tiền thuê tháng ${month}`});
+}
+async function renewTenancy(args,jwt){
+  const [rawId,data={}] = args, tenancy=await tenancyContext(rawId,jwt), profile=await currentProfile(jwt);
+  if(!tenancy)return fail('Không tìm thấy hợp đồng thuê hoặc bạn không có quyền cập nhật');
+  if(!['Admin','Manager'].includes(profile.role_key))return fail('Chỉ Quản trị viên hoặc Quản lý được gia hạn hợp đồng');
+  if(tenancy.status!=='Active')return fail('Hợp đồng thuê đã kết thúc');
+  const newRent=Math.round(Number(data.newRent));
+  if(!Number.isFinite(newRent)||newRent<=0)return fail('Tiền thuê mới phải lớn hơn 0');
+  const newEndDate=data.newEndDate||tenancy.end_date||null;
+  let renewal;
+  try{
+    renewal=await insertRow('tenancy_renewals',{tenancy_id:tenancy.id,old_rent_vnd:Number(tenancy.monthly_rent_vnd),new_rent_vnd:newRent,
+      new_end_date:newEndDate,notes:nullableText(data.notes),created_by:profile.id},jwt);
+    await patchRow('tenancies',tenancy.id,{monthly_rent_vnd:newRent,end_date:newEndDate,updated_at:new Date().toISOString(),updated_by:profile.id},jwt);
+  }catch(error){
+    if(renewal?.id)await request(`/rest/v1/tenancy_renewals?id=eq.${Number(renewal.id)}`,{method:'DELETE',jwt}).catch(()=>{});
+    throw error;
+  }
+  await audit(jwt,'Tenancy Renewed',`#${tenancy.id} rent ${tenancy.monthly_rent_vnd} → ${newRent}`);
+  return ok({message:'Đã gia hạn hợp đồng thuê'});
+}
+async function endTenancy(args,jwt){
+  const [rawId,data={}] = args, tenancy=await tenancyContext(rawId,jwt), profile=await currentProfile(jwt);
+  if(!tenancy)return fail('Không tìm thấy hợp đồng thuê hoặc bạn không có quyền cập nhật');
+  if(!['Admin','Manager'].includes(profile.role_key))return fail('Chỉ Quản trị viên hoặc Quản lý được kết thúc hợp đồng');
+  if(tenancy.status!=='Active')return fail('Hợp đồng thuê đã kết thúc');
+  const deposit=Number(tenancy.security_deposit_vnd||0), deductions=Math.round(Number(data.deductions||0));
+  if(!Number.isFinite(deductions)||deductions<0)return fail('Khoản khấu trừ không hợp lệ');
+  if(deductions>deposit)return fail(`Khoản khấu trừ vượt tiền cọc ${deposit} VNĐ`);
+  let refundCreated=false, tenancyEnded=false;
+  try{
+    await request('/rest/v1/deposit_refunds',{method:'POST',jwt,body:{tenancy_id:tenancy.id,deposit_vnd:deposit,deductions_vnd:deductions,
+      notes:nullableText(data.notes),refunded_at:new Date().toISOString(),refunded_by:profile.id}});
+    refundCreated=true;
+    await patchRow('tenancies',tenancy.id,{status:'Ended',end_date:data.endDate||vietnamDate(),updated_at:new Date().toISOString(),updated_by:profile.id},jwt);
+    tenancyEnded=true;
+    if(tenancy.properties?.status==='Rented')await patchRow('properties',tenancy.property_id,{status:'Available',published_at:new Date().toISOString(),updated_at:new Date().toISOString(),updated_by:profile.id},jwt);
+  }catch(error){
+    if(tenancyEnded)await patchRow('tenancies',tenancy.id,{status:'Active',end_date:tenancy.end_date,updated_at:new Date().toISOString(),updated_by:profile.id},jwt).catch(()=>{});
+    if(refundCreated)await request(`/rest/v1/deposit_refunds?tenancy_id=eq.${tenancy.id}`,{method:'DELETE',jwt}).catch(()=>{});
+    if(/deposit_refunds_pkey|duplicate key/i.test(String(error.message||'')))return fail('Hợp đồng này đã có quyết toán tiền cọc');
+    throw error;
+  }
+  await audit(jwt,'Tenancy Ended',`#${tenancy.id} refund ${deposit-deductions}`);
+  return ok({message:'Đã kết thúc hợp đồng và đưa bất động sản về trạng thái còn trống'});
+}
+async function addMaintenance(args,jwt){
+  const [rawId,data={}] = args, tenancy=await tenancyContext(rawId,jwt), profile=await currentProfile(jwt), issue=String(data.issue||'').trim();
+  if(!tenancy)return fail('Không tìm thấy hợp đồng thuê hoặc bạn không có quyền cập nhật');
+  if(!issue)return fail('Vui lòng nhập nội dung bảo trì');
+  const row=await insertRow('maintenance_items',{tenancy_id:tenancy.id,issue_date:data.date||vietnamDate(),issue:issue.slice(0,500),status:'Open',cost_vnd:0,created_by:profile.id},jwt);
+  await audit(jwt,'Maintenance Logged',`#${tenancy.id} item #${row?.id||''}`);
+  return ok({id:row?.id,message:'Đã ghi nhận yêu cầu bảo trì'});
+}
+async function updateMaintenance(args,jwt){
+  const [rawTenancyId,rawItemId,data={}] = args, tenancy=await tenancyContext(rawTenancyId,jwt), itemId=Number(rawItemId), profile=await currentProfile(jwt);
+  if(!tenancy)return fail('Không tìm thấy hợp đồng thuê hoặc bạn không có quyền cập nhật');
+  const items=await select('maintenance_items','id,status,issue,cost_vnd,fixed_at',jwt,`&id=eq.${itemId}&tenancy_id=eq.${tenancy.id}&limit=1`), item=items[0];
+  if(!item)return fail('Không tìm thấy hạng mục bảo trì');
+  const status=data.status==='Fixed'?'Fixed':(data.status==='Open'?'Open':item.status), cost=data.cost===undefined?Number(item.cost_vnd||0):Math.round(Number(data.cost||0));
+  if(!Number.isFinite(cost)||cost<0)return fail('Chi phí bảo trì không hợp lệ');
+  const firstCompletion=item.status!=='Fixed'&&status==='Fixed';
+  let expense;
+  try{
+    await request(`/rest/v1/maintenance_items?id=eq.${itemId}&tenancy_id=eq.${tenancy.id}`,{method:'PATCH',jwt,body:{status,cost_vnd:cost,
+      issue:data.issue===undefined?item.issue:String(data.issue).trim().slice(0,500),fixed_at:firstCompletion?new Date().toISOString():(status==='Open'?null:undefined)}});
+    if(firstCompletion&&cost>0){
+      expense=await insertRow('property_expenses',{property_id:tenancy.property_id,expense_date:vietnamDate(),category:'Maintenance',amount_vnd:cost,
+        notes:String(data.issue||item.issue||'Chi phí bảo trì').slice(0,500),created_by:profile.id},jwt);
+    }
+  }catch(error){
+    await request(`/rest/v1/maintenance_items?id=eq.${itemId}`,{method:'PATCH',jwt,body:{status:item.status,cost_vnd:Number(item.cost_vnd||0),issue:item.issue,fixed_at:item.fixed_at}}).catch(()=>{});
+    if(expense?.id)await request(`/rest/v1/property_expenses?id=eq.${Number(expense.id)}`,{method:'DELETE',jwt}).catch(()=>{});
+    throw error;
+  }
+  await audit(jwt,'Maintenance Updated',`#${tenancy.id} item #${itemId} → ${status}`);
+  return ok({message:'Đã cập nhật bảo trì'});
+}
 
 const simpleBody={owners:d=>({name:d.name,phone:d.phone,email:nullableText(d.email),identity_number:nullableText(d.cnic||d.identityNumber),address:d.address,notes:d.notes}),locations:d=>({name:d.name,level:d.level,parent_id:nullableNumber(d.parentId),slug:d.slug||slugify(d.name)}),amenities:d=>({name:d.name,icon:d.icon})};
 async function simpleAdd(table,label,args,jwt){const p=await currentProfile(jwt),row=await insertRow(table,{...simpleBody[table](args[0]||{}),created_by:table==='owners'?p.id:undefined},jwt);await audit(jwt,`${label} Added`,row?`#${row.id}`:'');return ok({id:row?.id,message:'Đã thêm dữ liệu'});}
@@ -494,8 +618,9 @@ async function run(method,args=[],authorization=''){
   const mutationHandlers={
     updateUserSettings,toggleRbac,setAppConfig,
     addProperty,updateProperty,deleteProperty,uploadPropertyImage,addLead,updateLead,deleteLead,assignLead,
-    addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,
+    addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,completeAppointment,
     addDeal,updateDeal,deleteDeal,addDealPayment,markAgentPaid,
+    collectRent,renewTenancy,endTenancy,addMaintenance,updateMaintenance,
     addOwner,updateOwner,deleteOwner,addLocation,updateLocation,deleteLocation,addAmenity,updateAmenity,deleteAmenity
   };
   if(readHandlers[method]) return readHandlers[method](jwt);

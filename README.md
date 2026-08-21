@@ -36,6 +36,7 @@ npm run verify:business
 
 - `check`: cấu trúc, cú pháp, JSON, migration và an toàn tệp môi trường.
 - `audit:data`: quan hệ tham chiếu và công thức trên dữ liệu nguồn JSON.
+- `audit:contract`: đối chiếu các API cố định UI đang gọi với dispatcher Supabase.
 - `verify:business`: so sánh KPI giữa fallback và Supabase; cần thông tin đăng nhập migration.
 
 ## Tài liệu dành cho phát triển

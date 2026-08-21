@@ -38,6 +38,7 @@
 - Không lộ secret/JWT trong mã, log hoặc HTML.
 - RLS/policy phù hợp với V/A/E/D và phạm vi Agent.
 - Không tạo trùng appointment/open deal/active tenancy.
+- Thu tiền thuê phải dùng khóa duy nhất `(tenancy_id, rent_month)`; gia hạn và kết thúc chỉ dành cho Manager/Admin.
 - Công thức tiền dùng VNĐ nguyên và chạy ở database khi có cạnh tranh ghi.
 - Popup, bảng, tag và formatter dùng primitive dùng chung nếu đã có.
 - Chuỗi UI mới là tiếng Việt; enum lưu trữ vẫn dùng giá trị chuẩn.

@@ -29,7 +29,9 @@ Lỗi nghiệp vụ trả `success: false`; lỗi HTTP/không mong đợi phải
 - Bất động sản và tải ảnh.
 - Lead và phân công.
 - Chăm sóc, lịch hẹn.
+- Hoàn tất lịch xem và lưu phản hồi/mức độ quan tâm.
 - Giao dịch, ghi thanh toán, đánh dấu trả hoa hồng.
+- Hợp đồng thuê: thu tiền theo tháng, gia hạn, kết thúc/hoàn cọc và bảo trì.
 - Chủ sở hữu, khu vực, tiện ích.
 - Cài đặt cá nhân, cấu hình ứng dụng, RBAC.
 
@@ -37,9 +39,8 @@ Lỗi nghiệp vụ trả `success: false`; lỗi HTTP/không mong đợi phải
 
 Một số lời gọi đang tồn tại trong UI nhưng dispatcher Supabase chưa có hoặc mới trả thông báo “đang được chuyển sang Supabase”, nổi bật:
 
-- Nghiệp vụ tenancy: thu tiền, gia hạn, kết thúc, bảo trì.
 - Hồ sơ/tài liệu bất động sản, chi phí, PDF/email.
-- Chào giá lead, hoàn tất lịch, chuyển lead thành nguồn hàng.
+- Chào giá lead và chuyển lead thành nguồn hàng.
 - Quản lý user, chuyển giao công việc, trash/restore.
 - AI, tạo hợp đồng và một số import hàng loạt.
 
