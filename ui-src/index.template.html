@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>CRM Bất Động Sản & Cổng Thông Tin</title>
+
+  <!--
+  WhatsApp: https://zalo.me/923224083545 (For Custom Projects)
+  YouTube: https://www.youtube.com/@rameezimdad (Subscribe for more!)
+  -->
+
+  <!-- theme: apply saved palette BEFORE paint (no flash on first load). order: server default -> this device's last pick -->
+  <script>window.__APP_THEME_RAW__ = '<?!= defaultThemeVars ?>'; window.__DEEP_LINK__ = '<?!= deepLink ?>'; window.__APP_URL__ = '<?!= appUrl ?>';</script>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var put = function (v) {
+        if (!v) return;
+        try { if (typeof v === 'string') v = JSON.parse(v); } catch (e) { return; }
+        if (v && v.vars) v = v.vars; // support {themeId,vars} shape
+        Object.keys(v || {}).forEach(function (k) { if (k.indexOf('--') === 0) root.style.setProperty(k, v[k]); });
+      };
+      try { put(window.__APP_THEME_RAW__); } catch (e) {}          // global default (admin-set)
+      try { put(localStorage.getItem('app_theme_vars')); } catch (e) {} // per-device override wins
+    })();
+  </script>
+
+  <!-- CDN Dependencies -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style><!-- CRM_APP_CSS --></style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel"><!-- CRM_APP_JSX --></script>
+  <script>
+    // Vietnamese presentation layer. Internal API keys/enums remain unchanged.
+    (function () {
+      const exact = new Map(Object.entries({
+        'Staff Login':'Đăng nhập nhân viên','System Login':'Đăng nhập hệ thống','Back to Property Portal':'Quay lại cổng bất động sản','Find Your Next Property':'Khám Phá Bất Động Sản Xứng Tầm',
+        'Houses, apartments, plots and commercial spaces across Pakistan — verified listings from our agency inventory.':'Nhà phố, biệt thự, căn hộ cao cấp và mặt bằng thương mại đắc địa — 100% nguồn hàng xác thực & pháp lý minh bạch.',
+        'Search':'Tìm kiếm','City':'Thành phố','Type':'Loại hình','Min Price':'Giá tối thiểu','Max Price':'Giá tối đa',
+        'Min Beds':'Số phòng','Sort':'Sắp xếp','All Cities':'Tất cả thành phố','All Types':'Tất cả loại hình',
+        'Any':'Bất kỳ','Newest':'Mới nhất','Price: Low → High':'Giá: Thấp → Cao','Price: High → Low':'Giá: Cao → Thấp',
+        'Title, area, reference…':'Tiêu đề, khu vực, mã tham chiếu…','For':'','/monthly':'/tháng','/yearly':'/năm',
+        'All':'Tất cả','Buy':'Mua','Rent':'Thuê','Featured Properties':'Bất động sản nổi bật','All Listings':'Tất cả tin đăng',
+        'Featured':'Nổi bật','For Sale':'Đang bán','For Rent':'Cho thuê','Reserved':'Đã giữ chỗ','Available':'Đang giao dịch',
+        'No listings match your search — try widening the filters.':'Không có tin đăng phù hợp — hãy thử mở rộng điều kiện tìm kiếm.',
+        'Interested? Send an enquiry':'Bạn quan tâm? Gửi yêu cầu tư vấn','Your Name *':'Họ và tên *','Phone / WhatsApp *':'Điện thoại / Zalo *',
+        'Email':'Email','Preferred Viewing Time':'Thời gian muốn xem','Message':'Nội dung','Send Enquiry':'Gửi yêu cầu','Sending…':'Đang gửi…',
+        'Our team will contact you — your details are never shared publicly.':'Đội ngũ của chúng tôi sẽ liên hệ; thông tin của bạn không được công khai.',
+        'Similar Properties':'Bất động sản tương tự','Share on WhatsApp':'Chia sẻ qua Zalo','Copy link':'Sao chép liên kết',
+        'Link copied!':'Đã sao chép liên kết!','Loading…':'Đang tải…','Staff Access':'Khu vực nhân viên','Back to Listings':'Quay lại danh sách',
+        'Username':'Tên đăng nhập','Password':'Mật khẩu','Login':'Đăng nhập','Logging in…':'Đang đăng nhập…','Back to Portal':'Quay lại cổng thông tin',
+        'Dashboard':'Tổng quan','AI Assistant':'Trợ lý AI','Properties':'Bất động sản','Leads':'Khách hàng tiềm năng',
+        'Follow-Ups':'Chăm sóc khách hàng','Appointments':'Lịch hẹn','Deals':'Giao dịch','Tenancies':'Hợp đồng thuê',
+        'Agreements':'Hợp đồng','Reports':'Báo cáo','Owners':'Chủ sở hữu','Locations':'Khu vực','Amenities':'Tiện ích',
+        'Users':'Người dùng','Settings':'Cài đặt','Activity Logs':'Nhật ký hoạt động','Trash':'Thùng rác',
+        'General':'Tổng quan','Money':'Tài chính','Catalog':'Danh mục','System':'Hệ thống','Account':'Tài khoản',
+        'Logout':'Đăng xuất','Logout?':'Đăng xuất?','Are you sure you want to logout?':'Bạn có chắc muốn đăng xuất?',
+        'Yes, Logout':'Đăng xuất','Logged Out':'Đã đăng xuất','You have been logged out successfully.':'Bạn đã đăng xuất thành công.',
+        'Add Property':'Thêm bất động sản','Add Lead':'Thêm khách hàng','Add User':'Thêm người dùng','Add Owner':'Thêm chủ sở hữu',
+        'Add Location':'Thêm khu vực','Add Amenity':'Thêm tiện ích','Add Appointment':'Thêm lịch hẹn','Add Follow-Up':'Thêm lịch chăm sóc',
+        'Save':'Lưu','Saving…':'Đang lưu…','Cancel':'Hủy','Close':'Đóng','Edit':'Chỉnh sửa','Delete':'Xóa','Restore':'Khôi phục',
+        'View':'Xem','Details':'Chi tiết','Actions':'Thao tác','Status':'Trạng thái','Date':'Ngày','Created':'Ngày tạo','Updated':'Cập nhật',
+        'Name':'Tên','Phone':'Điện thoại','Address':'Địa chỉ','Description':'Mô tả','Notes':'Ghi chú','Agent':'Nhân viên',
+        'Price':'Giá','Area':'Diện tích','Bedrooms':'Phòng ngủ','Bathrooms':'Phòng tắm','Property Type':'Loại bất động sản',
+        'Listing Type':'Hình thức','Reference':'Mã tham chiếu','Owner':'Chủ sở hữu','Assigned Agent':'Nhân viên phụ trách',
+        'Active':'Đang hoạt động','Inactive':'Ngừng hoạt động','Draft':'Bản nháp','Sold':'Đã bán','Rented':'Đã cho thuê','Withdrawn':'Đã rút',
+        'New':'Mới','Contacted':'Đã liên hệ','Qualified':'Đủ điều kiện','Viewing Scheduled':'Đã lên lịch xem',
+        'Negotiating':'Đang thương lượng','Won':'Thành công','Lost':'Thất bại','Pending':'Đang chờ','Completed':'Hoàn thành',
+        'Cancelled':'Đã hủy','Confirmed':'Đã xác nhận','Scheduled':'Đã lên lịch','No Show':'Không đến','Open':'Đang mở',
+        'Overview':'Tổng quan','Recent Properties':'Bất động sản gần đây','Recent Leads':'Khách hàng gần đây','Deals Pipeline':'Quy trình giao dịch',
+        'Open Leads':'Khách hàng đang xử lý','My Open Leads':'Khách hàng tôi đang xử lý','Overdue Follow-Ups':'Lịch chăm sóc quá hạn',
+        "Today's Viewings":'Lịch xem hôm nay','Deals Closed (month)':'Giao dịch chốt trong tháng','Won Leads':'Khách hàng thành công',
+        'Total Enquiries':'Tổng yêu cầu tư vấn','Leads Overview':'Tổng quan khách hàng','Upcoming Viewings':'Lịch xem sắp tới',
+        'View all':'Xem tất cả','Import CSV':'Nhập CSV','Export CSV':'Xuất CSV','Download Template':'Tải tệp mẫu',
+        'Filters':'Bộ lọc','Clear Filters':'Xóa bộ lọc','No data found':'Không tìm thấy dữ liệu','No records found':'Không có dữ liệu',
+        'Create':'Tạo mới','Update':'Cập nhật','Submit':'Gửi','Upload':'Tải lên','Choose File':'Chọn tệp','Required':'Bắt buộc',
+        'Success':'Thành công','Error':'Lỗi','Warning':'Cảnh báo','Access denied':'Không có quyền truy cập','Not authorized':'Không được phép',
+        'Theme':'Giao diện','Light':'Chế độ sáng','Dark':'Chế độ tối','Profile':'Hồ sơ','Permissions':'Phân quyền','Role':'Vai trò',
+        'Monthly Target':'Mục tiêu tháng','Commission':'Hoa hồng','Payment':'Thanh toán','Payments':'Các khoản thanh toán',
+        'Deal Amount':'Giá trị giao dịch','Commission Amount':'Tiền hoa hồng','Token':'Đặt cọc','Agreement':'Hợp đồng',
+        'Maintenance':'Bảo trì','Rent Collection':'Thu tiền thuê','Tenant':'Người thuê','Monthly Rent':'Tiền thuê tháng',
+        'Start Date':'Ngày bắt đầu','End Date':'Ngày kết thúc','Security Deposit':'Tiền đặt cọc','Public Portal':'Cổng thông tin công khai',
+        'House':'Nhà','Flat':'Căn hộ','Upper Portion':'Tầng trên','Lower Portion':'Tầng dưới','Farm House':'Nhà vườn',
+        'Plot':'Đất nền','Commercial Plot':'Đất thương mại','Shop':'Cửa hàng','Office':'Văn phòng','Warehouse':'Kho','Building':'Tòa nhà',
+        'Sale':'Bán','Monthly':'Hàng tháng','Yearly':'Hàng năm','Call':'Cuộc gọi','Meeting':'Cuộc họp','Website':'Website',
+        'Zalo':'Zalo','Facebook':'Facebook','Walk-in':'Khách trực tiếp','Referral':'Giới thiệu','Phone Call':'Cuộc gọi','Other':'Khác',
+        'Save Changes':'Lưu thay đổi','Processing…':'Đang xử lý…','Deleting…':'Đang xóa…','Uploading…':'Đang tải lên…',
+        'Importing…':'Đang nhập dữ liệu…','Generating…':'Đang tạo…','Updating…':'Đang cập nhật…','Collecting…':'Đang thu tiền…',
+        '— your trusted property partner.':'— đối tác bất động sản đáng tin cậy của bạn.','Portal by':'Phát triển bởi',
+        'WhatsApp for custom projects':'Liên hệ Zalo để tùy chỉnh dự án'
+      }));
+
+      Object.entries({
+        'Access Denied':'Từ chối truy cập',"You don't have permission to view this page.":'Bạn không có quyền xem trang này.',
+        'About App':'Giới thiệu ứng dụng','What This App Does':'Chức năng của ứng dụng','Key Features':'Tính năng chính',
+        'Get Started':'Bắt đầu','Quick Actions':'Thao tác nhanh','Notifications':'Thông báo','Menu':'Trình đơn',
+        'My Account':'Tài khoản của tôi','Users Management':'Quản lý người dùng','Roles & Permissions':'Vai trò và phân quyền',
+        'Active Agents':'Nhân viên đang hoạt động','Agent Performance':'Hiệu suất nhân viên','Agent Leaderboard — full breakdown':'Bảng xếp hạng nhân viên — chi tiết',
+        'Agent Payouts Due':'Hoa hồng nhân viên cần trả','Target Progress':'Tiến độ mục tiêu','Top Agents':'Nhân viên xuất sắc',
+        'Total Business':'Tổng doanh số','This Month':'Tháng này','This Week':'Tuần này','Today':'Hôm nay','All Time':'Toàn thời gian',
+        'Closed Value':'Giá trị đã chốt','Sales Value (month)':'Doanh số tháng','Commission (month)':'Hoa hồng tháng',
+        'Collected (month)':'Đã thu trong tháng','Payable':'Cần thanh toán','Agency Share':'Phần công ty','Agent Share':'Phần nhân viên',
+        'Agency commission invoice (INV number) for a completed deal':'Hóa đơn hoa hồng công ty cho giao dịch hoàn tất',
+        'Commission & Payouts':'Hoa hồng và chi trả','Commission Earned':'Hoa hồng đạt được','Commission Invoice':'Hóa đơn hoa hồng',
+        'Agent Share %':'Tỷ lệ nhân viên','Agent Share % of Commission':'Tỷ lệ hoa hồng của nhân viên','Agency share':'Phần công ty',
+        'Deals closed':'Giao dịch đã chốt','Closed Deals':'Giao dịch hoàn tất','Open Deals':'Giao dịch đang xử lý',
+        'Property Status Overview':'Tổng quan trạng thái bất động sản','Featured Listings':'Tin đăng nổi bật','Inventory Ageing':'Tuổi nguồn hàng',
+        'Days Listed':'Số ngày đăng','Days Open':'Số ngày đang mở','Portal Views':'Lượt xem cổng thông tin','Enquiry Rate':'Tỷ lệ yêu cầu tư vấn',
+        'Portal Engagement':'Tương tác trên cổng thông tin','Total Enquiries':'Tổng yêu cầu tư vấn','Enquiries':'Yêu cầu tư vấn',
+        'Lead Conversion':'Chuyển đổi khách hàng','Leads (period)':'Khách hàng trong kỳ','Offers Pipeline':'Quy trình chào giá',
+        'Offers logged against leads inside the period':'Các chào giá phát sinh trong kỳ','Sales value':'Giá trị bán hàng',
+        'Report Period':'Kỳ báo cáo','Period':'Khoảng thời gian','From':'Từ ngày','To':'Đến ngày','Since':'Kể từ',
+        'Print':'In','Print (A4)':'In khổ A4','Prints on A4 — use margins "None" for best fit':'In khổ A4 — chọn lề “Không” để hiển thị tốt nhất',
+        'Primary Action':'Thao tác chính','Primary Color':'Màu chính','Accent Color':'Màu nhấn','Text Color':'Màu chữ',
+        'Color Palette':'Bảng màu','Dark Mode':'Chế độ tối','See how your colors look together':'Xem trước cách phối màu',
+        'This palette is active on your account':'Bảng màu này đang áp dụng cho tài khoản','Previews live across the whole app — hit Apply to keep it.':'Xem trước áp dụng toàn hệ thống — nhấn Áp dụng để lưu.',
+        'Apply':'Áp dụng','APPLIED':'ĐÃ ÁP DỤNG','DEFAULT':'MẶC ĐỊNH','Reset':'Đặt lại','Reset!':'Đặt lại!',
+        'Theme applied!':'Đã áp dụng giao diện!','Color scheme applied!':'Đã áp dụng bảng màu!','Colors reset to default Navy Blue theme!':'Đã khôi phục giao diện xanh navy mặc định!',
+        'Profile image updated!':'Đã cập nhật ảnh đại diện!','Update Account':'Cập nhật tài khoản','Upload Picture':'Tải ảnh lên',
+        'Username (Cannot be changed)':'Tên đăng nhập (không thể thay đổi)','Current Password *':'Mật khẩu hiện tại *',
+        'New Password (Leave blank to keep current)':'Mật khẩu mới (để trống nếu không đổi)','Confirm New Password':'Xác nhận mật khẩu mới',
+        'New passwords do not match!':'Mật khẩu mới không trùng khớp!','Monthly Target (VNĐ)':'Mục tiêu tháng (VNĐ)',
+        'All Agents':'Tất cả nhân viên','All Roles':'Tất cả vai trò','All Status':'Tất cả trạng thái','All Sources':'Tất cả nguồn',
+        'All Interests':'Tất cả nhu cầu','All Levels':'Tất cả cấp độ','My Listings':'Tin đăng của tôi','My Listings Only':'Chỉ tin đăng của tôi',
+        'My Month':'Tháng của tôi','Unassigned':'Chưa phân công','Unassigned queue':'Hàng chờ chưa phân công',
+        'Assign':'Phân công','Assign agent':'Phân công nhân viên','Assigned To':'Phụ trách bởi','Reassign All':'Phân công lại tất cả',
+        'Reassign now':'Phân công lại ngay','Reassign work':'Chuyển giao công việc','Move everything to':'Chuyển toàn bộ sang',
+        'Move':'Chuyển','Move to…':'Chuyển sang…','Moving…':'Đang chuyển…','Move failed':'Chuyển thất bại',
+        'Move to Negotiating':'Chuyển sang thương lượng','Deactivate':'Vô hiệu hóa','Deactivate User?':'Vô hiệu hóa người dùng?',
+        'User deactivated':'Đã vô hiệu hóa người dùng','Cannot delete':'Không thể xóa','Delete lead':'Xóa khách hàng',
+        'Delete appointment #':'Xóa lịch hẹn #','Delete deal #':'Xóa giao dịch #','Delete follow-up #':'Xóa lịch chăm sóc #',
+        'Delete owner':'Xóa chủ sở hữu','Remove':'Gỡ bỏ','Remove document?':'Gỡ tài liệu?','Rename':'Đổi tên',
+        'Clear':'Xóa','Clear cache & refresh':'Xóa bộ nhớ đệm và tải lại','Clear Chat':'Xóa cuộc trò chuyện',
+        'Cache cleared':'Đã xóa bộ nhớ đệm','Fresh data reloaded from server.':'Đã tải dữ liệu mới từ máy chủ.',
+        'Retry':'Thử lại','Load failed':'Tải thất bại','Dashboard failed to load':'Không tải được tổng quan',
+        'Failed to initialize table:':'Không thể khởi tạo bảng:','Could not send':'Không thể gửi','Connection error:':'Lỗi kết nối:',
+        'Session Expired':'Phiên đăng nhập đã hết hạn','Your session has expired. Please login again.':'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+        'Success!':'Thành công!','Enquiry sent!':'Đã gửi yêu cầu tư vấn!','Import complete':'Nhập dữ liệu hoàn tất',
+        'Import failed':'Nhập dữ liệu thất bại','Wrong file format':'Sai định dạng tệp','Empty CSV':'Tệp CSV trống',
+        'CSV is empty or missing header row':'CSV trống hoặc thiếu dòng tiêu đề','File has no data rows.':'Tệp không có dòng dữ liệu.',
+        'Invalid rows are skipped — errors shown after.':'Các dòng không hợp lệ sẽ bị bỏ qua; lỗi được hiển thị sau.',
+        'Missing Username column — download the Template for the exact shape':'Thiếu cột Username — hãy tải tệp mẫu để dùng đúng cấu trúc',
+        'Template':'Tệp mẫu','CSV':'CSV','Column':'Cột','Formula / Logic':'Công thức / Logic','Impact':'Ảnh hưởng','Where Used':'Nơi sử dụng',
+        'Data Storage':'Lưu trữ dữ liệu','Formulas & Business Logic':'Công thức và logic nghiệp vụ','Full activity audit log':'Nhật ký kiểm tra hoạt động đầy đủ',
+        'Google Sheets backend.':'Dữ liệu Google Sheets.','CSV import/export everywhere':'Hỗ trợ nhập/xuất CSV toàn hệ thống',
+        'Mobile-first responsive UI':'Giao diện đáp ứng ưu tiên thiết bị di động','Role-scoped dashboards':'Tổng quan theo phạm vi vai trò',
+        'RBAC + Own-vs-All scoping':'Phân quyền RBAC và phạm vi dữ liệu','Public portal + enquiry form':'Cổng công khai và biểu mẫu tư vấn',
+        'Listing inventory + gallery':'Nguồn hàng và thư viện ảnh','Viewing scheduler + conflicts':'Lịch xem và kiểm tra trùng lịch',
+        'Dual-surface platform — public listing portal + internal agency CRM':'Nền tảng kép — cổng tin đăng công khai và CRM nội bộ',
+        'Custom dashboards, CRMs and business apps on Google Apps Script & PHP/MySQL.':'Phát triển dashboard, CRM và ứng dụng doanh nghiệp trên Google Apps Script và PHP/MySQL.',
+        'Developer':'Nhà phát triển'
+      }).forEach(([key, value]) => exact.set(key, value));
+
+      Object.entries({
+        'New Deal':'Giao dịch mới','Deal Value':'Giá trị giao dịch','Deal amount':'Giá trị giao dịch','Deal Amount':'Giá trị giao dịch',
+        'Buyer / Tenant Name *':'Tên người mua / người thuê *','Buyer Phone *':'Điện thoại người mua *','Buyer, ref, agent…':'Người mua, mã, nhân viên…',
+        'Token Money (VNĐ)':'Tiền đặt cọc (VNĐ)','Token Method':'Phương thức đặt cọc','Live Math':'Tính toán trực tiếp',
+        'Commission %':'Tỷ lệ hoa hồng','Commission % — Sale':'Tỷ lệ hoa hồng — Bán','Commission % — Rent':'Tỷ lệ hoa hồng — Thuê',
+        '(100 = one month\'s rent)':'(100 = một tháng tiền thuê)','Payment Receipt':'Biên nhận thanh toán','Record Payment':'Ghi nhận thanh toán',
+        'Add payment':'Thêm thanh toán','This payment':'Khoản thanh toán này','Amount':'Số tiền','Amount (VNĐ)':'Số tiền (VNĐ)',
+        'Amount (VNĐ) *':'Số tiền (VNĐ) *','Method':'Phương thức','Method…':'Chọn phương thức…','Cheque / TT no.':'Số séc / chuyển khoản',
+        'Paid so far':'Đã thanh toán','Balance':'Số dư','Balance Due':'Số tiền còn lại','All payments received against a deal, with balance':'Tất cả khoản thanh toán của giao dịch và số dư',
+        'Mark Paid':'Đánh dấu đã trả','Mark agent paid':'Đánh dấu đã trả nhân viên','Mark agent share paid?':'Xác nhận đã trả phần hoa hồng nhân viên?',
+        'Paid Out':'Đã chi trả','Closed':'Đã đóng','Complete':'Hoàn tất','Cancellation Reason *':'Lý do hủy *','Cancellation reason required':'Bắt buộc nhập lý do hủy',
+        'No deals on this listing.':'Chưa có giao dịch cho tin đăng này.','Open a deal at':'Mở giao dịch tại','Property →':'Bất động sản →','Lead →':'Khách hàng →',
+        'Tenancy 360':'Hồ sơ thuê 360','Tenant, property ref…':'Người thuê, mã bất động sản…','Monthly rent':'Tiền thuê hàng tháng',
+        'Current rent':'Tiền thuê hiện tại','New rent':'Tiền thuê mới','New Rent (VNĐ) *':'Tiền thuê mới (VNĐ) *',
+        'Rent / mo':'Tiền thuê / tháng','Rent Due Day (1–28)':'Ngày đến hạn thuê (1–28)','Due day':'Ngày đến hạn',
+        'Contract End Date':'Ngày kết thúc hợp đồng','New End Date':'Ngày kết thúc mới','Renewal':'Gia hạn','Renew contract':'Gia hạn hợp đồng',
+        'Renewal Increment %':'Tỷ lệ tăng khi gia hạn','End Tenancy':'Kết thúc hợp đồng thuê','End tenancy':'Kết thúc hợp đồng thuê',
+        'Active Tenancies':'Hợp đồng thuê đang hoạt động','Rent Roll / mo':'Tổng tiền thuê / tháng','In Arrears':'Đang có công nợ','Ended':'Đã kết thúc',
+        'Deposit':'Tiền cọc','Security deposit':'Tiền bảo đảm','Security Deposit (VNĐ)':'Tiền bảo đảm (VNĐ)',
+        'Deposit Settlement':'Quyết toán tiền cọc','Deposit refund':'Hoàn tiền cọc','Refund to tenant':'Hoàn trả người thuê',
+        'Deductions':'Khấu trừ','Deductions (VNĐ)':'Khấu trừ (VNĐ)','Deduction reasons, handover condition…':'Lý do khấu trừ, tình trạng bàn giao…',
+        'Damages, unpaid bills…':'Hư hỏng, hóa đơn chưa thanh toán…','The property goes back to Available.':'Bất động sản sẽ trở lại trạng thái đang giao dịch.',
+        'Collect rent':'Thu tiền thuê','Collect':'Thu tiền','Collected':'Đã thu','Month *':'Tháng *','Last Paid':'Thanh toán gần nhất',
+        'Months unpaid':'Số tháng chưa trả','Arrears':'Công nợ','Arrears before':'Công nợ trước','Arrears after':'Công nợ sau',
+        'Rent Arrears':'Công nợ tiền thuê','Rent Position':'Tình hình tiền thuê','Rent Roll':'Bảng theo dõi tiền thuê',
+        'Rent months received, expected-to-date and arrears':'Các tháng đã thu, số phải thu đến hiện tại và công nợ',
+        'Dues / Outstanding Statement':'Bảng công nợ','Rent Statement / Receipt':'Sao kê / biên nhận tiền thuê',
+        'Statement of account with the balance due highlighted':'Sao kê tài khoản có làm nổi bật số tiền đến hạn',
+        'Rental Agreement':'Hợp đồng thuê','Sale Agreement':'Hợp đồng mua bán','Agreement to Sell — parties, consideration, payment schedule, clauses':'Hợp đồng mua bán — các bên, giá trị, lịch thanh toán và điều khoản',
+        'Landlord–tenant contract with terms, deposit and 10 standard clauses':'Hợp đồng chủ nhà–người thuê gồm điều khoản, tiền cọc và 10 điều khoản tiêu chuẩn',
+        'Generate Document':'Tạo tài liệu','No eligible records for this document yet':'Chưa có dữ liệu phù hợp để tạo tài liệu này',
+        'Maintenance':'Bảo trì','Log an issue — e.g. Water pump not working':'Ghi nhận sự cố — ví dụ: máy bơm nước không hoạt động',
+        'Mark fixed':'Đánh dấu đã sửa','Mark fixed?':'Xác nhận đã sửa?','Fixed':'Đã sửa','No maintenance logged.':'Chưa có lịch sử bảo trì.',
+        'Log Expense':'Ghi nhận chi phí','Total expenses':'Tổng chi phí','No expenses logged.':'Chưa có chi phí.',
+        'No rent collected yet.':'Chưa thu tiền thuê.','No renewals yet.':'Chưa có lần gia hạn.','No tenancies yet — complete a Rent deal and one is created automatically.':'Chưa có hợp đồng thuê — hoàn tất giao dịch thuê để hệ thống tự tạo.',
+        'AI Assistant (ChatGPT)':'Trợ lý AI (ChatGPT)','Ask about your data…':'Hỏi về dữ liệu của bạn…','Clear Chat':'Xóa trò chuyện',
+        'Let me check':'Để tôi kiểm tra','API key required':'Cần khóa API','Paste your OpenAI key (sk-…) the first time.':'Dán khóa OpenAI (sk-…) trong lần thiết lập đầu tiên.',
+        'Pick a model…':'Chọn mô hình…','Model':'Mô hình','Save AI Settings':'Lưu cài đặt AI',
+        'The key is stored in Script Properties and used server-side only — it never reaches the browser. Every user chats over their own permitted data.':'Khóa được lưu trong Script Properties và chỉ sử dụng phía máy chủ; không gửi xuống trình duyệt. Mỗi người dùng chỉ trò chuyện trên dữ liệu được cấp quyền.',
+        'Money Defaults (agency-wide)':'Thiết lập tài chính mặc định (toàn công ty)','Save Money Defaults':'Lưu thiết lập tài chính',
+        'Round-Robin Website Leads':'Chia đều khách hàng từ website','(auto-assign to active agents)':'(tự động phân công cho nhân viên đang hoạt động)',
+        '(auto-fills name & phone)':'(tự điền tên và điện thoại)','Theme':'Giao diện','Color scheme applied!':'Đã áp dụng bảng màu!',
+        'Activity Logs':'Nhật ký hoạt động','What Changed':'Nội dung thay đổi','What':'Nội dung','Action':'Hành động','View activity log':'Xem nhật ký hoạt động',
+        'logged activity':'hoạt động đã ghi','Trash — deleted records':'Thùng rác — dữ liệu đã xóa','Trash is empty — nothing has been deleted.':'Thùng rác trống — chưa có dữ liệu bị xóa.',
+        'Restore':'Khôi phục','Available':'Đang giao dịch','View all':'Xem tất cả','No results found':'Không tìm thấy kết quả',
+        'Nothing to chart yet':'Chưa có dữ liệu để lập biểu đồ','Nothing yet.':'Chưa có dữ liệu.','You\'re all caught up':'Bạn đã xem hết thông báo',
+        'No agent activity yet':'Chưa có hoạt động của nhân viên','No properties yet':'Chưa có bất động sản',
+        'Search everything…':'Tìm kiếm toàn hệ thống…','Search property…':'Tìm bất động sản…','Search users...':'Tìm người dùng…',
+        'Pick a record':'Chọn dữ liệu','Pick a user…':'Chọn người dùng…','Pick an agent…':'Chọn nhân viên…',
+        'Later':'Để sau','Next':'Tiếp theo','Skip':'Bỏ qua','Yes':'Có','No':'Không','Confirm':'Xác nhận',
+        'More info':'Thông tin thêm','Note:':'Lưu ý:','N/A':'Không áp dụng','(not set)':'(chưa thiết lập)','never':'chưa bao giờ',
+        'Public':'Công khai','Business':'Kinh doanh','Text':'Văn bản','Progress':'Tiến độ','Target':'Mục tiêu',
+        'Mode':'','Welcome':'Xin chào','Total Listings':'Tổng tin đăng','Everyone':'Tất cả mọi người',
+        'Active Listings':'Tin đăng đang hoạt động','My Active Listings':'Tin đăng đang hoạt động của tôi','Last month':'Tháng trước',
+        'More info':'Xem chi tiết','Active tenancies — expected against collected this month':'Hợp đồng thuê đang hoạt động — đối chiếu số phải thu và đã thu trong tháng',
+        'Agent Leaderboard':'Bảng xếp hạng nhân viên','Listings':'Tin đăng','Won':'Thành công','Closed (mo)':'Đã chốt (tháng)',
+        'Show':'Hiển thị','entries':'dòng','Show entries':'Hiển thị số dòng','Search:':'Tìm kiếm:','Ref':'Mã','Views':'Lượt xem',
+        'Image':'Ảnh','Photo':'Ảnh','Ascending':'Tăng dần','Descending':'Giảm dần','First':'Đầu','Last':'Cuối','Previous':'Trước',
+        'Share':'Chia sẻ','Link':'Liên kết','Email *':'Email *','Name *':'Tên *','Phone *':'Điện thoại *','Username *':'Tên đăng nhập *',
+        'Status:':'Trạng thái:','Status…':'Chọn trạng thái…','Type…':'Chọn loại…','Role…':'Chọn vai trò…','Agent…':'Chọn nhân viên…',
+        'Unit…':'Chọn đơn vị…','Source…':'Chọn nguồn…','Monthly / Yearly':'Hàng tháng / Hàng năm','Sale & Rent':'Bán và cho thuê',
+        'Sale / Rent':'Bán / Cho thuê','Sales & Rentals':'Mua bán và cho thuê','WhatsApp buyer':'WhatsApp người mua',
+        'WhatsApp lead':'WhatsApp khách hàng','WhatsApp tenant':'WhatsApp người thuê','Phone / WhatsApp *':'Điện thoại / Zalo *'
+      }).forEach(([key, value]) => exact.set(key, value));
+
+      Object.entries({
+        'Listing':'Tin đăng','Listings':'Tin đăng','Property':'Bất động sản','Title *':'Tiêu đề *','Area Size *':'Diện tích *',
+        'Area Unit':'Đơn vị diện tích','Price (VNĐ) *':'Giá (VNĐ) *','Rent Frequency':'Chu kỳ thuê','Street Address':'Địa chỉ đường/phố',
+        'Street / block detail':'Chi tiết đường / khu','Latitude':'Vĩ độ','Longitude':'Kinh độ','Featured on Portal':'Nổi bật trên cổng thông tin',
+        'Maximum 15 photos per listing.':'Tối đa 15 ảnh cho mỗi tin đăng.','Photo':'Ảnh','Photo limit':'Giới hạn ảnh','Primary':'Ảnh chính',
+        'Set as cover':'Đặt làm ảnh bìa','Click to enlarge':'Nhấn để phóng to','No photos.':'Chưa có ảnh.',
+        'Available Documents':'Tài liệu hiện có','Upload document':'Tải tài liệu lên','Document Type':'Loại tài liệu',
+        '(agreement, CNIC, transfer letter — never public)':'(hợp đồng, CNIC, giấy chuyển nhượng — không công khai)',
+        'No documents attached.':'Chưa đính kèm tài liệu.','Brochure':'Tờ giới thiệu','Brochure PDF':'Tờ giới thiệu PDF',
+        'Email listing':'Gửi tin đăng qua email','Email this listing':'Gửi tin đăng này qua email','Copy portal link':'Sao chép liên kết cổng',
+        'Portal link copied!':'Đã sao chép liên kết cổng!','Portal link':'Liên kết cổng thông tin','Public Slug':'Đường dẫn công khai',
+        'Possible Duplicates':'Có thể trùng lặp','Possible duplicate listing':'Tin đăng có thể bị trùng','Matched On':'Trùng theo',
+        'The same property listed twice — cross-agent pairs first, since those become commission disputes':'Cùng một bất động sản được đăng hai lần — ưu tiên kiểm tra trường hợp khác nhân viên để tránh tranh chấp hoa hồng',
+        'Saving anyway is recorded in the activity log under your name.':'Nếu vẫn lưu, hệ thống sẽ ghi nhận trong nhật ký dưới tên của bạn.',
+        'Deleting breaks live public URLs — only do this for mistakes.':'Xóa sẽ làm hỏng liên kết công khai — chỉ dùng khi dữ liệu bị nhập sai.',
+        'It disappears from the portal and all CRM lists.':'Mục này sẽ biến mất khỏi cổng thông tin và mọi danh sách CRM.',
+        'Property Reserved →':'Bất động sản đã giữ chỗ →','The property goes back to Available.':'Bất động sản sẽ trở lại trạng thái đang giao dịch.',
+        '(back on the market)':'(đưa lại lên thị trường)','stays unchanged — live public URLs never break.':'được giữ nguyên — liên kết công khai không bị hỏng.',
+        'Curated amenity taxonomy':'Danh mục tiện ích chuẩn hóa','Amenity name…':'Tên tiện ích…','Tag amenities…':'Gắn tiện ích…',
+        'Pick an icon…':'Chọn biểu tượng…','Icon':'Biểu tượng','Location required':'Bắt buộc chọn khu vực','Parent required':'Bắt buộc chọn khu vực cha',
+        'Pick at least the City.':'Hãy chọn ít nhất Thành phố.','City → Area → Society tree':'Cấu trúc Thành phố → Khu vực → Khu đô thị',
+        'Level':'Cấp độ','Level…':'Chọn cấp độ…','Society / Phase':'Khu đô thị / Giai đoạn','Full Path':'Đường dẫn đầy đủ',
+        'Any location':'Mọi khu vực','Select city…':'Chọn thành phố…','Select type…':'Chọn loại hình…','Select...':'Chọn...',
+        'None / search…':'Không chọn / tìm kiếm…','Pick from registry…':'Chọn từ danh mục…','Name, path, slug…':'Tên, đường dẫn, slug…',
+        'Title, ref, type, agent…':'Tiêu đề, mã, loại, nhân viên…','Live listings only…':'Chỉ tin đang hoạt động…',
+        'Selling points, condition, nearby landmarks…':'Điểm nổi bật, tình trạng, địa danh lân cận…',
+        'Owner Registry':'Danh mục chủ sở hữu','Owner 360':'Hồ sơ chủ sở hữu 360','Owner Name *':'Tên chủ sở hữu *','Owner Phone *':'Điện thoại chủ sở hữu *',
+        'New owner':'Chủ sở hữu mới','Name, phone, address…':'Tên, điện thoại, địa chỉ…','No linked properties — link via the property form\'s Owner picker.':'Chưa có bất động sản liên kết — hãy chọn chủ sở hữu trong biểu mẫu bất động sản.',
+        'No deals on this owner\'s properties yet.':'Chưa có giao dịch cho bất động sản của chủ sở hữu này.',
+        'Lead':'Khách hàng','Lead 360':'Hồ sơ khách hàng 360','New Lead':'Khách hàng mới','Full Name *':'Họ và tên *',
+        'Interested Property':'Bất động sản quan tâm','Property / Preference':'Bất động sản / Nhu cầu','Preferred Location':'Khu vực mong muốn',
+        'Preferred area':'Khu vực mong muốn','Budget':'Ngân sách','Budget Min (VNĐ)':'Ngân sách tối thiểu (VNĐ)','Budget Max (VNĐ)':'Ngân sách tối đa (VNĐ)',
+        'Interest':'Nhu cầu','Interest…':'Chọn nhu cầu…','Client Interest':'Mức độ quan tâm','Hot / Warm / Cold':'Nóng / Ấm / Lạnh',
+        'Hot lead!':'Khách hàng tiềm năng cao!','Pipeline Status':'Trạng thái quy trình','Lost Reason *':'Lý do thất bại *',
+        'Lost reason':'Lý do thất bại','Lost reason required':'Bắt buộc nhập lý do thất bại','Mark Lost':'Đánh dấu thất bại',
+        'Without it, pipeline reporting cannot tell you why deals die.':'Thông tin này giúp báo cáo xác định nguyên nhân giao dịch thất bại.',
+        'e.g. Budget too high — bought elsewhere':'Ví dụ: Ngân sách quá cao — đã mua nơi khác','Source':'Nguồn','Source…':'Chọn nguồn…',
+        'Lead, notes, agent…':'Khách hàng, ghi chú, nhân viên…','Lead, property, agent…':'Khách hàng, bất động sản, nhân viên…',
+        'Name, phone, status…':'Tên, điện thoại, trạng thái…','No leads here':'Không có khách hàng ở đây','No leads yet':'Chưa có khách hàng',
+        'No leads in the pipeline yet':'Chưa có khách hàng trong quy trình','No leads reference this listing yet.':'Chưa có khách hàng liên quan đến tin đăng này.',
+        'No live inventory matches this lead\'s location / type / budget yet.':'Chưa có nguồn hàng phù hợp với khu vực / loại hình / ngân sách của khách hàng.',
+        'Board':'Bảng','List':'Danh sách','Calendar':'Lịch','Chevron lead pipeline':'Quy trình khách hàng dạng cột',
+        'Double-click for Lead 360':'Nhấp đúp để mở hồ sơ khách hàng 360','Pick a lead':'Chọn khách hàng','Search lead…':'Tìm khách hàng…',
+        'Assigning…':'Đang phân công…','Convert to Deal':'Chuyển thành giao dịch','Conversion':'Chuyển đổi','Offer accepted!':'Đã chấp nhận chào giá!',
+        'Log Offer':'Ghi nhận chào giá','Offer By':'Bên đưa giá','Buyer / Seller':'Người mua / Người bán','Buyer':'Người mua','Seller':'Người bán',
+        'Countered':'Đã trả giá','Accept':'Chấp nhận','Reject':'Từ chối','All other open offers fold to Rejected.':'Các chào giá đang mở khác sẽ chuyển thành bị từ chối.',
+        'Verbal after 2nd viewing…':'Thỏa thuận miệng sau lần xem thứ hai…','No offers logged — negotiation starts here.':'Chưa có chào giá — bắt đầu thương lượng tại đây.',
+        'Follow-up reminders':'Nhắc lịch chăm sóc','Due Today':'Đến hạn hôm nay','Overdue':'Quá hạn','Due At':'Thời hạn',
+        'What needs to happen / what happened…':'Việc cần làm / kết quả đã thực hiện…','Objections, liked features, next step…':'Vướng mắc, điểm khách thích, bước tiếp theo…',
+        '(empty = log past activity)':'(để trống nếu ghi nhận hoạt động đã diễn ra)','No follow-ups.':'Chưa có lịch chăm sóc.',
+        'Book Viewing':'Đặt lịch xem','Viewings':'Lịch xem','Complete Viewing':'Hoàn tất lịch xem','Complete + feedback':'Hoàn tất và phản hồi',
+        'How did it go?':'Buổi xem diễn ra thế nào?','Viewing completed!':'Đã hoàn tất buổi xem!','Marked completed':'Đã đánh dấu hoàn tất',
+        'Date & Time *':'Ngày và giờ *','Duration':'Thời lượng','Duration…':'Chọn thời lượng…','30 minutes':'30 phút','45 minutes':'45 phút',
+        '1 hour':'1 giờ','1.5 hours':'1,5 giờ','Lead and property are required':'Bắt buộc chọn khách hàng và bất động sản',
+        'Cannot book':'Không thể đặt lịch','No upcoming viewings':'Không có lịch xem sắp tới','No viewings booked.':'Chưa có lịch xem.',
+        'No viewings.':'Chưa có lịch xem.','Prefer Cancelled status — deletions hide no-show history.':'Nên dùng trạng thái Đã hủy — xóa sẽ làm mất lịch sử khách không đến.'
+      }).forEach(([key, value]) => exact.set(key, value));
+
+      // Complete Vietnamese UI pass — labels discovered by live module-by-module audit.
+      Object.entries({
+        'Collapse':'Thu gọn','Send':'Gửi','Hello':'Xin chào',
+        'Which follow-ups are overdue and who owns them?':'Lịch chăm sóc nào đang quá hạn và do ai phụ trách?',
+        "Summarize this month's deals and commission":'Tóm tắt giao dịch và hoa hồng tháng này',
+        'Which tenants are in arrears?':'Người thuê nào đang có công nợ?',
+        'Which listings are stale (90+ days)?':'Tin đăng nào đã quá 90 ngày chưa phát sinh giao dịch?',
+        'Title':'Tiêu đề','Add Lead':'Thêm khách hàng','Add Follow-Up':'Thêm lịch chăm sóc','Mark completed':'Đánh dấu hoàn thành',
+        'Due Now':'Cần xử lý','Upcoming':'Sắp tới','Due':'Thời hạn','Book Viewing':'Đặt lịch xem','No Shows':'Không đến','When':'Thời gian',
+        'New Deal':'Giao dịch mới','Closed Value (month)':'Giá trị đã chốt trong tháng','Outstanding':'Số tiền còn lại',
+        'Paid':'Đã thanh toán','Edit deal':'Chỉnh sửa giao dịch','Print':'In',
+        'Last Month':'Tháng trước','Quarter':'Quý này','Year':'Năm nay','Deals Closed':'Giao dịch đã chốt','Total Value':'Tổng giá trị',
+        'Sale Deals':'Giao dịch mua bán','With Balance Due':'Còn số dư phải thu','Invoice-Ready':'Sẵn sàng xuất hóa đơn',
+        'Tenancy':'Hợp đồng thuê','Pick a record…':'Chọn hồ sơ…','Generate':'Tạo tài liệu',
+        'With Listings':'Có tin đăng','Linked Properties':'Bất động sản liên kết',
+        'Add Amenity':'Thêm tiện ích','In Use':'Đang sử dụng','Unused':'Chưa sử dụng','Most Tagged':'Được gắn nhiều nhất','Tagged Listings':'Tin đăng đã gắn',
+        'Add User':'Thêm người dùng','Total Users':'Tổng người dùng','Active Users':'Người dùng hoạt động','Admin Users':'Quản trị viên',
+        'Profile Picture':'Ảnh đại diện','Currently Applied':'Đang áp dụng','Set as Default':'Đặt làm mặc định','Advanced custom colors':'Tùy chỉnh màu nâng cao',
+        'Add':'Thêm','Change Password':'Đổi mật khẩu','Real Estate CRM & Property Portal':'CRM và cổng thông tin bất động sản',
+        'Module':'Phân hệ','Demo Login':'Tài khoản đăng nhập thử','Admin':'Quản trị viên','Manager':'Quản lý','Agent':'Nhân viên',
+        'Rent Out':'Cho thuê','Sell':'Bán','Walk-in':'Khách trực tiếp','Referral':'Giới thiệu','Phone Call':'Cuộc gọi','Other':'Khác',
+        'Appointment Added':'Đã thêm lịch hẹn','Appointment Updated':'Đã cập nhật lịch hẹn','Appointment Completed':'Đã hoàn tất lịch hẹn',
+        'System Setup':'Thiết lập hệ thống','Enquiry Received':'Đã nhận yêu cầu tư vấn','Offer Added':'Đã thêm chào giá',
+        'Property Added':'Đã thêm bất động sản','Property Updated':'Đã cập nhật bất động sản','Lead Added':'Đã thêm khách hàng',
+        'Lead Updated':'Đã cập nhật khách hàng','Deal Added':'Đã thêm giao dịch','Deal Updated':'Đã cập nhật giao dịch',
+        'Follow-Up Added':'Đã thêm lịch chăm sóc','Follow-Up Updated':'Đã cập nhật lịch chăm sóc','User Login':'Người dùng đăng nhập'
+      }).forEach(([key, value]) => exact.set(key, value));
+
+      const phrases = [
+        [/^(\d+) listings$/, '$1 tin đăng'], [/^(\d+) listing$/, '$1 tin đăng'],
+        [/^For Sale$/, 'Đang bán'], [/^For Rent$/, 'Cho thuê'], [/^\/monthly$/, '/tháng'], [/^\/yearly$/, '/năm'],
+        [/^(\d+) active tenancies$/, '$1 hợp đồng thuê đang hoạt động'],
+        [/^(\d+) open$/, '$1 đang xử lý'], [/^(\d+) won$/, '$1 thành công'],
+        [/^Loading\.\.\.$/, 'Đang tải…'], [/^Search\.\.\.$/, 'Tìm kiếm…'],
+        [/^Delete (.+)\?$/, 'Xóa $1?'], [/^Edit (.+)$/, 'Chỉnh sửa $1'], [/^Add (.+)$/, 'Thêm $1'],
+        [/^Properties \((\d+)\)$/, 'Bất động sản ($1)'], [/^Deals \((\d+)\)$/, 'Giao dịch ($1)'],
+        [/^Welcome, (.+)$/, 'Xin chào, $1'], [/^Showing (\d+) to (\d+) of (\d+) entries$/, 'Hiển thị $1 đến $2 trong $3 dòng'],
+        [/^Showing 0 to 0 of 0 entries$/, 'Không có dữ liệu'], [/^filtered from (\d+) total entries$/, 'lọc từ tổng cộng $1 dòng'],
+        [/^(.+): activate to sort column ascending$/, '$1: nhấn để sắp xếp tăng dần'],
+        [/^(.+): activate to sort column descending$/, '$1: nhấn để sắp xếp giảm dần'],
+        [/^Properties: (\d+)$/, 'Bất động sản: $1'], [/^Leads: (\d+)$/, 'Khách hàng: $1'],
+        [/^(\d+) won · (\d+) listings · (\d+) open$/, '$1 thành công · $2 tin đăng · $3 đang xử lý'],
+        [/^Delete appointment #(\d+)$/, 'Xóa lịch hẹn #$1'], [/^Delete deal #(\d+)$/, 'Xóa giao dịch #$1'],
+        [/^Delete follow-up #(\d+)$/, 'Xóa lịch chăm sóc #$1'], [/^Closed \(mo\)$/, 'Đã chốt (tháng)'],
+        [/^Hello, (.+)$/, 'Xin chào, $1'], [/^(\d+) eligible$/, '$1 hồ sơ phù hợp'],
+        [/^Open the (\d+) eligible records$/, 'Mở $1 hồ sơ phù hợp'],
+        [/^Rent \/ mo$/, 'Tiền thuê / tháng'], [/^due (\d+)(?:st|nd|rd|th)$/, 'đến hạn ngày $1'],
+        [/^(\d+) minutes$/, '$1 phút'], [/^(\d+) hours$/, '$1 giờ'],
+        [/^No (.+) found$/, 'Không tìm thấy $1'], [/^No (.+) yet\.?$/, 'Chưa có $1.'],
+        [/^Search (.+)…$/, 'Tìm $1…'], [/^Select (.+)…$/, 'Chọn $1…']
+      ];
+
+      function translate(value) {
+        if (!value) return value;
+        const leading = value.match(/^\s*/)[0];
+        const trailing = value.match(/\s*$/)[0];
+        const core = value.trim();
+        if (!core) return value;
+        if (exact.has(core)) return leading + exact.get(core) + trailing;
+        for (const [pattern, replacement] of phrases) {
+          if (pattern.test(core)) return leading + core.replace(pattern, replacement) + trailing;
+        }
+        return value;
+      }
+
+      function localize(root) {
+        if (!root) return;
+        if (root.nodeType === Node.TEXT_NODE) {
+          const parent = root.parentElement;
+          if (!parent || /^(SCRIPT|STYLE|TEXTAREA)$/.test(parent.tagName)) return;
+          const next = translate(root.nodeValue);
+          if (next !== root.nodeValue) root.nodeValue = next;
+          return;
+        }
+        if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) return;
+        if (root.nodeType === Node.ELEMENT_NODE) {
+          ['placeholder','title','aria-label'].forEach((attr) => {
+            if (root.hasAttribute(attr)) {
+              const current = root.getAttribute(attr);
+              const next = translate(current);
+              if (next !== current) root.setAttribute(attr, next);
+            }
+          });
+        }
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) localize(node);
+        if (root.querySelectorAll) root.querySelectorAll('[placeholder],[title],[aria-label]').forEach((el) => localize(el));
+      }
+
+      let queued = false;
+      const pending = new Set();
+      const flush = () => {
+        queued = false;
+        pending.forEach(localize);
+        pending.clear();
+      };
+      new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => pending.add(node));
+          if (mutation.type === 'characterData') pending.add(mutation.target);
+        });
+        if (!queued) { queued = true; requestAnimationFrame(flush); }
+      }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+      localize(document.body);
+      document.documentElement.lang = 'vi';
+      document.title = 'CRM Bất Động Sản & Cổng Thông Tin';
+    })();
+  </script>
+</body>
+</html>

@@ -20,7 +20,7 @@ Tệp này là chỉ dẫn gốc cho mọi agent sửa mã trong repository. B�
 | Schema, ràng buộc, RLS, công thức SQL | `supabase/migrations/` | `docs/DATA_MODEL.md` diễn giải |
 | API localhost/Supabase | `supabase-backend.js` | `local-backend.js` là fallback/đối chứng |
 | HTTP và cầu nối Apps Script | `server.js` | `api/index.js` bọc để triển khai serverless |
-| Giao diện hiện tại | `code-appscript/index.html` | Chưa có bước build; React/Babel chạy trong trình duyệt |
+| Giao diện hiện tại | `ui-src/` | `code-appscript/index.html` là output từ `npm run build:ui`; React/Babel vẫn chạy trong trình duyệt |
 | Backend Apps Script cũ | `code-appscript/code.gs` | Tham chiếu/triển khai GAS; không phải backend localhost mặc định |
 | Dữ liệu gốc | `data/local-crm-data.json` | Không coi là dữ liệu sản xuất khi Supabase đã bật |
 | Quy tắc nghiệp vụ | `docs/BUSINESS_RULES.md` | Script kiểm tra trong `scripts/` |
@@ -32,6 +32,7 @@ Tệp này là chỉ dẫn gốc cho mọi agent sửa mã trong repository. B�
 3. Với thay đổi dữ liệu: migration mới -> mapper trong `supabase-backend.js` -> fallback trong `local-backend.js` nếu cần -> UI -> kiểm thử.
 4. Chạy `node scripts/project-health.mjs` và kiểm tra chuyên biệt phù hợp.
 5. Với thay đổi UI, mở localhost và kiểm tra ít nhất màn hình bị sửa, một vai trò bị giới hạn và kích thước cửa sổ nhỏ.
+6. Không sửa trực tiếp `code-appscript/index.html`; sửa nguồn trong `ui-src/`, chạy `npm run build:ui`, rồi chạy `npm run check:ui-build`.
 
 ## Giới hạn kiến trúc hiện tại
 

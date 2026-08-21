@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env.supabase.local server.js",
     "check": "node scripts/project-health.mjs",
+    "check:ui-baseline": "node scripts/verify-ui-baseline.mjs",
+    "build:ui": "node scripts/build-ui.mjs",
+    "check:ui-build": "node scripts/build-ui.mjs --check",
     "audit:data": "node scripts/audit-supabase-readiness.mjs",
     "audit:contract": "node scripts/audit-api-contract.mjs",
     "verify:business": "node --env-file-if-exists=.env.supabase.local scripts/verify-business-logic.mjs",

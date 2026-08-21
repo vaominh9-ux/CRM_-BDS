@@ -11,6 +11,8 @@
 5. [`API_CONTRACT.md`](API_CONTRACT.md): hợp đồng `gsRun` và mức độ chuyển đổi Supabase.
 6. [`DEVELOPMENT.md`](DEVELOPMENT.md): quy trình phát triển, migration và kiểm tra.
 7. [`CODE_REVIEW_AND_ROADMAP.md`](CODE_REVIEW_AND_ROADMAP.md): đánh giá hiện trạng và lộ trình ưu tiên.
+8. [`HTML_MODULARIZATION_GUIDE.md`](HTML_MODULARIZATION_GUIDE.md): hướng dẫn chi tiết tách monolith `index.html` an toàn.
+9. [`RESPONSIVE_UI_GUIDE.md`](RESPONSIVE_UI_GUIDE.md): nguyên tắc tối ưu mobile/desktop độc lập trên cùng giao diện.
 
 ## Ghi chú theo phân hệ
 
@@ -32,4 +34,3 @@
 - Thêm/xóa API: cập nhật `API_CONTRACT.md`, chạy `npm run audit:contract`.
 - Tách component khỏi monolith: cập nhật `ARCHITECTURE.md`, ADR và đường dẫn mã trong tài liệu phân hệ.
 - Mỗi tài liệu phân hệ phải luôn có: nguồn dữ liệu, API, bất biến, rủi ro, kiểm thử tối thiểu.
-

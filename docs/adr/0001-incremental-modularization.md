@@ -13,6 +13,8 @@ Giữ runtime hiện tại trong ngắn hạn và tách dần theo lát dọc. T
 
 Các module mới phải tách rõ `api`, `model/mapper`, `components`, `styles` và `tests`. Không thêm một framework trạng thái hoặc UI library thứ hai nếu chưa có ADR riêng.
 
+Quy trình thực thi, cấu trúc trung gian và tiêu chí kiểm chứng nằm trong `docs/HTML_MODULARIZATION_GUIDE.md`.
+
 ## Hệ quả
 
 - Tiến độ tách chậm hơn nhưng giảm hồi quy.
