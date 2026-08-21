@@ -330,13 +330,13 @@ async function run(method, args) {
     return ok({message:'Đã lưu phân quyền'});
   }
   if(method==='getAgencyBranding'){
-    return ok({ branding: crm.agencyBranding || {"name":"RS Estates","logo":"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGXxCe0WNNedmFqSWeF761f7Kshhc-NP5ChRQKz9fr97cO8VaarvD0KlCwqHojJVBWv-RAxfOqMI5rD4H78KnARyOc6QgwL1nRRFWf5xNQ1d9F9HfAoLPPGlTyP0GwNl4n-INMEsWLQ4Y7zJtz5bOdAnc2ePH9-uCRgshlo6BsS6gJEz6fhrxL-5U5O3sX/s160/channels4_profile.jpg","phone":"0901 234 567","address":"Hà Nội & TP. Hồ Chí Minh, Việt Nam","slogan":"Nền tảng bất động sản cao cấp hàng đầu"} });
+    return ok({ branding: crm.agencyBranding || {name:'',logo:'',phone:'',address:'',slogan:''} });
   }
   if(method==='saveAgencyBranding'){
     const [b, caller] = args;
     const current = user(crm, caller);
     if(!current || current.Role !== 'Admin') return fail('Chỉ Quản trị viên mới có quyền đổi nhận diện công ty');
-    crm.agencyBranding = Object.assign({}, {"name":"RS Estates","logo":"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGXxCe0WNNedmFqSWeF761f7Kshhc-NP5ChRQKz9fr97cO8VaarvD0KlCwqHojJVBWv-RAxfOqMI5rD4H78KnARyOc6QgwL1nRRFWf5xNQ1d9F9HfAoLPPGlTyP0GwNl4n-INMEsWLQ4Y7zJtz5bOdAnc2ePH9-uCRgshlo6BsS6gJEz6fhrxL-5U5O3sX/s160/channels4_profile.jpg","phone":"0901 234 567","address":"Hà Nội & TP. Hồ Chí Minh, Việt Nam","slogan":"Nền tảng bất động sản cao cấp hàng đầu"}, b || {});
+    crm.agencyBranding = Object.assign({name:'',logo:'',phone:'',address:'',slogan:''}, b || {});
     addLog(crm, caller, 'Agency Branding Updated', 'Đổi nhận diện: ' + crm.agencyBranding.name);
     persist(crm);
     return ok({ message: 'Đã lưu nhận diện thương hiệu công ty thành công!', branding: crm.agencyBranding });
