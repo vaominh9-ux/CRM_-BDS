@@ -10208,6 +10208,7 @@
     }
 
     // ============== Appointments month calendar (list <-> grid toggle, derived) ==============
+    // ============== Appointments month calendar (list <-> grid toggle, derived) ==============
     function CalendarGrid({ appts, onSelectAppt }) {
       const [ym, setYm] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; });
       const first = new Date(ym.y, ym.m, 1);
@@ -10217,32 +10218,42 @@
       const byDay = useMemo(() => { const o = {}; (appts || []).forEach((a) => { const k = new Date(a.scheduledAt).toDateString(); (o[k] = o[k] || []).push(a); }); return o; }, [appts]);
       const today = new Date().toDateString();
       const mv = (n) => setYm(({ y, m }) => { const d = new Date(y, m + n, 1); return { y: d.getFullYear(), m: d.getMonth() }; });
+      const goToday = () => { const d = new Date(); setYm({ y: d.getFullYear(), m: d.getMonth() }); };
       return (
         <div className="cal-wrap">
-          <div className="cal-nav">
-            <button className="btn btn-secondary btn-sm" onClick={() => mv(-1)}><i className="fas fa-chevron-left"></i></button>
-            <h4><i className="fas fa-calendar-days text-accent" style={{ marginRight: 6 }}></i>Tháng {first.getMonth() + 1}, {first.getFullYear()}</h4>
-            <button className="btn btn-secondary btn-sm" onClick={() => mv(1)}><i className="fas fa-chevron-right"></i></button>
+          <div className="cal-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 2px 12px' }}>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => mv(-1)} title="Tháng trước"><i className="fas fa-chevron-left"></i></button>
+              <button className="btn btn-secondary btn-sm" onClick={goToday} style={{ fontSize: 12 }}><i className="fas fa-calendar-day"></i> Hôm nay</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => mv(1)} title="Tháng sau"><i className="fas fa-chevron-right"></i></button>
+            </div>
+            <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--navy-primary)' }}>
+              <i className="fas fa-calendar-days text-accent" style={{ marginRight: 8 }}></i>Tháng {first.getMonth() + 1} năm {first.getFullYear()}
+            </h4>
+            <div style={{ width: 90 }}></div>
           </div>
           <div className="cal-grid">
-            {['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật'].map((d) => <div key={d} className="cal-head">{d}</div>)}
+            {['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật'].map((d) => <div key={d} className="cal-head" style={{ fontWeight: 700, padding: '6px 0', color: 'var(--navy-primary)' }}>{d}</div>)}
             {cells.map((d, i) => {
               const dayList = byDay[key(d)] || [];
               return (
-                <div key={i} className={'cal-cell' + (d.getMonth() !== ym.m ? ' out' : '') + (key(d) === today ? ' today' : '')}>
-                  <div className="d">{d.getDate()}</div>
-                  {dayList.slice(0, 3).map((a) => (
-                    <div key={a.id} className={'cal-ev' + (a.status === 'Completed' ? ' done' : ['Cancelled', 'No Show'].indexOf(a.status) !== -1 ? ' bad' : '')}
-                         onClick={() => onSelectAppt && onSelectAppt(a)}
-                         style={{ cursor: 'pointer' }}
-                         title={a.leadName + ' · ' + (a.propertyRef || '') + ' · ' + fmtDT(a.scheduledAt) + ' · ' + viEnum(a.status)}>
-                      {new Date(a.scheduledAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} {a.leadName}
-                    </div>
-                  ))}
+                <div key={i} className={'cal-cell' + (d.getMonth() !== ym.m ? ' out' : '') + (key(d) === today ? ' today' : '')} style={{ minHeight: 88, padding: '6px' }}>
+                  <div className="d" style={{ fontWeight: 700, marginBottom: 4 }}>{d.getDate()}</div>
+                  {dayList.slice(0, 3).map((a) => {
+                    const timeStr = a.scheduledAt ? new Date(a.scheduledAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+                    return (
+                      <div key={a.id} className={'cal-ev' + (a.status === 'Completed' ? ' done' : ['Cancelled', 'No Show'].indexOf(a.status) !== -1 ? ' bad' : '')}
+                           onClick={() => onSelectAppt && onSelectAppt(a)}
+                           style={{ cursor: 'pointer', padding: '3px 6px', marginBottom: 3, borderRadius: 4 }}
+                           title={a.leadName + ' · ' + (a.propertyRef || '') + ' · ' + fmtDT(a.scheduledAt) + ' · ' + viEnum(a.status)}>
+                        <strong>{timeStr}</strong> {a.leadName}
+                      </div>
+                    );
+                  })}
                   {dayList.length > 3 && (
-                    <div style={{ fontSize: 10.5, color: 'var(--navy-accent)', cursor: 'pointer', fontWeight: 600, marginTop: 2 }}
+                    <div style={{ fontSize: 11, color: 'var(--navy-accent)', cursor: 'pointer', fontWeight: 700, marginTop: 4 }}
                          onClick={() => onSelectAppt && onSelectAppt(dayList[3])}>
-                      +{dayList.length - 3} lịch khác...
+                      +{dayList.length - 3} lịch hẹn khác…
                     </div>
                   )}
                 </div>
