@@ -10423,9 +10423,9 @@
         <div className="prop-card" onClick={() => onOpen(p)}>
           <div className="prop-card-img">
             {im ? <img src={im.url} alt={p.title} loading="lazy" /> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ab' }}><i className="fas fa-image" style={{ fontSize: 34 }}></i></div>}
-            {!!p.isFeatured && <span className="prop-ribbon"><i className="fas fa-star"></i> Featured</span>}
-            <span className={'prop-lt ' + (p.listingType === 'Rent' ? 'rent' : 'sale')}>For {p.listingType}</span>
-            {p.status === 'Reserved' && <span className="prop-reserved">Reserved</span>}
+            {!!p.isFeatured && <span className="prop-ribbon"><i className="fas fa-star"></i> Nổi bật</span>}
+            <span className={'prop-lt ' + (p.listingType === 'Rent' ? 'rent' : 'sale')}>{p.listingType === 'Rent' ? 'Cho thuê' : 'Đang bán'}</span>
+            {p.status === 'Reserved' && <span className="prop-reserved">Đã giữ chỗ</span>}
           </div>
           <div className="prop-card-body">
             <div className="prop-price">{pkrShort(p.price)}{p.listingType === 'Rent' && <small> /{(p.rentFrequency || 'Monthly').toLowerCase()}</small>}</div>
@@ -10690,11 +10690,11 @@
           <div className="portal-body">
             <div className="portal-sec-h">
               <div className="lt-tabs">
-                <button className={lt === '' ? 'on' : ''} onClick={() => setLt('')}>All</button>
-                <button className={lt === 'Sale' ? 'on' : ''} onClick={() => setLt('Sale')}>Buy</button>
-                <button className={lt === 'Rent' ? 'on' : ''} onClick={() => setLt('Rent')}>Rent</button>
+                <button className={lt === '' ? 'on' : ''} onClick={() => setLt('')}>Tất cả</button>
+                <button className={lt === 'Sale' ? 'on' : ''} onClick={() => setLt('Sale')}>Mua bán</button>
+                <button className={lt === 'Rent' ? 'on' : ''} onClick={() => setLt('Rent')}>Cho thuê</button>
               </div>
-              <span className="portal-count">{loading ? 'Loading…' : visible.length + ' listing' + (visible.length === 1 ? '' : 's')}</span>
+              <span className="portal-count">{loading ? 'Loading…' : visible.length + ' bất động sản'}</span>
             </div>
 
             {loading && (
@@ -10715,19 +10715,19 @@
             {!loading && !filtering && featured.length > 0 && (
               <>
                 <div className="portal-sec-h" style={{ margin: '4px 0 14px' }}>
-                  <h2><i className="fas fa-star" style={{ color: '#ffb703' }}></i> Featured Properties</h2>
+                  <h2><i className="fas fa-star" style={{ color: '#ffb703' }}></i> Bất động sản nổi bật</h2>
                 </div>
                 <div className="prop-grid" style={{ marginBottom: 28 }}>
                   {featured.map((p) => <PropCard key={p.id} p={p} onOpen={openDetail} />)}
                 </div>
                 <div className="portal-sec-h" style={{ margin: '4px 0 14px' }}>
-                  <h2><i className="fas fa-building"></i> All Listings</h2>
+                  <h2><i className="fas fa-building"></i> Tất cả bất động sản</h2>
                 </div>
               </>
             )}
 
             {!loading && (visible.length === 0
-              ? <div className="portal-empty"><i className="fas fa-house-circle-xmark"></i>No listings match your search — try widening the filters.</div>
+              ? <div className="portal-empty"><i className="fas fa-house-circle-xmark"></i>Không tìm thấy bất động sản phù hợp — vui lòng thử điều chỉnh lại bộ lọc.</div>
               : <div className="prop-grid">{visible.map((p) => <PropCard key={p.id} p={p} onOpen={openDetail} />)}</div>)}
           </div>
 
