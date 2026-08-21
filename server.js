@@ -118,7 +118,7 @@ async function runLocalApi(req, res, method) {
   if (method === 'getDashboardStats') return jsonResponse(res, 200, dashboardStats(crm, args[0]));
   if (method === 'getMyPermissions') { const role = roleFor(crm, args[0]) || {}; return jsonResponse(res, 200, { success:true, perms:role.permissions || {}, canEdit:role.role_key === 'Admin' }); }
   if (method === 'getAllUsers') return jsonResponse(res, 200, { success:true, data:crm.users.map(({Password, ...user}) => user) });
-  if (method === 'getUserSettings','getAgencyBranding','saveAgencyBranding','uploadProfileImage','updateUserSettings') { const user = crm.users.find(item => item.Username === args[0]) || {}; return jsonResponse(res, 200, { success:true, settings:{ profileImage:user.ProfileImage || '', themeMode:user.ThemeMode || 'light', customColors:user.CustomColors || '' } }); }
+  if (['getUserSettings','getAgencyBranding','saveAgencyBranding','uploadProfileImage','updateUserSettings'].includes(method)) { const user = crm.users.find(item => item.Username === args[0]) || {}; return jsonResponse(res, 200, { success:true, settings:{ profileImage:user.ProfileImage || '', themeMode:user.ThemeMode || 'light', customColors:user.CustomColors || '' } }); }
   if (method === 'getNotifications') return jsonResponse(res, 200, { success:true, data:[] });
   if (method === 'getDefaultTheme') return jsonResponse(res, 200, { success:true, id:'', vars:'' });
   if (method === 'getAiConfig') return jsonResponse(res, 200, { success:true, configured:false });

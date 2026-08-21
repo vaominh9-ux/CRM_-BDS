@@ -190,6 +190,14 @@
       border: 1px solid rgba(255,255,255,.42);
       box-shadow: 0 10px 28px rgba(0,0,0,.24);
     }
+    .brand-logo-placeholder {
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      color: #99f6e4;
+      background: rgba(255,255,255,.1);
+    }
+    .brand-logo-placeholder i { font-size: 45%; }
     .login-brand-name { font-size: 17px; line-height: 1.15; font-weight: 800; letter-spacing: .02em; }
     .login-brand-note { margin-top: 5px; color: rgba(255,255,255,.67); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
 
@@ -3874,7 +3882,7 @@
     };
 
     // ============== RBAC Helpers ==============
-    const APP_LOGO = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGXxCe0WNNedmFqSWeF761f7Kshhc-NP5ChRQKz9fr97cO8VaarvD0KlCwqHojJVBWv-RAxfOqMI5rD4H78KnARyOc6QgwL1nRRFWf5xNQ1d9F9HfAoLPPGlTyP0GwNl4n-INMEsWLQ4Y7zJtz5bOdAnc2ePH9-uCRgshlo6BsS6gJEz6fhrxL-5U5O3sX/s160/channels4_profile.jpg';
+    const APP_LOGO = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="#0f766e"/><path d="M28 102V48l36-22 36 22v54H74V72H54v30H28zm14-42h12V48H42v12zm32 0h12V48H74v12z" fill="#fff"/></svg>');
 
     // ---- branded processing overlay: WRITES only (reads keep the thin top bar) ----
     const _proc = { n: 0, verb: '', subs: new Set() };
@@ -4504,6 +4512,23 @@
       );
     }
 
+    function useAgencyBranding() {
+      const { data: portalResponse, error } = useSWR('portal', () => gsRun('getPublicPortal'), SWR_LIVE);
+      const branding = portalResponse && portalResponse.success && portalResponse.branding
+        ? portalResponse.branding
+        : {};
+      return { branding, loading: !portalResponse && !error };
+    }
+
+    function BrandLogo({ logo, className = '', alt = 'Logo công ty' }) {
+      const [failed, setFailed] = useState(false);
+      useEffect(() => setFailed(false), [logo]);
+      if (logo && !failed) {
+        return <img src={logo} alt={alt} className={className} onError={() => setFailed(true)} />;
+      }
+      return <div className={`${className} brand-logo-placeholder`} role="img" aria-label={alt}><i className="fas fa-building"></i></div>;
+    }
+
     // ============== Login Page (staff only — public visitors stay on the portal) ==============
     function LoginPage({ onLogin, onBack }) {
       const [username, setUsername] = useState('');
@@ -4511,6 +4536,8 @@
       const [showPassword, setShowPassword] = useState(false);
       const [error, setError] = useState('');
       const [loading, setLoading] = useState(false);
+      const { branding, loading: brandingLoading } = useAgencyBranding();
+      const agencyName = branding.name || (brandingLoading ? 'Đang tải…' : 'Hệ thống CRM');
 
       const handleSubmit = (e) => {
         e.preventDefault();
@@ -4538,14 +4565,10 @@
           <div className="login-shell">
             <section className="login-showcase" aria-label="Giới thiệu hệ thống">
               <div className="login-brand">
-                <img
-                  src={(function(){ try { const b = JSON.parse(localStorage.getItem('agency_branding')||'{}'); return b.logo || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGXxCe0WNNedmFqSWeF761f7Kshhc-NP5ChRQKz9fr97cO8VaarvD0KlCwqHojJVBWv-RAxfOqMI5rD4H78KnARyOc6QgwL1nRRFWf5xNQ1d9F9HfAoLPPGlTyP0GwNl4n-INMEsWLQ4Y7zJtz5bOdAnc2ePH9-uCRgshlo6BsS6gJEz6fhrxL-5U5O3sX/s160/channels4_profile.jpg'; } catch(e){ return 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGXxCe0WNNedmFqSWeF761f7Kshhc-NP5ChRQKz9fr97cO8VaarvD0KlCwqHojJVBWv-RAxfOqMI5rD4H78KnARyOc6QgwL1nRRFWf5xNQ1d9F9HfAoLPPGlTyP0GwNl4n-INMEsWLQ4Y7zJtz5bOdAnc2ePH9-uCRgshlo6BsS6gJEz6fhrxL-5U5O3sX/s160/channels4_profile.jpg'; } })()}
-                  alt="Logo"
-                  className="login-brand-logo"
-                />
+                <BrandLogo logo={branding.logo} className="login-brand-logo" />
                 <div>
-                  <div className="login-brand-name">{(function(){ try { const b = JSON.parse(localStorage.getItem('agency_branding')||'{}'); return b.name || 'RS Estates'; } catch(e){ return 'RS Estates'; } })()}</div>
-                  <div className="login-brand-note">Nền tảng quản trị bất động sản</div>
+                  <div className="login-brand-name">{agencyName}</div>
+                  <div className="login-brand-note">{branding.slogan || 'Nền tảng quản trị bất động sản'}</div>
                 </div>
               </div>
 
@@ -4613,6 +4636,7 @@
 
     // ============== Sidebar Component ==============
     function Sidebar({ activeMenu, setActiveMenu, role, user, profileImage, themeMode, onThemeToggle, onLogout, collapsed, setCollapsed, showMobile, setShowMobile, perms, canEditRbac }) {
+      const { branding } = useAgencyBranding();
       const menuVisible = (k) => {
         if (ALWAYS_PAGES.indexOf(k) !== -1) return true;
         if (k === 'permissions') return !!canEditRbac;
@@ -4631,7 +4655,7 @@
             <div className="sidebar-header">
               <div className="sidebar-title">
                 <i className="fas fa-city"></i>
-                <span>{(function(){ try { const b = JSON.parse(localStorage.getItem('agency_branding')||'{}'); return b.name || 'RS Estates'; } catch(e){ return 'RS Estates'; } })()}</span>
+                <span>{branding.name || 'Hệ thống CRM'}</span>
               </div>
               <button className="collapse-btn" onClick={() => setCollapsed(!collapsed)}>
                 <i className={`fas fa-${collapsed ? 'angle-right' : 'angle-left'}`}></i>
@@ -4640,7 +4664,7 @@
 
             <div className="sidebar-user-info">
               <div className="sidebar-profile-image">
-                <img src={profileImage || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGXxCe0WNNedmFqSWeF761f7Kshhc-NP5ChRQKz9fr97cO8VaarvD0KlCwqHojJVBWv-RAxfOqMI5rD4H78KnARyOc6QgwL1nRRFWf5xNQ1d9F9HfAoLPPGlTyP0GwNl4n-INMEsWLQ4Y7zJtz5bOdAnc2ePH9-uCRgshlo6BsS6gJEz6fhrxL-5U5O3sX/s160/channels4_profile.jpg'} alt="Profile" />
+                <BrandLogo logo={profileImage || branding.logo} alt="Ảnh đại diện" />
               </div>
               <div className="sidebar-user-name">{user}</div>
               <div className="sidebar-user-role">{role}</div>
@@ -6041,15 +6065,19 @@
         try {
           const cached = localStorage.getItem('agency_branding');
           return cached ? JSON.parse(cached) : {
-            name: 'RS Estates',
-            phone: '0901 234 567',
-            address: 'Hà Nội & TP. Hồ Chí Minh, Việt Nam'
+            name: '',
+            logo: '',
+            phone: '',
+            address: '',
+            slogan: ''
           };
         } catch(e) {
           return {
-            name: 'RS Estates',
-            phone: '0901 234 567',
-            address: 'Hà Nội & TP. Hồ Chí Minh, Việt Nam'
+            name: '',
+            logo: '',
+            phone: '',
+            address: '',
+            slogan: ''
           };
         }
       });
@@ -6107,7 +6135,7 @@
                   value={branding.name || ''}
                   onChange={(e) => setBranding({ ...branding, name: e.target.value })}
                   required
-                  placeholder="Ví dụ: Hoàng Gia Land, RS Estates..."
+                  placeholder="Ví dụ: Tên công ty bất động sản"
                 />
               </div>
 
@@ -10643,10 +10671,10 @@
         <div className="portal">
           <nav className="portal-nav">
             <div className="portal-brand">
-              <img src={(portal && portal.branding && portal.branding.logo) || (function(){ try { const b = JSON.parse(localStorage.getItem('agency_branding')||'{}'); return b.logo; } catch(e){} return ''; })() || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiGXxCe0WNNedmFqSWeF761f7Kshhc-NP5ChRQKz9fr97cO8VaarvD0KlCwqHojJVBWv-RAxfOqMI5rD4H78KnARyOc6QgwL1nRRFWf5xNQ1d9F9HfAoLPPGlTyP0GwNl4n-INMEsWLQ4Y7zJtz5bOdAnc2ePH9-uCRgshlo6BsS6gJEz6fhrxL-5U5O3sX/s160/channels4_profile.jpg'} alt="Logo" />
-              <span>{(portal && portal.branding && portal.branding.name) || (function(){ try { const b = JSON.parse(localStorage.getItem('agency_branding')||'{}'); return b.name; } catch(e){} return 'NTH CRM'; })() || 'NTH CRM'}</span>
+              <BrandLogo logo={portal && portal.branding && portal.branding.logo} />
+              <span>{(portal && portal.branding && portal.branding.name) || 'Hệ thống CRM'}</span>
             </div>
-            <button className="portal-login-btn" onClick={onStaffLogin}><i className="fas fa-lock"></i> Staff Login</button>
+            <button className="portal-login-btn" onClick={onStaffLogin}><i className="fas fa-lock"></i> Đăng nhập nhân viên</button>
           </nav>
 
           <div className="portal-hero">
@@ -10725,8 +10753,8 @@
           </div>
 
           <footer className="portal-footer">
-            <strong>RS Estates</strong> — your trusted property partner.<br />
-            Portal by <a href="https://www.youtube.com/@rameezimdad" target="_blank" rel="noopener">Rameez Scripts</a> · <a href="https://wa.me/923224083545" target="_blank" rel="noopener">WhatsApp for custom projects</a>
+            <strong>{(portal && portal.branding && portal.branding.name) || 'Hệ thống CRM'}</strong>
+            {(portal && portal.branding && portal.branding.slogan) ? ` — ${portal.branding.slogan}` : ' — Cổng thông tin bất động sản.'}
           </footer>
 
           {detail && <PortalDetail prop={detail} all={props} onOpen={openDetail} onClose={() => setDetail(null)} />}

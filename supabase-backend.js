@@ -10,11 +10,11 @@ const enabled = Boolean(SUPABASE_URL && PUBLISHABLE_KEY && SERVICE_KEY);
 const ok = (data = {}) => ({ success: true, ...data });
 const fail = (message) => ({ success: false, message });
 const DEFAULT_AGENCY_BRANDING = Object.freeze({
-  name: 'RS Estates',
+  name: '',
   logo: '',
-  phone: '0901 234 567',
-  address: 'Hà Nội & TP. Hồ Chí Minh, Việt Nam',
-  slogan: 'Nền tảng bất động sản cao cấp hàng đầu'
+  phone: '',
+  address: '',
+  slogan: ''
 });
 
 async function request(path, { method = 'GET', body, jwt, admin = false, headers: extraHeaders = {} } = {}) {
@@ -161,7 +161,7 @@ async function updateUserSettings(args,jwt){const p=await currentProfile(jwt),se
 function normalizeAgencyBranding(value = {}) {
   const branding = { ...DEFAULT_AGENCY_BRANDING, ...(value || {}) };
   return {
-    name: String(branding.name || DEFAULT_AGENCY_BRANDING.name).trim().slice(0, 160),
+    name: String(branding.name || '').trim().slice(0, 160),
     logo: String(branding.logo || '').trim().slice(0, 2_000_000),
     phone: String(branding.phone || '').trim().slice(0, 80),
     address: String(branding.address || '').trim().slice(0, 500),
@@ -370,7 +370,8 @@ async function syncPropertyRelations(propertyId,data,jwt) {
   }
 }
 async function patchRow(table,id,body,jwt) {
-  const rows = await request(`/rest/v1/${table}?id=eq.${Number(id)}`,{method:'PATCH',jwt,body:clean(body),headers:{Prefer:'return=representation'}});
+  const queryId = table === 'profiles' || (typeof id === 'string' && id.includes('-')) ? enc(id) : Number(id);
+  const rows = await request(`/rest/v1/${table}?id=eq.${queryId}`,{method:'PATCH',jwt,body:clean(body),headers:{Prefer:'return=representation'}});
   return Array.isArray(rows)?rows[0]:null;
 }
 async function softDelete(table,id,jwt,label) {
@@ -409,6 +410,25 @@ async function uploadPropertyImage(args,jwt){
   const response=await fetch(`${SUPABASE_URL}/storage/v1/object/${IMAGE_BUCKET}/${encoded}`,{method:'POST',headers:{apikey:SERVICE_KEY,Authorization:`Bearer ${SERVICE_KEY}`,'Content-Type':match[1],'x-upsert':'false'},body:bytes});
   if(!response.ok)throw new Error(`Tải ảnh thất bại: ${await response.text()}`);
   return ok({url:`${SUPABASE_URL}/storage/v1/object/public/${IMAGE_BUCKET}/${encoded}`,path:storagePath});
+}
+
+async function uploadProfileImage(args,jwt){
+  const [dataUrl,filename]=args,p=await currentProfile(jwt);
+  const match=String(dataUrl||'').match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/i);
+  if(!match)return fail('Chỉ hỗ trợ ảnh JPG, PNG, WEBP hoặc GIF');
+  const bytes=Buffer.from(match[2].replace(/\s/g,''),'base64');
+  if(!bytes.length||bytes.length>5*1024*1024)return fail('Ảnh phải có dung lượng từ 1 byte đến 5 MB');
+  await ensureImageBucket();
+  const ext={jpeg:'jpg',png:'png',webp:'webp',gif:'gif'}[match[1].split('/')[1].toLowerCase()]||'jpg';
+  const base=String(filename||'avatar').replace(/\.[^.]+$/,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-|-$/g,'').slice(0,80)||'avatar';
+  const storagePath=`avatars/${p.id}/${Date.now()}-${Math.random().toString(36).slice(2,9)}-${base}.${ext}`;
+  const encoded=storagePath.split('/').map(enc).join('/');
+  const response=await fetch(`${SUPABASE_URL}/storage/v1/object/${IMAGE_BUCKET}/${encoded}`,{method:'POST',headers:{apikey:SERVICE_KEY,Authorization:`Bearer ${SERVICE_KEY}`,'Content-Type':match[1],'x-upsert':'false'},body:bytes});
+  if(!response.ok)throw new Error(`Tải ảnh đại diện thất bại: ${await response.text()}`);
+  const publicUrl=`${SUPABASE_URL}/storage/v1/object/public/${IMAGE_BUCKET}/${encoded}`;
+  await patchRow('profiles',p.id,{profile_image:publicUrl,updated_at:new Date().toISOString()},jwt);
+  await audit(jwt,'Profile Image Uploaded',`Cập nhật ảnh đại diện: ${base}.${ext}`);
+  return ok({fileId:storagePath,fileUrl:publicUrl,fileName:filename||`${base}.${ext}`,url:publicUrl,message:'Đã tải ảnh đại diện thành công'});
 }
 
 async function leadBody(data,jwt,isNew=false){const p=await currentProfile(jwt),assigned=(isNew||has(data,'assignedAgent'))?await profileId(data.assignedAgent,jwt,p.id):undefined;return clean({full_name:data.fullName,phone:data.phone,email:nullableText(data.email),source:data.source,interest_type:data.interestType,property_id:nullableNumber(data.propertyId),preferred_location_id:nullableNumber(data.preferredLocationId),budget_min_vnd:nullableNumber(data.budgetMin),budget_max_vnd:nullableNumber(data.budgetMax),message:data.message,status:data.status||(isNew?'New':undefined),lost_reason:nullableText(data.lostReason),assigned_agent_id:assigned,created_by:isNew?p.id:undefined,updated_at:new Date().toISOString(),updated_by:p.id});}
@@ -656,7 +676,7 @@ async function run(method,args=[],authorization=''){
     getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getAgencyBranding,getRbacMatrix
   };
   const mutationHandlers={
-    updateUserSettings,saveAgencyBranding,toggleRbac,setAppConfig,
+    updateUserSettings,uploadProfileImage,saveAgencyBranding,toggleRbac,setAppConfig,
     addProperty,updateProperty,deleteProperty,uploadPropertyImage,addLead,updateLead,deleteLead,assignLead,
     addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,completeAppointment,
     addDeal,updateDeal,deleteDeal,addDealPayment,markAgentPaid,
