@@ -8,7 +8,7 @@
   <title>CRM Bất Động Sản & Cổng Thông Tin</title>
 
   <!--
-  WhatsApp: https://wa.me/923224083545 (For Custom Projects)
+  WhatsApp: https://zalo.me/923224083545 (For Custom Projects)
   YouTube: https://www.youtube.com/@rameezimdad (Subscribe for more!)
   -->
 
@@ -2578,8 +2578,8 @@
     .developer-details p { margin-bottom: 15px; }
     .developer-links { display: flex; gap: 12px; flex-wrap: wrap; }
     .dev-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.3s; }
-    .dev-link.whatsapp { background: #25D366; color: white; }
-    .dev-link.whatsapp:hover { background: #128C7E; transform: translateY(-2px); }
+    .dev-link.whatsapp { background: #0068FF; color: white; }
+    .dev-link.whatsapp:hover { background: #0052cc; transform: translateY(-2px); }
     .dev-link.youtube { background: #FF0000; color: white; }
     .dev-link.youtube:hover { background: #CC0000; transform: translateY(-2px); }
     .about-footer { text-align: center; padding: 25px; color: #666; font-size: 14px; }
@@ -2597,7 +2597,7 @@
 
     /* ===== Extra row action (view/assign/whatsapp) ===== */
     .action-icon.view-icon { color: var(--navy-accent); }
-    .action-icon.wa-icon { color: #25D366; }
+    .action-icon.wa-icon { color: #0068FF; }
     .action-icon.assign-icon { color: #6a1b9a; }
 
     /* ===== Luxury Property Detail Modal ===== */
@@ -4111,10 +4111,10 @@
       rentFrequency: ['Monthly','Yearly'],
       areaUnit: ['Sq M'],
       locationLevel: ['City','Area','Society'],
-      leadSource: ['Website','WhatsApp','Facebook','Walk-in','Referral','Phone Call','Other'],
+      leadSource: ['Website','Zalo','Facebook','Walk-in','Referral','Phone Call','Other'],
       interestType: ['Buy','Rent','Sell','Rent Out'],
       leadStatus: ['New','Contacted','Qualified','Viewing Scheduled','Negotiating','Won','Lost'],
-      followUpType: ['Call','WhatsApp','Email','Meeting','Note'],
+      followUpType: ['Call','Zalo','Email','Meeting','Note'],
       followUpStatus: ['Pending','Completed','Cancelled'],
       appointmentStatus: ['Scheduled','Confirmed','Completed','Cancelled','No Show'],
       dealStatus: ['Token','Agreement','Completed','Cancelled'],
@@ -7111,7 +7111,7 @@
             Swal.fire({ icon: res && res.success ? 'success' : 'error', title: (res && res.message) || 'Failed', timer: res && res.success ? 1800 : undefined, showConfirmButton: !(res && res.success) }); }); });
       };
       const doCopy = () => { try { navigator.clipboard.writeText(portalLink); Swal.fire({ icon: 'success', title: 'Portal link copied!', timer: 1300, showConfirmButton: false }); } catch (e) { Swal.fire({ icon: 'info', title: 'Portal link', text: portalLink }); } };
-      const waShare = () => window.open('https://wa.me/?text=' + encodeURIComponent(prop.title + ' (' + (prop.referenceCode || '') + ') — ' + fmtPKR(prop.price) + '\n' + portalLink), '_blank');
+      const waShare = () => window.open('https://zalo.me/?text=' + encodeURIComponent(prop.title + ' (' + (prop.referenceCode || '') + ') — ' + fmtPKR(prop.price) + '\n' + portalLink), '_blank');
 
       const addDoc = (e) => {
         const file = e.target.files[0]; e.target.value = '';
@@ -7169,7 +7169,7 @@
                 </span>
               </div>
               <div className="pd-meta-actions" style={{ marginBottom: '16px' }}>
-                <button className="btn btn-secondary btn-sm" onClick={waShare} title="Chia sẻ qua WhatsApp"><i className="fab fa-whatsapp" style={{ color: '#25D366' }}></i> Chia sẻ</button>
+                <button className="btn btn-secondary btn-sm" onClick={waShare} title="Chia sẻ qua Zalo"><i className="fas fa-comment-dots" style={{ color: '#25D366' }}></i> Chia sẻ</button>
                 <button className="btn btn-secondary btn-sm" onClick={doBrochure} disabled={busy} title="Tờ giới thiệu PDF"><i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-file-pdf')}></i> Tờ giới thiệu</button>
                 <button className="btn btn-secondary btn-sm" onClick={doEmail} title="Gửi tin đăng qua email"><i className="fas fa-envelope"></i> Email</button>
                 <button className="btn btn-secondary btn-sm" onClick={doCopy} title="Sao chép liên kết cổng"><i className="fas fa-link"></i> Liên kết</button>
@@ -7221,7 +7221,7 @@
                 : leads.map((l) => <div key={l.id} className="tl-item"><i className="fas fa-user"></i>
                     <div style={{ flex: 1 }}><div className="w"><b>{l.fullName}</b> · {l.phone}</div><div className="m">{viEnum(l.source)} · {l.assignedAgent || 'Chưa phân công'} · {fmtDate(l.created)}</div></div>
                     <Badge s={l.status} />
-                    <button className="action-icon wa-icon" title="WhatsApp" onClick={() => waOpen(l.phone)}><i className="fab fa-whatsapp"></i></button>
+                    <button className="action-icon wa-icon" title="Nhắn Zalo" onClick={() => waOpen(l.phone)}><i className="fas fa-comment-dots"></i></button>
                   </div>))}
               {tab === 'appts' && (appts.length === 0 ? <p style={{ color: '#789', padding: 12 }}>Chưa có lịch xem.</p>
                 : appts.map((a) => <div key={a.id} className="tl-item"><i className="fas fa-calendar-check"></i>
@@ -7322,7 +7322,7 @@
                         <span className="kb-agent"><i className="fas fa-user-tie"></i>{l.assignedAgent || 'Unassigned'} · {fmtDate(l.created)}</span>
                         <span className="kb-acts">
                           <button title="Lead 360" onClick={() => onAction('view', l)}><i className="fas fa-id-card-clip"></i></button>
-                          <button title="WhatsApp" onClick={() => onAction('wa', l)}><i className="fab fa-whatsapp"></i></button>
+                          <button title="Nhắn Zalo" onClick={() => onAction('wa', l)}><i className="fas fa-comment-dots"></i></button>
                           {canEdit && <button title="Edit" onClick={() => onAction('edit', l)}><i className="fas fa-edit"></i></button>}
                         </span>
                       </div>
@@ -7375,7 +7375,7 @@
                 <div className="pd-fact"><div className="k">Trạng thái</div><div className="v">{viEnum(source.status || '—')}</div></div>
               </div>
               <div className="customer-quick-footer">
-                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><i className="fab fa-whatsapp"></i> Liên hệ WhatsApp</button>}
+                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><i className="fas fa-comment-dots"></i> Liên hệ Zalo</button>}
                 <p className="customer-quick-note"><i className="fas fa-circle-info"></i> Thông tin này chưa liên kết với hồ sơ khách hàng tiềm năng.</p>
               </div>
             </div>
@@ -7458,7 +7458,7 @@
         });
       };
       const onAction = (action, l) => {
-        if (action === 'wa') { const n = String(l.phone || '').replace(/\D/g, ''); if (n) window.open('https://wa.me/' + n, '_blank'); }
+        if (action === 'wa') { const n = String(l.phone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
         else if (action === 'view') setViewing360(l);
         else if (action === 'deal') { const acc = (l.offers || []).find((o) => o.status === 'Accepted'); setDealFor({ lead: l, amount: acc ? acc.amount : '' }); }
         else if (action === 'edit') { setEditing(l); setShowModal(true); }
@@ -7500,7 +7500,7 @@
           { data: 'created', title: 'Created', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
           { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-6', width: '208px', render: (d, t, l) => `<div class="table-actions slots-6 lead-actions">
             <button class="action-icon view-icon" data-action="view" title="Lead 360"><i class="fas fa-id-card-clip"></i></button>
-            <button class="action-icon wa-icon" data-action="wa" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo"><i class="fas fa-comment-dots"></i></button>
             ${canEdit && ['Negotiating','Won'].indexOf(l.status) !== -1 ? '<button class="action-icon assign-icon" data-action="deal" title="Convert to Deal"><i class="fas fa-handshake"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             ${all && !l.assignedAgent ? '<button class="action-icon assign-icon" data-action="assign" title="Assign agent"><i class="fas fa-user-plus"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
@@ -7774,7 +7774,7 @@
       }, [canAdd]);
 
       const onAction = (action, f) => {
-        if (action === 'wa') { const n = String(f.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://wa.me/' + n, '_blank'); }
+        if (action === 'wa') { const n = String(f.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
         else if (action === 'done') {
           gsRun('updateFollowUp', { id: f.id, status: 'Completed' }, currentUser).then((res) => {
             if (res && res.success) { Swal.fire({ icon: 'success', title: 'Marked completed', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
@@ -7790,7 +7790,7 @@
         }
       };
 
-      const FU_ICONS = { Call: 'fa-phone', WhatsApp: 'fa-comment-dots', Email: 'fa-envelope', Meeting: 'fa-handshake', Note: 'fa-note-sticky' };
+      const FU_ICONS = { Call: 'fa-phone', Zalo: 'fa-comment-dots', WhatsApp: 'fa-comment-dots', Email: 'fa-envelope', Meeting: 'fa-handshake', Note: 'fa-note-sticky' };
       const tableRef = useDataTable('fuTable', rows === undefined ? null : visible, () => ({
         search: { search: filters.search },
         columns: [
@@ -7803,7 +7803,7 @@
           { data: 'assignedAgent', title: 'Agent', render: (d) => esc(d || '—') },
           { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-4', width: '140px', render: (d, t, f) => `<div class="table-actions slots-4">
             ${canEdit && f.status === 'Pending' ? '<button class="action-icon view-icon" data-action="done" title="Mark completed"><i class="fas fa-check"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            <button class="action-icon wa-icon" data-action="wa" title="WhatsApp lead"><i class="fab fa-whatsapp"></i></button>
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo khách hàng"><i class="fas fa-comment-dots"></i></button>
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
             ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
@@ -7982,7 +7982,7 @@
       }, [canAdd]);
 
       const onAction = (action, a) => {
-        if (action === 'wa') { const n = String(a.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://wa.me/' + n, '_blank'); }
+        if (action === 'wa') { const n = String(a.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
         else if (action === 'confirm') {
           gsRun('updateAppointment', { id: a.id, status: 'Confirmed' }, currentUser).then((res) => {
             if (res && res.success) { Swal.fire({ icon: 'success', title: 'Đã xác nhận', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
@@ -8013,7 +8013,7 @@
           { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, a) => `<div class="table-actions slots-5">
             ${canEdit && a.status === 'Scheduled' ? '<button class="action-icon view-icon" data-action="confirm" title="Xác nhận"><i class="fas fa-check"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             ${canEdit && ['Scheduled','Confirmed'].indexOf(a.status) !== -1 ? '<button class="action-icon assign-icon" data-action="complete" title="Hoàn thành và ghi phản hồi"><i class="fas fa-flag-checkered"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            <button class="action-icon wa-icon" data-action="wa" title="WhatsApp khách hàng"><i class="fab fa-whatsapp"></i></button>
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo khách hàng"><i class="fas fa-comment-dots"></i></button>
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>' : ''}
             ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
@@ -8460,7 +8460,7 @@
       const { data } = useSWR(currentUser ? 'cfg' : null, () => gsRun('getAppConfig', currentUser), SWR_LIVE);
       return (data && data.success && data.cfg) || { commissionPctSale: 1, commissionPctRent: 100, agentSharePct: 40, renewalIncrementPct: 10, roundRobin: 0 };
     };
-    const waOpen = (phone, msg) => { const n = String(phone || '').replace(/\D/g, ''); if (n) window.open('https://wa.me/' + n + (msg ? '?text=' + encodeURIComponent(msg) : ''), '_blank'); };
+    const waOpen = (phone, msg) => { const n = String(phone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n + (msg ? '?text=' + encodeURIComponent(msg) : ''), '_blank'); };
     const ymNow = () => { const d = new Date(), p = (x) => String(x).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1); };
     const monthsDue = (t) => { // due month list since startDate — mirrors backend tenMonths_
       const out = [], s = new Date(t.startDate + 'T00:00:00'), now = new Date();
@@ -8823,7 +8823,7 @@
           { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, x) => `<div class="table-actions slots-5">
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit deal"><i class="fas fa-pen-to-square"></i></button>' : ''}
             ${canEdit && ['Token','Agreement'].indexOf(x.status) !== -1 ? '<button class="action-icon assign-icon" data-action="pay" title="Add payment"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            <button class="action-icon wa-icon" data-action="wa" title="WhatsApp buyer"><i class="fab fa-whatsapp"></i></button>
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo người mua"><i class="fas fa-comment-dots"></i></button>
             ${all && x.status === 'Completed' && !x.agentPaidAt ? '<button class="action-icon edit-icon" data-action="paidout" title="Mark agent paid"><i class="fas fa-hand-holding-dollar"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             ${canDel && x.status !== 'Completed' ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}</div>` }
         ],
@@ -9028,7 +9028,7 @@
           { data: 'created', title: 'Since', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
           { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-4', width: '140px', render: () => `<div class="table-actions slots-4">
             <button class="action-icon view-icon" data-action="view" title="Owner 360"><i class="fas fa-id-card-clip"></i></button>
-            <button class="action-icon wa-icon" data-action="wa" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo"><i class="fas fa-comment-dots"></i></button>
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
             ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
@@ -9381,7 +9381,7 @@
           { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, x) => `<div class="table-actions slots-5">
             ${canEdit && x.status === 'Active' ? '<button class="action-icon assign-icon" data-action="collect" title="Collect rent"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             <button class="action-icon view-icon" data-action="view" title="Tenancy 360"><i class="fas fa-eye"></i></button>
-            <button class="action-icon wa-icon" data-action="wa" title="WhatsApp tenant"><i class="fab fa-whatsapp"></i></button>
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo người thuê"><i class="fas fa-comment-dots"></i></button>
             ${all && x.status === 'Active' ? '<button class="action-icon edit-icon" data-action="renew" title="Renew contract"><i class="fas fa-file-signature"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             ${all && x.status === 'Active' ? '<button class="action-icon delete-icon" data-action="end" title="End tenancy"><i class="fas fa-door-open"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}</div>` }
         ],
@@ -9562,7 +9562,7 @@
                     <div className="nm">{lead.fullName} <Badge s={lead.status} /></div>
                     <div className="sub">
                       <i className="fas fa-phone"></i> {lead.phone}
-                      <button className="action-icon wa-icon" style={{ marginLeft: 6 }} title="WhatsApp" onClick={() => waOpen(lead.phone)}><i className="fab fa-whatsapp"></i></button>
+                      <button className="action-icon wa-icon" style={{ marginLeft: 6 }} title="Nhắn Zalo" onClick={() => waOpen(lead.phone)}><i className="fas fa-comment-dots"></i></button>
                       {lead.email ? ' · ' + lead.email : ''} · {viEnum(lead.source)} · {viEnum(lead.interestType)}
                     </div>
                   </div>
@@ -9634,7 +9634,7 @@
                   <div key={p.id} className="tl-item"><i className="fas fa-building"></i>
                     <div style={{ flex: 1 }}><div className="w"><b>{p.referenceCode}</b> {p.title}</div><div className="m">{pkrShort(p.price)} · {p.locationPath} · điểm phù hợp {s}/6</div></div>
                     <Badge s={p.status} />
-                    <button className="action-icon wa-icon" title="Share on WhatsApp" onClick={() => waOpen(lead.phone, 'Assalam o Alaikum ' + lead.fullName + '! This listing may interest you: ' + p.title + ' (' + p.referenceCode + ') — ' + fmtPKR(p.price))}><i className="fab fa-whatsapp"></i></button>
+                    <button className="action-icon wa-icon" title="Chia sẻ qua Zalo" onClick={() => waOpen(lead.phone, 'Assalam o Alaikum ' + lead.fullName + '! This listing may interest you: ' + p.title + ' (' + p.referenceCode + ') — ' + fmtPKR(p.price))}><i className="fas fa-comment-dots"></i></button>
                   </div>)))}
               {tab === 'deal' && (
                 <>
@@ -10540,9 +10540,9 @@
                       <i className="fas fa-location-dot"></i> {prop.locationPath || ''}{prop.address ? ' · ' + prop.address : ''}
                     </div>
                     <div className="pd-share-row">
-                      <button className="btn btn-secondary btn-sm" title="Chia sẻ qua WhatsApp"
-                              onClick={() => window.open('https://wa.me/?text=' + encodeURIComponent(prop.title + ' — ' + pkrShort(prop.price) + '\n' + portalLink), '_blank')}>
-                        <i className="fab fa-whatsapp" style={{ color: '#25D366' }}></i> WhatsApp
+                      <button className="btn btn-secondary btn-sm" title="Chia sẻ qua Zalo"
+                              onClick={() => window.open('https://zalo.me/?text=' + encodeURIComponent(prop.title + ' — ' + pkrShort(prop.price) + '\n' + portalLink), '_blank')}>
+                        <i className="fas fa-comment-dots" style={{ color: '#0068FF' }}></i> Zalo
                       </button>
                       <button className="btn btn-secondary btn-sm" title="Sao chép liên kết"
                               onClick={() => { try { navigator.clipboard.writeText(portalLink); Swal.fire({ icon: 'success', title: 'Đã sao chép liên kết!', timer: 1200, showConfirmButton: false }); } catch (e) {} }}>
@@ -11130,10 +11130,10 @@
         'All':'Tất cả','Buy':'Mua','Rent':'Thuê','Featured Properties':'Bất động sản nổi bật','All Listings':'Tất cả tin đăng',
         'Featured':'Nổi bật','For Sale':'Đang bán','For Rent':'Cho thuê','Reserved':'Đã giữ chỗ','Available':'Đang giao dịch',
         'No listings match your search — try widening the filters.':'Không có tin đăng phù hợp — hãy thử mở rộng điều kiện tìm kiếm.',
-        'Interested? Send an enquiry':'Bạn quan tâm? Gửi yêu cầu tư vấn','Your Name *':'Họ và tên *','Phone / WhatsApp *':'Điện thoại / WhatsApp *',
+        'Interested? Send an enquiry':'Bạn quan tâm? Gửi yêu cầu tư vấn','Your Name *':'Họ và tên *','Phone / WhatsApp *':'Điện thoại / Zalo *',
         'Email':'Email','Preferred Viewing Time':'Thời gian muốn xem','Message':'Nội dung','Send Enquiry':'Gửi yêu cầu','Sending…':'Đang gửi…',
         'Our team will contact you — your details are never shared publicly.':'Đội ngũ của chúng tôi sẽ liên hệ; thông tin của bạn không được công khai.',
-        'Similar Properties':'Bất động sản tương tự','Share on WhatsApp':'Chia sẻ qua WhatsApp','Copy link':'Sao chép liên kết',
+        'Similar Properties':'Bất động sản tương tự','Share on WhatsApp':'Chia sẻ qua Zalo','Copy link':'Sao chép liên kết',
         'Link copied!':'Đã sao chép liên kết!','Loading…':'Đang tải…','Staff Access':'Khu vực nhân viên','Back to Listings':'Quay lại danh sách',
         'Username':'Tên đăng nhập','Password':'Mật khẩu','Login':'Đăng nhập','Logging in…':'Đang đăng nhập…','Back to Portal':'Quay lại cổng thông tin',
         'Dashboard':'Tổng quan','AI Assistant':'Trợ lý AI','Properties':'Bất động sản','Leads':'Khách hàng tiềm năng',
@@ -11170,11 +11170,11 @@
         'House':'Nhà','Flat':'Căn hộ','Upper Portion':'Tầng trên','Lower Portion':'Tầng dưới','Farm House':'Nhà vườn',
         'Plot':'Đất nền','Commercial Plot':'Đất thương mại','Shop':'Cửa hàng','Office':'Văn phòng','Warehouse':'Kho','Building':'Tòa nhà',
         'Sale':'Bán','Monthly':'Hàng tháng','Yearly':'Hàng năm','Call':'Cuộc gọi','Meeting':'Cuộc họp','Website':'Website',
-        'WhatsApp':'WhatsApp','Facebook':'Facebook','Walk-in':'Khách trực tiếp','Referral':'Giới thiệu','Phone Call':'Cuộc gọi','Other':'Khác',
+        'Zalo':'Zalo','Facebook':'Facebook','Walk-in':'Khách trực tiếp','Referral':'Giới thiệu','Phone Call':'Cuộc gọi','Other':'Khác',
         'Save Changes':'Lưu thay đổi','Processing…':'Đang xử lý…','Deleting…':'Đang xóa…','Uploading…':'Đang tải lên…',
         'Importing…':'Đang nhập dữ liệu…','Generating…':'Đang tạo…','Updating…':'Đang cập nhật…','Collecting…':'Đang thu tiền…',
         '— your trusted property partner.':'— đối tác bất động sản đáng tin cậy của bạn.','Portal by':'Phát triển bởi',
-        'WhatsApp for custom projects':'Liên hệ WhatsApp để tùy chỉnh dự án'
+        'WhatsApp for custom projects':'Liên hệ Zalo để tùy chỉnh dự án'
       }));
 
       Object.entries({
@@ -11300,7 +11300,7 @@
         'Status:':'Trạng thái:','Status…':'Chọn trạng thái…','Type…':'Chọn loại…','Role…':'Chọn vai trò…','Agent…':'Chọn nhân viên…',
         'Unit…':'Chọn đơn vị…','Source…':'Chọn nguồn…','Monthly / Yearly':'Hàng tháng / Hàng năm','Sale & Rent':'Bán và cho thuê',
         'Sale / Rent':'Bán / Cho thuê','Sales & Rentals':'Mua bán và cho thuê','WhatsApp buyer':'WhatsApp người mua',
-        'WhatsApp lead':'WhatsApp khách hàng','WhatsApp tenant':'WhatsApp người thuê','Phone / WhatsApp *':'Điện thoại / WhatsApp *'
+        'WhatsApp lead':'WhatsApp khách hàng','WhatsApp tenant':'WhatsApp người thuê','Phone / WhatsApp *':'Điện thoại / Zalo *'
       }).forEach(([key, value]) => exact.set(key, value));
 
       Object.entries({
