@@ -2433,23 +2433,23 @@
     /* ===== Pipeline Chevron Tabs (status filter — status NEVER sits in .filters-grid) ===== */
     .pipeline-stages { display: flex; width: 100%; margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .pipeline-stages::-webkit-scrollbar { display: none; }
-    .pipeline-stage { flex: 1 0 168px; min-width: 168px; min-height: 46px; position: relative; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px;
-      padding: 8px 14px 8px 28px; cursor: pointer; transition: filter 0.2s, box-shadow 0.2s; color: #fff; text-decoration: none;
+    .pipeline-stage { flex: 1 0 auto; min-width: 175px; min-height: 48px; position: relative; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 7px;
+      padding: 10px 20px 10px 32px; cursor: pointer; transition: filter 0.2s, box-shadow 0.2s; color: #fff; text-decoration: none;
       text-shadow: 0 1px 2px rgba(0,0,0,.34);
       -webkit-clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%);
       clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%); }
     .pipeline-stage:first-child { -webkit-clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%);
-      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%); padding-left: 16px; border-radius: 4px 0 0 4px; }
+      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%); padding-left: 20px; padding-right: 20px; border-radius: 4px 0 0 4px; }
     .pipeline-stage:last-child { -webkit-clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 18px 50%);
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 18px 50%); border-radius: 0 4px 4px 0; }
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 18px 50%); padding-right: 20px; border-radius: 0 4px 4px 0; }
     .pipeline-stage:hover { filter: brightness(.92) saturate(1.08); }
     .pipeline-stage.active { filter: brightness(.9) saturate(1.12); box-shadow: inset 0 -4px 0 rgba(255,255,255,.96), inset 0 0 0 1px rgba(0,0,0,.18); }
-    .pipeline-stage-name { display: inline-block; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; font-size: 11.5px; line-height: 1.2; font-weight: 800; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.02em; color: #fff; }
-    .pipeline-stage-count { display: inline-block; flex: 0 0 auto; font-size: 11.5px; line-height: 1.2; font-weight: 800; font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.01em; color: #fff; opacity: 1; white-space: nowrap; }
+    .pipeline-stage-name { display: inline-block; min-width: 0; text-align: center; font-size: 13px; line-height: 1.2; font-weight: 800; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.02em; color: #fff; }
+    .pipeline-stage-count { display: inline-block; flex: 0 0 auto; font-size: 13px; line-height: 1.2; font-weight: 800; font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.01em; color: #fff; opacity: 1; white-space: nowrap; }
     .pipeline-stage.pipeline-empty { opacity: 1; filter: brightness(.78) saturate(.82); box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
     .pipeline-stage.pipeline-empty:hover { filter: brightness(.88) saturate(.95); }
-    @media (max-width: 992px) { .pipeline-stage { flex-basis: 156px; min-width: 156px; min-height: 44px; padding: 6px 12px 6px 25px; gap: 5px; } .pipeline-stage-name { font-size: 11px; } .pipeline-stage-count { font-size: 11px; } }
-    @media (max-width: 768px) { .pipeline-stages { overflow-x: auto; } .pipeline-stage { min-width: 148px; flex-shrink: 0; flex-grow: 0; padding: 6px 12px 6px 24px; gap: 4px; } .pipeline-stage-name { font-size: 10.75px; } .pipeline-stage-count { font-size: 10.75px; } }
+    @media (max-width: 992px) { .pipeline-stage { min-width: 160px; min-height: 46px; padding: 8px 16px 8px 28px; gap: 6px; } .pipeline-stage-name { font-size: 12px; } .pipeline-stage-count { font-size: 12px; } }
+    @media (max-width: 768px) { .pipeline-stages { overflow-x: auto; } .pipeline-stage { min-width: 150px; flex-shrink: 0; flex-grow: 0; padding: 7px 14px 7px 26px; gap: 5px; } .pipeline-stage-name { font-size: 11.5px; } .pipeline-stage-count { font-size: 11.5px; } }
 
     /* ===== Status tints (shared across entities) + role badges ===== */
     .st-navy   { background: #dbe4f0; color: #123a63; }
