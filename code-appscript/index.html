@@ -31,7 +31,7 @@
   <!-- CDN Dependencies -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -3045,7 +3045,13 @@
     }
 
     /* ===== Public Property Portal (pre-login surface) — Ultra Luxury Harmonized Edition ===== */
-    .portal { min-height: 100vh; background: #f8fafc; display: flex; flex-direction: column; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    .portal,
+    .portal *:not(i):not(.fas):not(.far):not(.fab):not(.fa) {
+      font-family: var(--font-sans) !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .portal { min-height: 100vh; background: #f8fafc; display: flex; flex-direction: column; }
     .portal-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 32px; background: rgba(10, 25, 47, 0.98); backdrop-filter: blur(16px); color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.25); border-bottom: 1px solid rgba(255,255,255,.08); }
     .portal-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 19px; letter-spacing: .5px; }
     .portal-brand img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #e2b96f; box-shadow: 0 0 12px rgba(226,185,111,.35); object-fit: cover; }
