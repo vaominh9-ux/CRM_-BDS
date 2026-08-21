@@ -41,6 +41,18 @@ async function selectAll(table, columns, jwt, extra = '') {
     if (page.length < pageSize) return rows;
   }
 }
+async function adminSelectAll(table, columns, extra = '') {
+  const rows = [];
+  const pageSize = 1000;
+  for (let start = 0; ; start += pageSize) {
+    const page = await request(`/rest/v1/${table}?select=${enc(columns || '*')}${extra}`, {
+      admin: true,
+      headers: { Range: `${start}-${start + pageSize - 1}` }
+    });
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
+}
 
 function jwtSubject(jwt) {
   try {
@@ -78,6 +90,14 @@ async function authenticateUser(args) {
     customColors:JSON.stringify(p.custom_colors||{}),permissions:perms,canEditRbac:p.role_key==='Admin',
     authSession:{accessToken:auth.access_token,refreshToken:auth.refresh_token,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000}});
 }
+async function refreshAuthSession(args) {
+  const refreshToken = String(args[0] || '').trim();
+  if (!refreshToken) return fail('Phiên đăng nhập đã hết hạn');
+  let auth;
+  try { auth = await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:refreshToken}}); }
+  catch (error) { return fail('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại'); }
+  return ok({authSession:{accessToken:auth.access_token,refreshToken:auth.refresh_token||refreshToken,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000}});
+}
 
 const mapProperty = (r) => ({id:r.id,referenceCode:r.reference_code,title:r.title,slug:r.slug,description:r.description||'',propertyType:r.property_type,
   listingType:r.listing_type,status:r.status,price:Number(r.price_vnd||0),rentFrequency:r.rent_frequency||'',areaSize:Number(r.area_size||0),areaUnit:r.area_unit||'m²',
@@ -100,7 +120,7 @@ async function getProperties(jwt){
   return ok({data:rows.map(row=>({...mapProperty(row),ownerId:row.owner_id,images:imagesBy.get(Number(row.id))||[],amenityIds:amenitiesBy.get(Number(row.id))||[]}))});
 }
 async function getLeads(jwt){const rows=await select('leads','*,profiles!leads_assigned_agent_id_fkey(username)',jwt,'&deleted_at=is.null&order=created_at.desc');return ok({data:rows.map(mapLead)});}
-async function getLocations(jwt){const rows=await selectAll('locations','*',jwt,'&deleted_at=is.null&order=id.asc');return ok({data:rows.map(r=>({id:r.id,name:r.name,level:r.level,parentId:r.parent_id,slug:r.slug,created:r.created_at,updated:r.updated_at}))});}
+async function getLocations(jwt){await currentProfile(jwt);const rows=await adminSelectAll('locations','*','&deleted_at=is.null&order=id.asc');return ok({data:rows.map(r=>({id:r.id,name:r.name,level:r.level,parentId:r.parent_id,slug:r.slug,created:r.created_at,updated:r.updated_at}))});}
 async function getAmenities(jwt){const rows=await select('amenities','*',jwt,'&deleted_at=is.null&order=name.asc');return ok({data:rows.map(r=>({id:r.id,name:r.name,icon:r.icon||'',created:r.created_at,updated:r.updated_at}))});}
 async function getOwners(jwt){const rows=await select('owners','*',jwt,'&deleted_at=is.null&order=created_at.desc');return ok({data:rows.map(r=>({id:r.id,name:r.name,phone:r.phone,email:r.email||'',cnic:r.identity_number||'',address:r.address||'',notes:r.notes||'',created:r.created_at,updated:r.updated_at}))});}
 async function getAllUsers(jwt){const rows=await select('profiles','*',jwt,'&order=created_at.desc');return ok({data:rows.map(r=>({Username:r.username,Email:r.email,Role:r.role_key,Status:r.status,ProfileImage:r.profile_image||'',ThemeMode:r.theme_mode||'light',CustomColors:JSON.stringify(r.custom_colors||{}),CreatedAt:r.created_at,MonthlyTarget:Number(r.monthly_target_vnd||0)}))});}
@@ -461,6 +481,7 @@ async function getNotifications(jwt) {
 async function run(method,args=[],authorization=''){
   if(!enabled) throw new Error('Supabase chưa được cấu hình trên máy chủ');
   if(method==='authenticateUser') return authenticateUser(args);
+  if(method==='refreshAuthSession') return refreshAuthSession(args);
   if(method==='getPublicPortal') return getPublicPortal();
   if(method==='publicViewProperty') return publicViewProperty(args);
   if(method==='publicSubmitEnquiry') return publicSubmitEnquiry(args);

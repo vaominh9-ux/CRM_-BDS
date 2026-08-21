@@ -3495,7 +3495,7 @@
     /* ---- branded processing overlay: writes only, above modals, not dismissible ---- */
     .proc-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(8,18,34,.58); backdrop-filter: blur(3px);
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
-    .proc-logo { width: 74px; height: 74px; border-radius: 50%; animation: procPulse 1.6s ease-in-out infinite; box-shadow: 0 0 0 6px rgba(255,255,255,.14); }
+    .proc-logo { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; object-position: center; background: #fff; border: 2px solid rgba(255,255,255,.72); animation: procPulse 1.6s ease-in-out infinite; box-shadow: 0 0 0 6px rgba(255,255,255,.14); }
     .proc-bar { width: 190px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.25); overflow: hidden; }
     .proc-bar span { display: block; height: 100%; width: 40%; border-radius: 4px; background: var(--navy-accent); animation: procSlide 1.1s ease-in-out infinite; }
     .proc-label { color: #fff; font-size: 14px; font-weight: 600; letter-spacing: .4px; }
@@ -3611,11 +3611,182 @@
     @keyframes aiB { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-5px); opacity: 1; } }
     .doc-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e3e7ee; border-radius: var(--r-md); margin-bottom: 6px; font-size: 13px; }
     .doc-row a { color: var(--navy-accent); font-weight: 600; text-decoration: none; flex: 1; }
-    .id-head { display: flex; gap: 14px; align-items: center; background: linear-gradient(135deg, var(--navy-primary), var(--navy-light)); color: #fff; border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 12px; flex-wrap: wrap; }
-    .id-head .nm { font-size: 17px; font-weight: 700; }
-    .id-head .sub { font-size: 12px; opacity: .85; }
-    .id-kpis { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; }
-    .id-kpi { text-align: center; } .id-kpi .v { font-size: 16px; font-weight: 800; } .id-kpi .l { font-size: 10px; text-transform: uppercase; opacity: .8; }
+    .id-head {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 18px;
+      align-items: stretch;
+      background: linear-gradient(135deg, var(--navy-primary), var(--navy-light));
+      color: #fff;
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .id-head > div:first-child {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+    .id-head .nm { font-size: 17px; line-height: 1.25; font-weight: 750; }
+    .id-head .sub { font-size: 12px; line-height: 1.55; opacity: .9; overflow-wrap: anywhere; }
+    .id-kpis {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(78px, 1fr);
+      gap: 7px;
+      align-items: stretch;
+      margin-left: 0;
+    }
+    .id-kpi {
+      min-height: 62px;
+      padding: 9px 8px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 10px;
+      background: rgba(255,255,255,.105);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .id-kpi .v { font-size: 16px; line-height: 1.1; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .id-kpi .l { margin-top: 5px; font-size: 9px; line-height: 1.25; font-weight: 700; text-transform: uppercase; letter-spacing: .025em; opacity: .86; white-space: nowrap; }
+    @media (max-width: 720px) {
+      .id-head { grid-template-columns: 1fr; gap: 12px; }
+      .id-kpis { grid-auto-flow: initial; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .id-kpi .l { white-space: normal; }
+    }
+
+    /* Lead 360 — spacious CRM record view with a complete, non-clipped navigation */
+    .modal.modal-lead360 {
+      width: min(94vw, 920px);
+      max-width: 920px;
+      max-height: 92vh;
+      border-radius: 16px;
+      box-shadow: 0 26px 80px rgba(2, 15, 32, .34), 0 0 0 1px rgba(255,255,255,.45);
+    }
+    .modal-lead360 .modal-header { padding: 17px 22px; }
+    .modal-lead360 .modal-body { padding: 18px; }
+    .id-head-lead360 {
+      grid-template-columns: minmax(250px, 1fr) minmax(440px, 1.35fr);
+      gap: 16px;
+      padding: 15px;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 92% 12%, rgba(255,255,255,.13), transparent 32%),
+        linear-gradient(135deg, var(--navy-primary), var(--navy-light));
+      box-shadow: 0 8px 22px rgba(5, 46, 55, .13);
+    }
+    .id-head.id-head-lead360 > .lead360-identity:first-child {
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+    .lead360-avatar {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 19px;
+      background: rgba(255,255,255,.13);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .lead360-person { min-width: 0; }
+    .id-head-lead360 .nm { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .id-head-lead360 .id-kpis {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-flow: initial;
+    }
+    .id-head-lead360 .id-kpi { min-width: 0; min-height: 70px; padding: 8px 6px; }
+    .id-head-lead360 .id-kpi i { margin-bottom: 5px; font-size: 12px; opacity: .82; }
+    .id-head-lead360 .id-kpi .v { font-size: 17px; }
+    .id-head-lead360 .id-kpi .l { font-size: 8.5px; white-space: normal; }
+    .modal-lead360 .rs-tabs {
+      display: flex;
+      align-items: stretch;
+      gap: 6px;
+      padding: 5px;
+      margin: 0 0 14px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border: 1px solid #dfe6ee;
+      border-radius: 12px;
+      background: #f3f6f9;
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--navy-primary) 55%, transparent) transparent;
+      scroll-behavior: smooth;
+      overscroll-behavior-x: contain;
+    }
+    .modal-lead360 .rs-tab {
+      flex: 0 0 auto;
+      min-width: max-content;
+      min-height: 36px;
+      padding: 7px 13px;
+      border-radius: 8px;
+      box-shadow: none;
+      transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+    .modal-lead360 .rs-tabs::-webkit-scrollbar { height: 5px; }
+    .modal-lead360 .rs-tabs::-webkit-scrollbar-track { background: transparent; }
+    .modal-lead360 .rs-tabs::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--navy-primary) 55%, transparent);
+      border-radius: var(--r-pill);
+    }
+    .modal-lead360 .rs-tab.on { box-shadow: 0 4px 11px rgba(0, 47, 69, .18); }
+    .modal-lead360 .pd-fact { min-height: 72px; display: flex; flex-direction: column; justify-content: center; }
+    body.dark-mode .modal-lead360 .rs-tabs { background: #242a31; border-color: #3a424c; }
+    @media (max-width: 820px) {
+      .id-head-lead360 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .modal.modal-lead360 { width: 96vw; }
+      .modal-lead360 .modal-header { padding: 14px 16px; }
+      .modal-lead360 .modal-body { padding: 12px; }
+      .id-head-lead360 .id-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lead360-avatar { display: none; }
+    }
+
+    /* Customer quick view used by cross-module records without a linked lead */
+    .modal.modal-customer-quick { width: min(92vw, 660px); max-width: 660px; border-radius: 15px; }
+    .modal-customer-quick .modal-header { padding: 16px 19px; }
+    .modal-customer-quick .modal-body { padding: 17px; }
+    .customer-quick-facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+    .customer-quick-facts .pd-fact { min-height: 68px; display: flex; flex-direction: column; justify-content: center; }
+    .customer-quick-facts .pd-fact:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .customer-quick-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 13px;
+      padding: 10px 11px;
+      border: 1px solid #dce8e7;
+      border-radius: 11px;
+      background: #f5faf9;
+    }
+    .customer-quick-footer .btn { flex: 0 0 auto; min-height: 38px; }
+    .customer-quick-note { flex: 1; margin: 0; color: #667b86; font-size: 12.5px; line-height: 1.45; }
+    .customer-quick-note i { margin-right: 5px; color: var(--navy-accent); }
+    body.dark-mode .customer-quick-footer { background: #222c2c; border-color: #394747; }
+    body.dark-mode .customer-quick-note { color: #b6c3cb; }
+    @media (max-width: 520px) {
+      .customer-quick-facts { grid-template-columns: 1fr; }
+      .customer-quick-facts .pd-fact:last-child:nth-child(odd) { grid-column: auto; }
+      .customer-quick-footer { align-items: stretch; flex-direction: column; }
+      .customer-quick-footer .btn { width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -3717,13 +3888,14 @@
       ['complete','Completing…'],['convert','Converting…'],['set','Saving…'],['brochure','Generating…'],['email','Sending…'],
       ['build','Generating…'],['agreement','Generating…']];
     const mutVerb = (fn) => { const m = MUT_VERBS.find(([p]) => fn.indexOf(p) === 0); return m ? m[1] : null; };
-    function ProcessingOverlay() {
+    function ProcessingOverlay({ profileImage }) {
       const [, force] = useState(0);
       useEffect(() => { const cb = () => force((n) => n + 1); _proc.subs.add(cb); return () => _proc.subs.delete(cb); }, []);
       if (!_proc.n) return null;
       return (
         <div className="proc-overlay" role="status" aria-live="polite" aria-busy="true">
-          <img src={APP_LOGO} className="proc-logo" alt="" />
+          <img src={profileImage || APP_LOGO} className="proc-logo" alt="Ảnh đại diện"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = APP_LOGO; }} />
           <div className="proc-bar"><span></span></div>
           <div className="proc-label">{_proc.verb || 'Processing…'}</div>
         </div>
@@ -6665,10 +6837,18 @@
       const [uploading, setUploading] = useState(false);
 
       const selectedCity = cityId ? by[cityId] : null;
-      const cities = locs.filter((l) => l.level === 'City');
+      const isVietnamLocation = (location) => !!location && (
+        String(location.slug || '').indexOf('vn-province-') === 0 ||
+        (Number(location.id) >= 100000 && Number(location.id) < 200000)
+      );
+      const cities = locs.filter((l) => l.level === 'City').sort((a, b) => {
+        const avn = isVietnamLocation(a) ? 0 : 1;
+        const bvn = isVietnamLocation(b) ? 0 : 1;
+        return avn - bvn || String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+      });
       const areas = locs.filter((l) => l.level === 'Area' && String(l.parentId) === String(cityId));
       const socs = locs.filter((l) => l.level === 'Society' && String(l.parentId) === String(areaId));
-      const isVietnamAddress = false;
+      const isVietnamAddress = isVietnamLocation(selectedCity);
       const locationId = socId || areaId || cityId;
       const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
       const setEv = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -6798,8 +6978,8 @@
                     </div>
                   )}
                   <SearchableDropdown label="Tỉnh / Thành phố" icon="fas fa-city" options={cities.map((c) => ({ value: String(c.id), label: c.name }))} value={cityId} onChange={(v) => { setCityId(v); setAreaId(''); setSocId(''); }} placeholder="Chọn tỉnh hoặc thành phố…" required={true} />
-                  <SearchableDropdown label={isVietnamAddress ? 'Phường / Xã / Đặc khu' : 'Khu vực'} icon="fas fa-map" options={areas.map((a) => ({ value: String(a.id), label: a.name }))} value={areaId} onChange={(v) => { setAreaId(v); setSocId(''); }} placeholder={cityId ? (isVietnamAddress ? 'Chọn phường, xã hoặc đặc khu…' : 'Chọn khu vực…') : 'Chọn tỉnh/thành phố trước'} />
-                  {!isVietnamAddress && <SearchableDropdown label="Khu đô thị / Giai đoạn" icon="fas fa-map-pin" options={socs.map((s) => ({ value: String(s.id), label: s.name }))} value={socId} onChange={setSocId} placeholder={areaId ? 'Chọn khu đô thị…' : 'Chọn khu vực trước'} />}
+                  <SearchableDropdown label={isVietnamAddress ? 'Phường / Xã / Đặc khu' : 'Khu vực'} icon="fas fa-map" options={areas.map((a) => ({ value: String(a.id), label: a.name }))} value={areaId} onChange={(v) => { setAreaId(v); setSocId(''); }} placeholder={cityId ? (isVietnamAddress ? 'Chọn phường, xã hoặc đặc khu…' : 'Chọn khu vực…') : 'Chọn tỉnh/thành phố trước'} required={isVietnamAddress} />
+                  {selectedCity && !isVietnamAddress && <SearchableDropdown label="Khu đô thị / Giai đoạn" icon="fas fa-map-pin" options={socs.map((s) => ({ value: String(s.id), label: s.name }))} value={socId} onChange={setSocId} placeholder={areaId ? 'Chọn khu đô thị…' : 'Chọn khu vực trước'} />}
                   <div className="form-group">
                     <label><i className="fas fa-location-dot"></i> {isVietnamAddress ? 'Số nhà, tên đường / thôn, ấp' : 'Địa chỉ đường/phố'}</label>
                     <input value={form.address} onChange={setEv('address')} placeholder={isVietnamAddress ? 'Ví dụ: 25 Nguyễn Huệ' : 'Nhập địa chỉ chi tiết'} />
@@ -7175,18 +7355,20 @@
       const phone = source.leadPhone || source.buyerPhone || source.tenantPhone || source.phone || '—';
       return (
         <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-          <div className="modal">
+          <div className="modal modal-customer-quick">
             <div className="modal-header"><h3><i className="fas fa-id-card-clip"></i> Thông tin khách hàng — {name}</h3><button className="close-btn" onClick={onClose}>&times;</button></div>
             <div className="modal-body">
-              <div className="pd-facts">
+              <div className="customer-quick-facts">
                 <div className="pd-fact"><div className="k">Họ và tên</div><div className="v">{name}</div></div>
                 <div className="pd-fact"><div className="k">Điện thoại</div><div className="v">{phone}</div></div>
                 <div className="pd-fact"><div className="k">Bất động sản</div><div className="v">{source.propertyRef || source.propertyTitle || '—'}</div></div>
                 <div className="pd-fact"><div className="k">Nhân viên phụ trách</div><div className="v">{source.assignedAgent || source.agent || '—'}</div></div>
                 <div className="pd-fact"><div className="k">Trạng thái</div><div className="v">{viEnum(source.status || '—')}</div></div>
               </div>
-              {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><i className="fab fa-whatsapp"></i> Liên hệ WhatsApp</button>}
-              <p style={{ color: '#789', fontSize: 12.5, marginTop: 12 }}>Thông tin này chưa liên kết với một hồ sơ khách hàng tiềm năng.</p>
+              <div className="customer-quick-footer">
+                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><i className="fab fa-whatsapp"></i> Liên hệ WhatsApp</button>}
+                <p className="customer-quick-note"><i className="fas fa-circle-info"></i> Thông tin này chưa liên kết với hồ sơ khách hàng tiềm năng.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -9358,26 +9540,29 @@
 
       return (
         <div className="modal-overlay">
-          <div className="modal">
+          <div className="modal modal-lead360">
             <div className="modal-header">
               <h3><i className="fas fa-id-card-clip"></i> Hồ sơ khách hàng 360 — {lead.fullName}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
-              <div className="id-head">
-                <div>
-                  <div className="nm">{lead.fullName} <Badge s={lead.status} /></div>
-                  <div className="sub">
-                    <i className="fas fa-phone"></i> {lead.phone}
-                    <button className="action-icon wa-icon" style={{ marginLeft: 6 }} title="WhatsApp" onClick={() => waOpen(lead.phone)}><i className="fab fa-whatsapp"></i></button>
-                    {lead.email ? ' · ' + lead.email : ''} · {viEnum(lead.source)} · {viEnum(lead.interestType)}
+              <div className="id-head id-head-lead360">
+                <div className="lead360-identity">
+                  <div className="lead360-avatar"><i className="fas fa-user-tie"></i></div>
+                  <div className="lead360-person">
+                    <div className="nm">{lead.fullName} <Badge s={lead.status} /></div>
+                    <div className="sub">
+                      <i className="fas fa-phone"></i> {lead.phone}
+                      <button className="action-icon wa-icon" style={{ marginLeft: 6 }} title="WhatsApp" onClick={() => waOpen(lead.phone)}><i className="fab fa-whatsapp"></i></button>
+                      {lead.email ? ' · ' + lead.email : ''} · {viEnum(lead.source)} · {viEnum(lead.interestType)}
+                    </div>
                   </div>
                 </div>
                 <div className="id-kpis">
-                  <div className="id-kpi"><div className="v">{daysOpen}</div><div className="l">Số ngày đang mở</div></div>
-                  <div className="id-kpi"><div className="v">{fus.length}</div><div className="l">Lịch chăm sóc</div></div>
-                  <div className="id-kpi"><div className="v">{appts.length}</div><div className="l">Lịch xem</div></div>
-                  <div className="id-kpi"><div className="v">{(lead.budgetMin || lead.budgetMax) ? pkrShort(lead.budgetMax || lead.budgetMin) : '—'}</div><div className="l">Ngân sách</div></div>
+                  <div className="id-kpi"><i className="fas fa-hourglass-half"></i><div className="v">{daysOpen}</div><div className="l">Số ngày đang mở</div></div>
+                  <div className="id-kpi"><i className="fas fa-bell"></i><div className="v">{fus.length}</div><div className="l">Lịch chăm sóc</div></div>
+                  <div className="id-kpi"><i className="fas fa-calendar-check"></i><div className="v">{appts.length}</div><div className="l">Lịch xem</div></div>
+                  <div className="id-kpi"><i className="fas fa-wallet"></i><div className="v">{(lead.budgetMin || lead.budgetMax) ? pkrShort(lead.budgetMax || lead.budgetMin) : '—'}</div><div className="l">Ngân sách</div></div>
                 </div>
               </div>
               <Tabs tab={tab} setTab={setTab} tabs={[
@@ -10900,7 +11085,7 @@
       return (
         <div>
           <GlobalLoadingBar />
-          <ProcessingOverlay />
+          <ProcessingOverlay profileImage={profileImage} />
           {isLoggedIn && tour && <TourModal role={userRole} onClose={closeTour} />}
           {!isLoggedIn ? (
             showLogin
