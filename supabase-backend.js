@@ -582,6 +582,155 @@ const addOwner=(a,j)=>simpleAdd('owners','Owner',a,j),updateOwner=(a,j)=>simpleU
 const addLocation=(a,j)=>simpleAdd('locations','Location',a,j),updateLocation=(a,j)=>simpleUpdate('locations','Location',a,j),deleteLocation=(a,j)=>softDelete('locations',a[0],j,'Location');
 const addAmenity=(a,j)=>simpleAdd('amenities','Amenity',a,j),updateAmenity=(a,j)=>simpleUpdate('amenities','Amenity',a,j),deleteAmenity=(a,j)=>softDelete('amenities',a[0],j,'Amenity');
 
+async function addUser(args,jwt){
+  const profile=await currentProfile(jwt);
+  if(profile.role_key!=='Admin')return fail('Chỉ Quản trị viên mới có quyền thêm người dùng');
+  const data=args[0]||{};
+  const username=String(data.Username||'').trim();
+  const email=String(data.Email||'').trim().toLowerCase();
+  const password=String(data.Password||'').trim();
+  if(!username||!email||!password)return fail('Vui lòng điền đầy đủ Tên đăng nhập, Email và Mật khẩu');
+  if(password.length<6)return fail('Mật khẩu phải có ít nhất 6 ký tự');
+  const existing=await adminSelect('profiles','id',`&username=eq.${enc(username)}&limit=1`);
+  if(existing.length)return fail('Tên đăng nhập đã tồn tại');
+  const existingEmail=await adminSelect('profiles','id',`&email=eq.${enc(email)}&limit=1`);
+  if(existingEmail.length)return fail('Email đã được sử dụng');
+  const authUser=await request('/auth/v1/admin/users',{
+    method:'POST',admin:true,
+    body:{email,password,email_confirm:true,user_metadata:{username}}
+  });
+  if(!authUser||!authUser.id)return fail('Không thể tạo tài khoản xác thực Supabase');
+  const monthlyTarget=Math.max(0,Math.round(Number(data.MonthlyTarget||0)));
+  const roleKey=['Admin','Manager','Agent'].includes(data.Role)?data.Role:'Agent';
+  const status=['Active','Inactive'].includes(data.Status)?data.Status:'Active';
+  await request('/rest/v1/profiles',{
+    method:'POST',admin:true,
+    body:{id:authUser.id,username,email,role_key:roleKey,status,monthly_target_vnd:monthlyTarget,created_by:profile.id,updated_by:profile.id}
+  });
+  await audit(jwt,'User Created',`Tạo người dùng: ${username} (${roleKey})`);
+  return ok({message:'Đã thêm người dùng thành công'});
+}
+
+async function updateUser(args,jwt){
+  const profile=await currentProfile(jwt);
+  if(profile.role_key!=='Admin')return fail('Chỉ Quản trị viên mới có quyền cập nhật người dùng');
+  const targetUsername=args[0];
+  const data=args[1]||{};
+  if(!targetUsername)return fail('Không xác định được người dùng cần sửa');
+  const rows=await adminSelect('profiles','id,username,email,role_key,status',`&username=eq.${enc(targetUsername)}&limit=1`);
+  if(!rows.length)return fail('Không tìm thấy người dùng');
+  const targetUser=rows[0];
+  const updateAuthBody={};
+  const newEmail=data.Email?String(data.Email).trim().toLowerCase():'';
+  if(newEmail&&newEmail!==targetUser.email){
+    const emailCheck=await adminSelect('profiles','id',`&email=eq.${enc(newEmail)}&id=neq.${targetUser.id}&limit=1`);
+    if(emailCheck.length)return fail('Email đã được sử dụng bởi tài khoản khác');
+    updateAuthBody.email=newEmail;
+    updateAuthBody.email_confirm=true;
+  }
+  if(data.Password&&String(data.Password).trim().length>=6){
+    updateAuthBody.password=String(data.Password).trim();
+  }
+  if(Object.keys(updateAuthBody).length>0){
+    await request(`/auth/v1/admin/users/${targetUser.id}`,{
+      method:'PUT',admin:true,body:updateAuthBody
+    });
+  }
+  const profilePatch={updated_at:new Date().toISOString(),updated_by:profile.id};
+  if(newEmail)profilePatch.email=newEmail;
+  if(data.Role&&['Admin','Manager','Agent'].includes(data.Role))profilePatch.role_key=data.Role;
+  if(data.Status&&['Active','Inactive'].includes(data.Status))profilePatch.status=data.Status;
+  if(data.MonthlyTarget!==undefined)profilePatch.monthly_target_vnd=Math.max(0,Math.round(Number(data.MonthlyTarget||0)));
+  await patchRow('profiles',targetUser.id,profilePatch,jwt);
+  await audit(jwt,'User Updated',`Cập nhật người dùng: ${targetUsername}`);
+  return ok({message:'Đã cập nhật thông tin người dùng thành công'});
+}
+
+async function deleteUser(args,jwt){
+  const profile=await currentProfile(jwt);
+  if(profile.role_key!=='Admin')return fail('Chỉ Quản trị viên mới có quyền vô hiệu hóa người dùng');
+  const targetUsername=args[0];
+  if(!targetUsername)return fail('Không xác định được người dùng cần xóa');
+  if(targetUsername===profile.username)return fail('Không thể tự vô hiệu hóa tài khoản của chính mình');
+  const rows=await adminSelect('profiles','id,username',`&username=eq.${enc(targetUsername)}&limit=1`);
+  if(!rows.length)return fail('Không tìm thấy người dùng');
+  const targetId=rows[0].id;
+  await patchRow('profiles',targetId,{status:'Inactive',updated_at:new Date().toISOString(),updated_by:profile.id},jwt);
+  const openLeads=await select('leads','id',jwt,`&assigned_agent_id=eq.${targetId}&status=not.in.(Won,Lost)&deleted_at=is.null`);
+  await audit(jwt,'User Deactivated',`Vô hiệu hóa tài khoản: ${targetUsername}`);
+  return ok({message:'Đã vô hiệu hóa tài khoản thành công',openLeads:openLeads.length});
+}
+
+async function updateMyAccount(args,jwt){
+  const profile=await currentProfile(jwt);
+  const data=args[1]||args[0]||{};
+  const updateAuthBody={};
+  if(data.Email&&String(data.Email).trim().toLowerCase()!==profile.email){
+    const newEmail=String(data.Email).trim().toLowerCase();
+    const emailCheck=await adminSelect('profiles','id',`&email=eq.${enc(newEmail)}&id=neq.${profile.id}&limit=1`);
+    if(emailCheck.length)return fail('Email đã được sử dụng bởi tài khoản khác');
+    updateAuthBody.email=newEmail;
+    updateAuthBody.email_confirm=true;
+  }
+  if(data.NewPassword){
+    const newPass=String(data.NewPassword).trim();
+    if(newPass.length<6)return fail('Mật khẩu mới phải có ít nhất 6 ký tự');
+    updateAuthBody.password=newPass;
+  }
+  if(Object.keys(updateAuthBody).length>0){
+    await request(`/auth/v1/admin/users/${profile.id}`,{
+      method:'PUT',admin:true,body:updateAuthBody
+    });
+  }
+  const patchBody={updated_at:new Date().toISOString(),updated_by:profile.id};
+  if(updateAuthBody.email)patchBody.email=updateAuthBody.email;
+  await patchRow('profiles',profile.id,patchBody,jwt);
+  await audit(jwt,'Account Updated',`Cập nhật tài khoản: ${profile.username}`);
+  return ok({message:'Đã cập nhật thông tin tài khoản thành công'});
+}
+
+async function reassignAgentWork(args,jwt){
+  const profile=await currentProfile(jwt);
+  if(!['Admin','Manager'].includes(profile.role_key))return fail('Từ chối truy cập');
+  const [fromUsername,toUsername]=args;
+  if(!fromUsername||!toUsername)return fail('Vui lòng chọn đầy đủ người chuyển và người nhận');
+  if(fromUsername===toUsername)return fail('Người nhận phải khác người chuyển');
+  const [fromRows,toRows]=await Promise.all([
+    adminSelect('profiles','id',`&username=eq.${enc(fromUsername)}&limit=1`),
+    adminSelect('profiles','id',`&username=eq.${enc(toUsername)}&status=eq.Active&limit=1`)
+  ]);
+  if(!fromRows.length)return fail(`Không tìm thấy người dùng ${fromUsername}`);
+  if(!toRows.length)return fail(`Không tìm thấy người dùng ${toUsername} hoặc tài khoản không hoạt động`);
+  const fromId=fromRows[0].id,toId=toRows[0].id;
+  const now=new Date().toISOString();
+  await Promise.all([
+    request(`/rest/v1/properties?assigned_agent_id=eq.${fromId}&deleted_at=is.null`,{method:'PATCH',admin:true,body:{assigned_agent_id:toId,updated_at:now,updated_by:profile.id}}),
+    request(`/rest/v1/leads?assigned_agent_id=eq.${fromId}&status=not.in.(Won,Lost)&deleted_at=is.null`,{method:'PATCH',admin:true,body:{assigned_agent_id:toId,updated_at:now,updated_by:profile.id}}),
+    request(`/rest/v1/follow_ups?assigned_agent_id=eq.${fromId}&status=eq.Pending&deleted_at=is.null`,{method:'PATCH',admin:true,body:{assigned_agent_id:toId,updated_at:now,updated_by:profile.id}}),
+    request(`/rest/v1/appointments?agent_id=eq.${fromId}&status=in.(Scheduled,Confirmed)&deleted_at=is.null`,{method:'PATCH',admin:true,body:{agent_id:toId,updated_at:now,updated_by:profile.id}}),
+    request(`/rest/v1/deals?agent_id=eq.${fromId}&status=in.(Token,Agreement)&deleted_at=is.null`,{method:'PATCH',admin:true,body:{agent_id:toId,updated_at:now,updated_by:profile.id}})
+  ]);
+  await audit(jwt,'Work Reassigned',`${fromUsername} → ${toUsername}`);
+  return ok({message:`Đã chuyển toàn bộ công việc từ ${fromUsername} sang ${toUsername}`});
+}
+
+async function bulkImportUsers(args,jwt){
+  const profile=await currentProfile(jwt);
+  if(profile.role_key!=='Admin')return fail('Chỉ Quản trị viên mới có quyền nhập người dùng');
+  const records=args[0]||[];
+  if(!Array.isArray(records)||!records.length)return fail('Không có dữ liệu để nhập');
+  let count=0;const errors=[];
+  for(const row of records){
+    const username=String(row.Username||'').trim();
+    const email=String(row.Email||'').trim().toLowerCase();
+    const password=String(row.Password||'123456').trim();
+    if(!username||!email){errors.push(`Dòng thiếu tên đăng nhập hoặc email`);continue;}
+    const res=await addUser([{Username:username,Email:email,Password:password,Role:row.Role||'Agent',Status:row.Status||'Active',MonthlyTarget:Number(row.MonthlyTarget||0)}],jwt);
+    if(res.success)count++;else errors.push(`${username}: ${res.message}`);
+  }
+  return ok({count,errors,message:`Đã nhập ${count}/${records.length} người dùng`});
+}
+
 async function getDashboardStats(jwt) {
   const profile = await currentProfile(jwt);
   const [propertiesResult, leadsResult, followUpsResult, appointmentsResult, dealsResult, tenanciesResult, usersResult, activeAgentRows] = await Promise.all([
@@ -677,6 +826,7 @@ async function run(method,args=[],authorization=''){
   };
   const mutationHandlers={
     updateUserSettings,uploadProfileImage,saveAgencyBranding,toggleRbac,setAppConfig,
+    addUser,updateUser,deleteUser,updateMyAccount,reassignAgentWork,bulkImportUsers,
     addProperty,updateProperty,deleteProperty,uploadPropertyImage,addLead,updateLead,deleteLead,assignLead,
     addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,completeAppointment,
     addDeal,updateDeal,deleteDeal,addDealPayment,markAgentPaid,
