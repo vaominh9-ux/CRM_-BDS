@@ -200,6 +200,14 @@ async function getRbacMatrix(jwt){const p=await currentProfile(jwt);if(p.role_ke
 async function toggleRbac(args,jwt){const [roleKey,pageKey,perm,value]=args,p=await currentProfile(jwt);if(p.role_key!=='Admin')return fail('Từ chối truy cập');if(roleKey==='Admin')return fail('Quyền Admin được khóa');const column={v:'can_view',a:'can_add',e:'can_edit',d:'can_delete'}[perm];if(!column)return fail('Quyền không hợp lệ');const rows=await select('role_permissions','can_view,can_add,can_edit,can_delete',jwt,`&role_key=eq.${enc(roleKey)}&page_key=eq.${enc(pageKey)}&limit=1`);if(!rows.length)return fail('Không tìm thấy quyền');const body={[column]:Boolean(Number(value))};if(perm==='v'&&!Number(value))Object.assign(body,{can_add:false,can_edit:false,can_delete:false});if(perm!=='v'&&Number(value))body.can_view=true;await request(`/rest/v1/role_permissions?role_key=eq.${enc(roleKey)}&page_key=eq.${enc(pageKey)}`,{method:'PATCH',jwt,body});await audit(jwt,'RBAC Updated',`${roleKey}.${pageKey}.${perm}=${Number(value)?1:0}`);return ok({message:'Đã cập nhật phân quyền'});}
 async function setAppConfig(args,jwt){const p=await currentProfile(jwt);if(p.role_key!=='Admin')return fail('Từ chối truy cập');const cfg=args[0]||{};await request('/rest/v1/app_settings?setting_key=eq.crm',{method:'PATCH',jwt,body:{setting_value:cfg,updated_at:new Date().toISOString(),updated_by:p.id}});await audit(jwt,'App Config Updated','Cập nhật cấu hình CRM');return ok({message:'Đã lưu cấu hình'});}
 
+
+let portalCache = { data: null, expiresAt: 0 };
+const PORTAL_CACHE_TTL_MS = 60 * 1000; // 60s cache
+
+function invalidatePortalCache() {
+  portalCache = { data: null, expiresAt: 0 };
+}
+
 function locationPath(locations, id) {
   const map = new Map(locations.map(item => [Number(item.id),item])), parts = [], seen = new Set();
   let current = map.get(Number(id));
@@ -208,6 +216,10 @@ function locationPath(locations, id) {
 }
 
 async function getPublicPortal() {
+  const now = Date.now();
+  if (portalCache.data && portalCache.expiresAt > now) {
+    return ok(portalCache.data);
+  }
   const [properties,locations,amenities,links,images,settings] = await Promise.all([
     adminSelect('properties','id,reference_code,title,slug,description,property_type,listing_type,status,price_vnd,rent_frequency,area_size,area_unit,bedrooms,bathrooms,location_id,address,latitude,longitude,is_featured,views_count,published_at','&deleted_at=is.null&published_at=not.is.null&status=in.(Available,Reserved)&order=published_at.desc'),
     adminSelect('locations','id,name,level,parent_id','&deleted_at=is.null&order=id.asc'),
@@ -220,12 +232,14 @@ async function getPublicPortal() {
   const linksByProperty = new Map(), imagesByProperty = new Map();
   links.forEach(link=>{const list=linksByProperty.get(Number(link.property_id))||[];const amenity=amenityMap.get(Number(link.amenity_id));if(amenity)list.push(amenity);linksByProperty.set(Number(link.property_id),list);});
   images.forEach(image=>{const list=imagesByProperty.get(Number(image.property_id))||[];list.push({url:image.storage_path,isPrimary:list.length===0?1:0,sortOrder:image.sort_order});imagesByProperty.set(Number(image.property_id),list);});
-  return ok({
+  const data = {
     properties:properties.map(item=>({id:item.id,referenceCode:item.reference_code,title:item.title,slug:item.slug,description:item.description||'',propertyType:item.property_type,listingType:item.listing_type,status:item.status,price:Number(item.price_vnd||0),rentFrequency:item.rent_frequency||'',areaSize:Number(item.area_size||0),areaUnit:item.area_unit||'m²',bedrooms:item.bedrooms,bathrooms:item.bathrooms,locationId:item.location_id,locationPath:locationPath(locations,item.location_id),address:item.address||'',latitude:item.latitude,longitude:item.longitude,isFeatured:item.is_featured?1:0,viewsCount:Number(item.views_count||0),images:imagesByProperty.get(Number(item.id))||[],amenities:linksByProperty.get(Number(item.id))||[],publishedAt:item.published_at})),
     locations:locations.map(item=>({id:item.id,parentId:item.parent_id||null,name:item.name,level:item.level})),
     amenities:amenities.map(item=>({id:item.id,name:item.name,icon:item.icon||''})),
     branding:normalizeAgencyBranding(settings[0]?.setting_value?.branding)
-  });
+  };
+  portalCache = { data, expiresAt: now + PORTAL_CACHE_TTL_MS };
+  return ok(data);
 }
 
 async function publicViewProperty(args) {
@@ -385,9 +399,9 @@ async function propertyBody(data,jwt,isNew=false) {
   const p=await currentProfile(jwt), assigned=(isNew||has(data,'assignedAgent'))?await profileId(data.assignedAgent,jwt,p.id):undefined, stamp=Date.now();
   return clean({reference_code:data.referenceCode||(isNew?`RS-WEB-${stamp}`:undefined),title:data.title,slug:data.slug||(isNew?`${slugify(data.title)}-${stamp}`:undefined),description:data.description,property_type:data.propertyType,listing_type:data.listingType,status:data.status,price_vnd:data.price===undefined?undefined:Number(data.price),rent_frequency:nullableText(data.rentFrequency),area_size:nullableNumber(data.areaSize),area_unit:data.areaUnit,bedrooms:nullableNumber(data.bedrooms),bathrooms:nullableNumber(data.bathrooms),location_id:nullableNumber(data.locationId),address:data.address,latitude:nullableNumber(data.latitude),longitude:nullableNumber(data.longitude),owner_id:nullableNumber(data.ownerId),owner_name_snapshot:data.ownerName,owner_phone_snapshot:data.ownerPhone,assigned_agent_id:assigned,is_featured:data.isFeatured===undefined?undefined:Boolean(Number(data.isFeatured)||data.isFeatured===true),views_count:data.viewsCount===undefined?undefined:Number(data.viewsCount||0),published_at:data.status==='Draft'?null:(data.publishedAt||new Date().toISOString()),created_by:isNew?p.id:undefined,updated_at:new Date().toISOString(),updated_by:p.id});
 }
-async function addProperty(args,jwt){const data=args[0]||{},row=await insertRow('properties',await propertyBody(data,jwt,true),jwt);await syncPropertyRelations(row.id,data,jwt);await audit(jwt,'Property Added',`#${row.id}`);return ok({id:row.id,message:'Đã thêm bất động sản'});}
-async function updateProperty(args,jwt){const d=args[0]||{};await patchRow('properties',d.id,await propertyBody(d,jwt,false),jwt);await syncPropertyRelations(d.id,d,jwt);await audit(jwt,'Property Updated',`#${d.id}`);return ok({message:'Đã cập nhật bất động sản'});}
-async function deleteProperty(args,jwt){return softDelete('properties',args[0],jwt,'Property');}
+async function addProperty(args,jwt){invalidatePortalCache();const data=args[0]||{},row=await insertRow('properties',await propertyBody(data,jwt,true),jwt);await syncPropertyRelations(row.id,data,jwt);await audit(jwt,'Property Added',`#${row.id}`);return ok({id:row.id,message:'Đã thêm bất động sản'});}
+async function updateProperty(args,jwt){invalidatePortalCache();const d=args[0]||{};await patchRow('properties',d.id,await propertyBody(d,jwt,false),jwt);await syncPropertyRelations(d.id,d,jwt);await audit(jwt,'Property Updated',`#${d.id}`);return ok({message:'Đã cập nhật bất động sản'});}
+async function deleteProperty(args,jwt){invalidatePortalCache();return softDelete('properties',args[0],jwt,'Property');}
 
 let imageBucketReady;
 async function ensureImageBucket(){
