@@ -689,8 +689,31 @@ async function completeAppointment(args,jwt){
 }
 
 async function dealBody(data,jwt,isNew=false){const p=await currentProfile(jwt),agent=(isNew||has(data,'agent'))?await profileId(data.agent,jwt,p.id):undefined,status=data.status||(isNew?'Token':undefined);return clean({deal_type:data.dealType,property_id:data.propertyId===undefined?undefined:Number(data.propertyId),lead_id:nullableNumber(data.leadId),buyer_name:data.buyerName,buyer_phone:data.buyerPhone,agent_id:agent,deal_amount_vnd:data.dealAmount===undefined?undefined:Number(data.dealAmount),commission_pct:data.commissionPct===undefined?undefined:Number(data.commissionPct),agent_share_pct:data.agentSharePct===undefined?undefined:Number(data.agentSharePct),agent_paid_at:nullableText(data.agentPaidAt),token_amount_vnd:data.tokenAmount===undefined?undefined:Number(data.tokenAmount||0),status,closed_at:status==='Completed'?(data.closedAt||new Date().toISOString()):nullableText(data.closedAt),cancellation_reason:nullableText(data.cancellationReason),notes:data.notes,created_by:isNew?p.id:undefined,updated_at:new Date().toISOString(),updated_by:p.id});}
-async function addDeal(args,jwt){const row=await insertRow('deals',await dealBody(args[0]||{},jwt,true),jwt);await audit(jwt,'Deal Added',row?`#${row.id}`:'');return ok({id:row?.id,message:'Đã thêm giao dịch'});}
-async function updateDeal(args,jwt){const d=args[0]||{};await patchRow('deals',d.id,await dealBody(d,jwt,false),jwt);await audit(jwt,'Deal Updated',`#${d.id}`);return ok({message:'Đã cập nhật giao dịch'});}
+async function syncTenancyOnRentDeal(dealRow, jwt) {
+  if (!dealRow || dealRow.deal_type !== 'Rent' || dealRow.status !== 'Completed' || !dealRow.property_id) return;
+  const p = await currentProfile(jwt);
+  const existing = await select('tenancies', 'id', jwt, `&deal_id=eq.${dealRow.id}&limit=1`);
+  if (!existing.length) {
+    const today = new Date().toISOString().slice(0, 10);
+    await insertRow('tenancies', {
+      property_id: Number(dealRow.property_id),
+      deal_id: Number(dealRow.id),
+      tenant_name: dealRow.buyer_name || 'Khách thuê',
+      tenant_phone: dealRow.buyer_phone || '',
+      monthly_rent_vnd: Number(dealRow.deal_amount_vnd || 0),
+      security_deposit_vnd: Number(dealRow.token_amount_vnd || 0),
+      start_date: dealRow.closed_at ? String(dealRow.closed_at).slice(0, 10) : today,
+      rent_due_day: 5,
+      status: 'Active',
+      notes: dealRow.notes || '',
+      created_by: p.id,
+      updated_by: p.id
+    }, jwt);
+    await patchRow('properties', dealRow.property_id, { status: 'Rented', updated_at: new Date().toISOString(), updated_by: p.id }, jwt);
+  }
+}
+async function addDeal(args,jwt){const row=await insertRow('deals',await dealBody(args[0]||{},jwt,true),jwt);if(row)await syncTenancyOnRentDeal(row,jwt);await audit(jwt,'Deal Added',row?`#${row.id}`:'');return ok({id:row?.id,message:'Đã thêm giao dịch'});}
+async function updateDeal(args,jwt){const d=args[0]||{};const row=await patchRow('deals',d.id,await dealBody(d,jwt,false),jwt);if(row)await syncTenancyOnRentDeal(row,jwt);await audit(jwt,'Deal Updated',`#${d.id}`);return ok({message:'Đã cập nhật giao dịch'});}
 async function deleteDeal(args,jwt){return softDelete('deals',args[0],jwt,'Deal');}
 async function addDealPayment(args,jwt){const [dealId,data]=args;await request('/rest/v1/rpc/record_deal_payment',{method:'POST',jwt,body:{target_deal_id:Number(dealId),payment_amount_vnd:Number(data.amount),payment_method:data.method||'Cash',payment_reference:data.reference||'',payment_notes:data.notes||'',payment_time:data.date||data.paidAt||new Date().toISOString()}});await audit(jwt,'Deal Payment Added',`#${dealId}`);return ok({message:'Đã ghi nhận thanh toán'});}
 async function markAgentPaid(args,jwt){const id=args[0],p=await currentProfile(jwt);await patchRow('deals',id,{agent_paid_at:new Date().toISOString(),updated_at:new Date().toISOString(),updated_by:p.id},jwt);await audit(jwt,'Agent Commission Paid',`#${id}`);return ok({message:'Đã ghi nhận thanh toán hoa hồng'});}
