@@ -2725,7 +2725,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
 
       // Chèn ngắt trang A4
       const insertPageBreak = () => {
-        const pageBreakHtml = '<div class="tpl-page-break-tag" contenteditable="false" style="page-break-after:always;break-after:page;user-select:none;">✂️ [ HẾT TRANG — NGẮT SANG TRANG IN A4 TIẾP THEO ]</div><p><br/></p>';
+        const pageBreakHtml = '<div class="tpl-page-break-gap" contenteditable="false" style="page-break-after:always;break-after:page;"></div><p><br/></p>';
         execCmd('insertHTML', pageBreakHtml);
       };
 
@@ -2783,7 +2783,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                         Array.from(child.getElementsByTagName('w:br')).some((b) => b.getAttribute('w:type') === 'page');
                       
                       if (hasPageBreak && htmlOutput.trim().length > 0) {
-                        htmlOutput += '<div class="tpl-page-break-tag" contenteditable="false" style="page-break-after:always;break-after:page;user-select:none;">✂️ [ HẾT TRANG — NGẮT SANG TRANG IN A4 TIẾP THEO ]</div>';
+                        htmlOutput += '<div class="tpl-page-break-gap" contenteditable="false" style="page-break-after:always;break-after:page;"></div>';
                       }
 
                       let pText = '';
