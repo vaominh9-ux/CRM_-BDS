@@ -22223,20 +22223,42 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
   const textareaRef = useRef(null);
   const richEditorRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isInitialLoadRef = useRef(true);
+  const prevSelectedKeyRef = useRef(selectedKey);
 
-  // CHỈ cập nhật lại trường form khi người dùng CHUYỂN MẪU hoặc khi dữ liệu từ máy chủ tải về lần đầu
+  // Khởi tạo form khi dữ liệu máy chủ tải về lần đầu
   useEffect(() => {
-    const found = templates.find((t) => t.key === selectedKey) || templates[0] || {};
-    setTitle(found.label || '');
-    setShortLabel(found.shortLabel || '');
-    setHint(found.hint || '');
-    setTemplateMode(found.templateMode || 'terms');
-    setCustomTerms(found.customTerms || '');
-    setFullTemplateHtml(found.fullTemplateHtml || '');
-    if (richEditorRef.current) {
-      richEditorRef.current.innerHTML = found.fullTemplateHtml || '';
+    if (isInitialLoadRef.current && tplRes) {
+      isInitialLoadRef.current = false;
+      const found = templates.find((t) => t.key === selectedKey) || templates[0] || {};
+      setTitle(found.label || '');
+      setShortLabel(found.shortLabel || '');
+      setHint(found.hint || '');
+      setTemplateMode(found.templateMode || 'terms');
+      setCustomTerms(found.customTerms || '');
+      setFullTemplateHtml(found.fullTemplateHtml || '');
+      if (richEditorRef.current) {
+        richEditorRef.current.innerHTML = found.fullTemplateHtml || '';
+      }
     }
-  }, [selectedKey, tplRes]);
+  }, [tplRes]);
+
+  // Chỉ reset form khi người dùng CHỦ ĐỘNG CLICK CHỌN MẪU KHÁC ở cột 1
+  useEffect(() => {
+    if (prevSelectedKeyRef.current !== selectedKey) {
+      prevSelectedKeyRef.current = selectedKey;
+      const found = templates.find((t) => t.key === selectedKey) || templates[0] || {};
+      setTitle(found.label || '');
+      setShortLabel(found.shortLabel || '');
+      setHint(found.hint || '');
+      setTemplateMode(found.templateMode || 'terms');
+      setCustomTerms(found.customTerms || '');
+      setFullTemplateHtml(found.fullTemplateHtml || '');
+      if (richEditorRef.current) {
+        richEditorRef.current.innerHTML = found.fullTemplateHtml || '';
+      }
+    }
+  }, [selectedKey]);
 
       const [tagQuery, setTagQuery] = useState('');
       const [pageCount, setPageCount] = useState(1);
@@ -22482,14 +22504,16 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                 if (htmlOutput) {
                   setTemplateMode('full');
                   setFullTemplateHtml(htmlOutput);
-                  if (richEditorRef.current) {
-                    richEditorRef.current.innerHTML = htmlOutput;
-                  }
+                  setTimeout(() => {
+                    if (richEditorRef.current) {
+                      richEditorRef.current.innerHTML = htmlOutput;
+                    }
+                  }, 80);
                   Swal.fire({
                     icon: 'success',
                     title: 'Đã nạp file Word thành công!',
-                    text: 'Văn bản đã được tự động dàn trang A4 với ngắt trang trực quan!',
-                    timer: 2200,
+                    text: 'Văn bản đã được trích xuất hoàn chỉnh vào trang in A4!',
+                    timer: 1800,
                     showConfirmButton: false
                   });
                   e.target.value = '';
@@ -22511,14 +22535,16 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
             }
             setTemplateMode('full');
             setFullTemplateHtml(resText);
-            if (richEditorRef.current) {
-              richEditorRef.current.innerHTML = resText;
-            }
+            setTimeout(() => {
+              if (richEditorRef.current) {
+                richEditorRef.current.innerHTML = resText;
+              }
+            }, 80);
             Swal.fire({
               icon: 'success',
               title: 'Đã nạp file mẫu thành công!',
               text: 'File ' + file.name + ' đã được tải vào trang A4!',
-              timer: 2200,
+              timer: 1800,
               showConfirmButton: false
             });
           };
