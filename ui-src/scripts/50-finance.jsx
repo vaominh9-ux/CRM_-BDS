@@ -2472,23 +2472,182 @@
       const { data: res, error, mutate } = useSWR('trash:all', () => gsRun('getTrash', currentUser), SWR_LIVE);
       const rows = res ? (res.success ? res.data : []) : undefined;
       const loading = rows === undefined && !error;
+      const [filterType, setFilterType] = useState('');
+      const [searchTerm, setSearchTerm] = useState('');
+      const [restoringId, setRestoringId] = useState(null);
       useEffect(() => { setPageActions([]); return () => setPageActions([]); }, []);
-      const restore = (x) => {
-        Swal.fire({ icon: 'question', title: 'Restore ' + x.type + ' #' + x.id + '?', showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Restore' })
-          .then((r) => { if (r.isConfirmed) gsRun('restoreRecord', x.sheet, x.id, currentUser).then((res2) => {
-            if (res2 && res2.success) { Swal.fire({ icon: 'success', title: res2.message, timer: 1600, showConfirmButton: false }); mutate(); swrClearAll(); }
-            else Swal.fire({ icon: 'error', title: 'Error', text: (res2 && res2.message) || 'Failed' }); }); });
+
+      const TRASH_TYPES = [
+        { key: '', label: 'Tất cả', icon: 'fa-list-check' },
+        { key: 'Property', label: 'BĐS', icon: 'fa-building' },
+        { key: 'Lead', label: 'Khách hàng', icon: 'fa-user-tag' },
+        { key: 'Appointment', label: 'Lịch hẹn', icon: 'fa-calendar-check' },
+        { key: 'Deal', label: 'Giao dịch', icon: 'fa-handshake' },
+        { key: 'Tenancy', label: 'HĐ Thuê', icon: 'fa-house-user' },
+        { key: 'Owner', label: 'Chủ sở hữu', icon: 'fa-user-tie' }
+      ];
+
+      const TYPE_ICONS = {
+        Property: 'fa-building',
+        Lead: 'fa-user-tag',
+        Appointment: 'fa-calendar-check',
+        Deal: 'fa-handshake',
+        Tenancy: 'fa-house-user',
+        Owner: 'fa-user-tie',
+        FollowUp: 'fa-bell'
       };
+
+      const counts = useMemo(() => {
+        const list = rows || [];
+        const o = { '': list.length };
+        list.forEach((x) => {
+          const t = x.type || 'Other';
+          o[t] = (o[t] || 0) + 1;
+        });
+        return o;
+      }, [rows]);
+
+      const visible = useMemo(() => {
+        const list = rows || [];
+        const q = String(searchTerm || '').trim().toLowerCase();
+        return list.filter((x) => {
+          if (filterType && x.type !== filterType) return false;
+          if (q) {
+            const matchTitle = String(x.title || '').toLowerCase().includes(q);
+            const matchType = String(x.type || '').toLowerCase().includes(q);
+            const matchId = String(x.id || '').includes(q);
+            if (!matchTitle && !matchType && !matchId) return false;
+          }
+          return true;
+        });
+      }, [rows, filterType, searchTerm]);
+
+      const restore = (x) => {
+        Swal.fire({
+          icon: 'question',
+          title: 'Khôi phục bản ghi?',
+          text: `Bạn có chắc muốn khôi phục ${x.type} #${x.id} (${x.title || ''}) về hệ thống?`,
+          showCancelButton: true,
+          confirmButtonColor: '#001f3f',
+          confirmButtonText: 'Khôi phục',
+          cancelButtonText: 'Hủy'
+        }).then((r) => {
+          if (r.isConfirmed) {
+            setRestoringId(x.id);
+            gsRun('restoreRecord', x.sheet, x.id, currentUser).then((res2) => {
+              setRestoringId(null);
+              if (res2 && res2.success) {
+                Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã khôi phục bản ghi!', timer: 1600, showConfirmButton: false });
+                mutate();
+                swrClearAll();
+              } else {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: (res2 && res2.message) || 'Không thể khôi phục' });
+              }
+            }).catch((err) => {
+              setRestoringId(null);
+              Swal.fire({ icon: 'error', title: 'Lỗi', text: String((err && err.message) || err) });
+            });
+          }
+        });
+      };
+
       return (
-        <div className="data-section">
-          <div className="section-header"><h2><i className="fas fa-trash-arrow-up"></i> Trash — deleted records</h2></div>
-          {loading ? <TableSkeleton rows={6} columns={4} /> : (rows || []).length === 0
-            ? <p style={{ color: '#789', textAlign: 'center', padding: 24 }}><i className="fas fa-broom" style={{ display: 'block', fontSize: 26, marginBottom: 8, opacity: .5 }}></i>Trash is empty — nothing has been deleted.</p>
-            : (rows || []).map((x, i) => (
-              <div key={i} className="tl-item"><i className="fas fa-box-archive"></i>
-                <div style={{ flex: 1 }}><div className="w"><b>{x.type}</b> #{x.id} — {x.title}</div><div className="m">deleted {fmtDT(x.updated)}</div></div>
-                <button className="btn btn-secondary btn-sm" onClick={() => restore(x)}><i className="fas fa-rotate-left"></i> Restore</button>
-              </div>))}
+        <div className="trash-page-wrapper mob-trash-page">
+          {/* Dải viên thuốc loại bản ghi đã xóa lướt ngang */}
+          <div className="mob-pipeline-bar" style={{ marginBottom: 12 }}>
+            <div className="mob-pills-scroll">
+              {TRASH_TYPES.map((t) => (
+                <button
+                  key={t.key}
+                  className={'mob-pill ' + (filterType === t.key ? 'active' : '')}
+                  onClick={() => setFilterType(t.key)}
+                >
+                  <i className={'fas ' + t.icon}></i>
+                  <span>{t.label}</span>
+                  <span className="mob-pill-count">{counts[t.key] || 0}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Thanh công cụ phụ di động (Mobile Sub-Toolbar) */}
+          <div className="mob-sub-toolbar">
+            <div className="mob-sub-toolbar-title">
+              <strong>{visible.length}</strong> Bản ghi đã xóa {filterType ? `· ${TRASH_TYPES.find((x) => x.key === filterType)?.label || filterType}` : ''}
+            </div>
+            <div className="mob-sub-toolbar-actions">
+              <span style={{ fontSize: 11.5, color: '#64748b' }}>
+                <i className="fas fa-shield-halved"></i> Chỉ Quản trị viên
+              </span>
+            </div>
+          </div>
+
+          {/* Thanh tìm kiếm nhanh */}
+          <div className="filters-section" style={{ marginBottom: 14 }}>
+            <div className="filters-grid" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="filter-group">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Tìm theo tên bản ghi, mã ID, phân hệ..."
+                  className="filter-input"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Data Section */}
+          <div className="data-section">
+            {loading ? (
+              <div className="mob-cards-skeleton">
+                {[1, 2, 3, 4].map((i) => <div key={i} className="mob-card-skeleton"></div>)}
+              </div>
+            ) : visible.length === 0 ? (
+              <div className="mob-trash-empty">
+                <div className="mob-trash-empty-icon">
+                  <i className="fas fa-broom"></i>
+                </div>
+                <h3>Thùng rác đang trống</h3>
+                <p>Không có bản ghi nào bị xóa hoặc phù hợp với bộ lọc hiện tại.</p>
+              </div>
+            ) : (
+              <div className="mob-trash-list">
+                {visible.map((x, i) => (
+                  <div key={i} className="mob-trash-card">
+                    {/* HÀNG 1: Loại bản ghi + Mã ID + Thời gian xóa */}
+                    <div className="mob-trash-card-head">
+                      <div className="mob-trash-type-badge">
+                        <i className={'fas ' + (TYPE_ICONS[x.type] || 'fa-box-archive')}></i>
+                        <span>{viEnum(x.type) || x.type}</span>
+                        <strong className="mob-trash-id">#{x.id}</strong>
+                      </div>
+                      <span className="mob-trash-time">
+                        <i className="fas fa-clock-rotate-left"></i> {fmtDT(x.updated)}
+                      </span>
+                    </div>
+
+                    {/* HÀNG 2: Tiêu đề bản ghi */}
+                    <div className="mob-trash-title">
+                      {x.title || 'Không có tiêu đề'}
+                    </div>
+
+                    {/* HÀNG 3: Nút khôi phục 1-chạm */}
+                    <div className="mob-trash-actions">
+                      <button
+                        className="btn btn-primary btn-sm mob-trash-restore-btn"
+                        onClick={() => restore(x)}
+                        disabled={restoringId === x.id}
+                      >
+                        <i className={'fas ' + (restoringId === x.id ? 'fa-spinner fa-spin' : 'fa-rotate-left')}></i>
+                        <span>{restoringId === x.id ? 'Đang khôi phục...' : 'Khôi phục bản ghi'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       );
     }
