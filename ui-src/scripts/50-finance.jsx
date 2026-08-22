@@ -2267,50 +2267,50 @@
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 12px' }}>
+              <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 14px' }}>
                 <i className="fas fa-circle-info"></i> {meta.hint}. Nhấp <b>Xem & In</b> để mở văn bản A4 hoàn chỉnh.
               </p>
               {records.length === 0 ? (
                 <p className="dash-empty"><i className="fas fa-file-circle-xmark"></i>Chưa có hồ sơ phù hợp để tạo tài liệu này</p>
               ) : (
-                <div className="mob-doc-records-list">
-                  {records.map((r, i) => {
+                <div className="doc-records-list">
+                  {records.map((r) => {
                     const outstanding = (ten ? r.arrears : r.balance) || 0;
                     return (
-                      <div key={r.id} className="mob-doc-record-card">
-                        <div className="mob-doc-rec-head">
-                          <div className="mob-doc-rec-prop">
-                            <span className="mob-doc-rec-ref">{r.propertyRef || '#' + r.propertyId}</span>
-                            <span className="mob-doc-rec-title">{r.propertyTitle || '—'}</span>
+                      <div key={r.id} className="doc-record-card">
+                        <div className="doc-rec-head">
+                          <div className="doc-rec-prop">
+                            <span className="doc-rec-ref">{r.propertyRef || '#' + r.propertyId}</span>
+                            <span className="doc-rec-title" title={r.propertyTitle || '—'}>{r.propertyTitle || '—'}</span>
                           </div>
                           <Badge s={r.status} />
                         </div>
 
-                        <div className="mob-doc-rec-party">
-                          <i className="fas fa-user-tie"></i>
-                          <span className="mob-doc-rec-name">{(ten ? r.tenantName : r.buyerName) || '—'}</span>
+                        <div className="doc-rec-party">
+                          <i className="fas fa-user-tie" style={{ color: 'var(--navy-accent)' }}></i>
+                          <span className="doc-rec-name">{(ten ? r.tenantName : r.buyerName) || '—'}</span>
                           {((ten ? r.tenantPhone : r.buyerPhone)) && (
-                            <span className="mob-doc-rec-phone">· {(ten ? r.tenantPhone : r.buyerPhone)}</span>
+                            <span className="doc-rec-phone">· {(ten ? r.tenantPhone : r.buyerPhone)}</span>
                           )}
                         </div>
 
-                        <div className="mob-doc-rec-financials">
-                          <div className="mob-doc-rec-fitem">
+                        <div className="doc-rec-financials">
+                          <div className="doc-rec-fitem">
                             <small>{ten ? 'Tiền thuê/th' : 'Giá trị HĐ'}</small>
                             <b>{pkrShort(ten ? r.monthlyRent : r.dealAmount)}</b>
                           </div>
-                          <div className="mob-doc-rec-fitem">
+                          <div className="doc-rec-fitem">
                             <small>{ten ? 'Đã thu' : 'Đã nộp'}</small>
                             <b style={{ color: '#16a34a' }}>{pkrShort(ten ? (r.collected || 0) : (r.paid || 0))}</b>
                           </div>
-                          <div className="mob-doc-rec-fitem">
+                          <div className="doc-rec-fitem">
                             <small>{ten ? 'Công nợ' : 'Còn lại'}</small>
                             <b style={{ color: outstanding > 0 ? '#dc2626' : '#16a34a' }}>{pkrShort(outstanding)}</b>
                           </div>
                         </div>
 
-                        <div className="mob-doc-rec-foot">
-                          <button className="btn btn-primary btn-sm mob-doc-view-btn" disabled={!!busyId} onClick={() => onView(r)}>
+                        <div className="doc-rec-foot">
+                          <button className="btn btn-primary btn-sm doc-view-btn" disabled={!!busyId} onClick={() => onView(r)}>
                             <i className={'fas ' + (busyId === r.id ? 'fa-spinner fa-spin' : 'fa-eye')}></i> {busyId === r.id ? 'Đang tải…' : 'Xem & In văn bản'}
                           </button>
                         </div>
