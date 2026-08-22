@@ -7419,6 +7419,306 @@
         grid-template-columns: 1fr 1fr !important;
         gap: 8px !important;
       }
+
+      /* ===== PHÂN HỆ CHỦ SỞ HỮU TRÊN ĐIỆN THOẠI (LUXURY OWNERS UI) ===== */
+      .desk-owners-table-wrap {
+        display: none !important;
+      }
+      .mob-owners-sub-toolbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 2px 0 10px 0 !important;
+        padding: 0 2px !important;
+      }
+      .mob-owners-cards-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      .mob-owner-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 13px 14px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+      }
+      .mob-owner-card:active {
+        transform: scale(0.99) !important;
+      }
+      body.dark-mode .mob-owner-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      /* Hàng 1: Avatar, Tên & SĐT */
+      .mob-owner-header-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        cursor: pointer !important;
+        margin-bottom: 8px !important;
+      }
+      .mob-owner-header-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+      }
+      .mob-owner-name {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 14px !important;
+        color: #1e293b !important;
+      }
+      body.dark-mode .mob-owner-name {
+        color: #f1f5f9 !important;
+      }
+      .mob-owner-id-badge {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        color: #64748b !important;
+        background: #f1f5f9 !important;
+        padding: 1px 6px !important;
+        border-radius: 4px !important;
+      }
+      body.dark-mode .mob-owner-id-badge {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+      }
+      .mob-owner-phone {
+        font-size: 12px !important;
+        color: #0284c7 !important;
+        font-weight: 600 !important;
+        margin-top: 2px !important;
+      }
+      body.dark-mode .mob-owner-phone {
+        color: #38bdf8 !important;
+      }
+
+      /* Hàng 2: Chi tiết Email, CCCD, Địa chỉ */
+      .mob-owner-meta-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        margin-bottom: 8px !important;
+      }
+      body.dark-mode .mob-owner-meta-row {
+        color: #94a3b8 !important;
+      }
+      .mob-owner-meta-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .mob-owner-notes {
+        font-style: italic !important;
+        color: #64748b !important;
+        background: #f8fafc !important;
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+        border: 1px dashed #e2e8f0 !important;
+      }
+      body.dark-mode .mob-owner-notes {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+      }
+
+      /* Hàng 3: Bảng 3 chỉ số tài sản (Portfolio KPI Grid) */
+      .mob-owner-kpi-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1.2fr 1fr !important;
+        gap: 6px !important;
+        margin: 8px 0 !important;
+      }
+      .mob-owner-kpi-tile {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        padding: 6px 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+        text-align: center !important;
+      }
+      body.dark-mode .mob-owner-kpi-tile {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+      }
+      .mob-owner-kpi-tile .kpi-label {
+        font-size: 9.5px !important;
+        color: #64748b !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+      }
+      body.dark-mode .mob-owner-kpi-tile .kpi-label {
+        color: #94a3b8 !important;
+      }
+      .mob-owner-kpi-tile .kpi-val {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+      }
+      .mob-owner-kpi-tile .props-val {
+        color: #0284c7 !important;
+      }
+      .mob-owner-kpi-tile .biz-val {
+        color: #16a34a !important;
+      }
+      .mob-owner-kpi-tile .date-val {
+        color: #475569 !important;
+        font-size: 11px !important;
+      }
+      body.dark-mode .mob-owner-kpi-tile .date-val {
+        color: #cbd5e1 !important;
+      }
+
+      /* Hàng 4: Nút thao tác */
+      .mob-owner-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+      }
+      .mob-owner-actions .mob-btn {
+        flex: 1 1 auto !important;
+        height: 34px !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        border: none !important;
+      }
+      .mob-owner-actions .mob-btn-view {
+        background: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd !important;
+      }
+      .mob-owner-actions .mob-btn-zalo {
+        background: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd !important;
+      }
+      .mob-owner-actions .mob-btn-edit {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0 !important;
+        flex: 0 0 34px !important;
+      }
+      .mob-owner-actions .mob-btn-del {
+        background: #fef2f2 !important;
+        color: #ef4444 !important;
+        border: 1px solid #fecaca !important;
+        flex: 0 0 34px !important;
+      }
+      body.dark-mode .mob-owner-actions .mob-btn-view,
+      body.dark-mode .mob-owner-actions .mob-btn-zalo {
+        background: rgba(2, 132, 199, 0.15) !important;
+        color: #38bdf8 !important;
+        border-color: rgba(2, 132, 199, 0.3) !important;
+      }
+      body.dark-mode .mob-owner-actions .mob-btn-edit {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      body.dark-mode .mob-owner-actions .mob-btn-del {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+      }
+
+      /* Modal Chủ sở hữu dạng Bottom Sheet trên Mobile */
+      .modal.modal-owner-form,
+      .modal.modal-owner360 {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 94vh !important;
+        max-height: 94vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin: auto 0 0 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border: none !important;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
+        animation: slideUp 0.25s ease !important;
+      }
+      .modal-owner-form .modal-header,
+      .modal-owner360 .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+      }
+      .modal-owner-form .modal-body,
+      .modal-owner360 .modal-body {
+        padding: 14px 16px 28px 14px !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .modal-owner-form .form-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .modal-owner-form .form-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1.5fr !important;
+        gap: 10px !important;
+        margin-top: 18px !important;
+        padding-top: 14px !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      body.dark-mode .modal-owner-form .form-actions {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .modal-owner-form .form-actions .btn {
+        height: 42px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+      }
+      .modal-owner360 .id-head {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .modal-owner360 .id-kpis {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 6px !important;
+      }
+      .modal-owner360 .rs-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: flex !important;
+        gap: 6px !important;
+        padding-bottom: 4px !important;
+        margin: 12px 0 !important;
+      }
+      .modal-owner360 .rs-tab {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+      }
+      .modal-owner360 .pd-facts {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
     }
   </style>
 </head>
@@ -13891,30 +14191,30 @@
         gsRun(editing ? 'updateOwner' : 'addOwner', { ...form, id: owner ? owner.id : undefined }, currentUser).then((r) => {
           setSaving(false);
           if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 1800, showConfirmButton: false }); onSaved(r); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
         }).catch(() => setSaving(false));
       };
       return (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 560 }}>
+          <div className="modal modal-owner-form" style={{ maxWidth: 560 }}>
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Chỉnh sửa chủ sở hữu #' + owner.id : 'Thêm chủ sở hữu'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Chỉnh sửa chủ sở hữu #' + owner.id : 'Thêm chủ sở hữu mới'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 <div className="form-grid">
-                  <div className="form-group"><label><i className="fas fa-user"></i> Họ và tên *</label><input value={form.name} onChange={setEv('name')} required /></div>
-                  <div className="form-group"><label><i className="fas fa-phone"></i> Điện thoại * <small style={{ color: '#999', textTransform: 'none' }}>(khóa định danh)</small></label><input value={form.phone} onChange={setEv('phone')} required placeholder="+92300…" /></div>
-                  <div className="form-group"><label><i className="fas fa-envelope"></i> Email</label><input type="email" value={form.email} onChange={setEv('email')} /></div>
+                  <div className="form-group"><label><i className="fas fa-user"></i> Họ và tên *</label><input value={form.name} onChange={setEv('name')} required placeholder="Ví dụ: Nguyễn Văn An" /></div>
+                  <div className="form-group"><label><i className="fas fa-phone"></i> Điện thoại * <small style={{ color: '#94a3b8', textTransform: 'none' }}>(khóa định danh)</small></label><input value={form.phone} onChange={setEv('phone')} required placeholder="0901234567" /></div>
+                  <div className="form-group"><label><i className="fas fa-envelope"></i> Email</label><input type="email" value={form.email} onChange={setEv('email')} placeholder="owner@example.com" /></div>
                   <div className="form-group"><label><i className="fas fa-id-card"></i> Số CCCD / CMND</label><input value={form.cnic} onChange={setEv('cnic')} placeholder="Nhập số CCCD/CMND..." /></div>
                 </div>
-                <div className="form-group"><label><i className="fas fa-location-dot"></i> Địa chỉ</label><input value={form.address} onChange={setEv('address')} /></div>
-                <div className="form-group"><label><i className="fas fa-align-left"></i> Notes</label><textarea rows="2" value={form.notes} onChange={setEv('notes')}></textarea></div>
+                <div className="form-group"><label><i className="fas fa-location-dot"></i> Địa chỉ liên hệ</label><input value={form.address} onChange={setEv('address')} placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." /></div>
+                <div className="form-group"><label><i className="fas fa-align-left"></i> Ghi chú</label><textarea rows="2" value={form.notes} onChange={setEv('notes')} placeholder="Thông tin bổ sung, người đại diện..."></textarea></div>
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật chủ sở hữu' : 'Thêm chủ sở hữu'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật chủ sở hữu' : 'Lưu chủ sở hữu'}</>}
                   </button>
                 </div>
               </form>
@@ -13933,7 +14233,7 @@
       const [tab, setTab] = useState('over');
       return (
         <div className="modal-overlay">
-          <div className="modal">
+          <div className="modal modal-owner360">
             <div className="modal-header">
               <h3><i className="fas fa-user-tie"></i> Hồ sơ chủ sở hữu 360 — {owner.name}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
@@ -13942,7 +14242,7 @@
               <div className="id-head">
                 <div>
                   <div className="nm">{owner.name}</div>
-                  <div className="sub"><i className="fas fa-phone"></i> {owner.phone}{owner.email ? ' · ' + owner.email : ''}{owner.cnic ? ' · ' + owner.cnic : ''}</div>
+                  <div className="sub"><i className="fas fa-phone"></i> {owner.phone}{owner.email ? ' · ' + owner.email : ''}{owner.cnic ? ' · CCCD: ' + owner.cnic : ''}</div>
                 </div>
                 <div className="id-kpis">
                   <div className="id-kpi"><div className="v">{props.length}</div><div className="l">Bất động sản</div></div>
@@ -13987,8 +14287,17 @@
       const [showModal, setShowModal] = useState(false);
       const [editing, setEditing] = useState(null);
       const [viewing, setViewing] = useState(null);
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '' });
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
+
+      const visible = useMemo(() => {
+        const q = String(filters.search || '').trim().toLowerCase();
+        return (rows || []).filter((o) => !q || [
+          o.name, o.phone, o.email, o.cnic, o.address, o.notes
+        ].some((val) => String(val || '').toLowerCase().includes(q)));
+      }, [rows, filters.search]);
+      const activeFiltersCount = filters.search ? 1 : 0;
 
       const kpi = useMemo(() => { const r = rows || []; return [
         [r.length, 'Tổng chủ sở hữu', 'fa-user-tie', 'bg-navy'],
@@ -14014,17 +14323,20 @@
 
       const onAction = (action, o) => {
         if (action === 'view') setViewing(o);
-        else if (action === 'wa') waOpen(o.phone);
+        else if (action === 'wa') {
+          const msg = 'Xin chào ' + (o.name || 'Quý khách') + ', chúng tôi liên hệ từ bộ phận quản lý BĐS.';
+          waOpen(o.phone, msg);
+        }
         else if (action === 'edit') { setEditing(o); setShowModal(true); }
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Xóa chủ sở hữu "' + o.name + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy' })
+          Swal.fire({ icon: 'warning', title: 'Xóa chủ sở hữu "' + o.name + '"?', text: 'Các BĐS liên kết sẽ bị gỡ liên kết chủ sở hữu.', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteOwner', o.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); }
-              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+              else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' }); }); });
         }
       };
 
-      const tableRef = useDataTable('ownersTable', rows === undefined ? null : rows, () => ({
+      const tableRef = useDataTable('ownersTable', rows === undefined ? null : visible, () => ({
         search: { search: filters.search },
         columns: [
           { data: 'name', title: 'Chủ sở hữu', render: (d, t, o) => t === 'display'
@@ -14035,21 +14347,43 @@
           { data: 'propertyCount', title: 'Số BĐS' },
           { data: 'totalBusiness', title: 'Tổng doanh số', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
           { data: 'created', title: 'Ngày tạo', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
-          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-4', width: '140px', render: () => `<div class="table-actions slots-4">
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-4', width: '140px', render: () => `<div class="table-actions slots-4">
             <button class="action-icon view-icon" data-action="view" title="Hồ sơ chủ sở hữu 360"><i class="fas fa-id-card-clip"></i></button>
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
-            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
-            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>' : ''}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
         createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ chủ sở hữu 360'); },
         order: []
       }), onAction, [canEdit, canDel], (owner) => setViewing(owner));
-      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, rows]);
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]);
 
       return (
         <>
           <KpiRow items={kpi} />
-          <div className="filters-section">
+
+          {/* 1. Mobile Sub-Toolbar */}
+          <div className="mob-owners-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Chủ sở hữu
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              {canAdd && (
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditing(null); setShowModal(true); }} title="Thêm chủ sở hữu">
+                  <i className="fas fa-plus"></i>
+                </button>
+              )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc chủ sở hữu">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header"><h3><i className="fas fa-filter"></i> Bộ lọc</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ search: '' })}><i className="fas fa-rotate-left"></i> Xóa lọc</button>
             </div>
@@ -14060,11 +14394,164 @@
               </div>
             </div>
           </div>
+
+          {/* 3. Data Section: Desktop Table & Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="ownersCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'Name', 'bulkImportOwners', currentUser, () => mutate()); e.target.value = ''; }} />
-            {loading ? <TableSkeleton rows={8} columns={7} /> : <div style={{ overflowX: 'auto' }}><table id="ownersTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table View */}
+            <div className="desk-owners-table-wrap">
+              {loading ? <TableSkeleton rows={8} columns={7} /> : <div style={{ overflowX: 'auto' }}><table id="ownersTable" className="display" style={{ width: '100%' }}></table></div>}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-owners-cards-container">
+              {loading ? (
+                <div className="mob-owners-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-owner-card-skeleton">
+                      <div className="sk-line w50"></div>
+                      <div className="sk-line w80"></div>
+                      <div className="sk-line w40"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-owners-empty-state">
+                  <div className="empty-circle"><i className="fas fa-user-slash"></i></div>
+                  <h4>Chưa có chủ sở hữu phù hợp</h4>
+                  <p>Thử tìm kiếm từ khóa khác hoặc thêm chủ sở hữu mới</p>
+                  {canAdd && (
+                    <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditing(null); setShowModal(true); }}>
+                      <i className="fas fa-plus"></i> Thêm chủ sở hữu
+                    </button>
+                  )}
+                </div>
+              ) : (
+                visible.map((o) => {
+                  const initial = (o.name || 'C').trim().charAt(0).toUpperCase();
+                  return (
+                    <div key={o.id} className="mob-owner-card">
+                      {/* HÀNG 1: Avatar & Tên chủ sở hữu */}
+                      <div className="mob-owner-header-row" onClick={() => setViewing(o)}>
+                        <div className="mob-lead-avatar">{initial}</div>
+                        <div className="mob-owner-header-info">
+                          <div className="mob-owner-name">
+                            <strong>{o.name || 'Chưa có tên'}</strong>
+                            <span className="mob-owner-id-badge">#{o.id}</span>
+                          </div>
+                          <div className="mob-owner-phone">
+                            <i className="fas fa-phone"></i> {o.phone || 'Chưa có SĐT'}
+                          </div>
+                        </div>
+                        <span className="mob-view-profile-hint"><i className="fas fa-id-card-clip"></i> 360</span>
+                      </div>
+
+                      {/* HÀNG 2: Thông tin chi tiết (Email, CCCD, Địa chỉ) */}
+                      <div className="mob-owner-meta-row">
+                        {o.email && (
+                          <div className="mob-owner-meta-item">
+                            <i className="fas fa-envelope"></i> {o.email}
+                          </div>
+                        )}
+                        {o.cnic && (
+                          <div className="mob-owner-meta-item">
+                            <i className="fas fa-id-card"></i> CCCD: {o.cnic}
+                          </div>
+                        )}
+                        {o.address && (
+                          <div className="mob-owner-meta-item">
+                            <i className="fas fa-location-dot"></i> {o.address}
+                          </div>
+                        )}
+                        {o.notes && (
+                          <div className="mob-owner-notes">
+                            <i className="fas fa-note-sticky"></i> {o.notes}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* HÀNG 3: Bảng 3 chỉ số tài sản (Portfolio KPI Grid) */}
+                      <div className="mob-owner-kpi-grid">
+                        <div className="mob-owner-kpi-tile">
+                          <span className="kpi-label">Số BĐS gửi</span>
+                          <span className="kpi-val props-val">
+                            <i className="fas fa-building"></i> {o.propertyCount || 0}
+                          </span>
+                        </div>
+                        <div className="mob-owner-kpi-tile">
+                          <span className="kpi-label">Tổng doanh số</span>
+                          <span className="kpi-val biz-val">
+                            {pkrShort(o.totalBusiness || 0)}
+                          </span>
+                        </div>
+                        <div className="mob-owner-kpi-tile">
+                          <span className="kpi-label">Ngày tham gia</span>
+                          <span className="kpi-val date-val">
+                            {fmtDate(o.created) || '—'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 4: Nút hành động 1-chạm */}
+                      <div className="mob-owner-actions">
+                        <button className="mob-btn mob-btn-view" onClick={() => onAction('view', o)} title="Hồ sơ chủ sở hữu 360">
+                          <i className="fas fa-id-card-clip"></i> 360
+                        </button>
+                        <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', o)} title="Nhắn Zalo">
+                          <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
+                            <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
+                            <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
+                            <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+                          </svg>
+                          Zalo
+                        </button>
+                        {canEdit && (
+                          <button className="mob-btn mob-btn-edit" onClick={() => onAction('edit', o)} title="Chỉnh sửa">
+                            <i className="fas fa-pen-to-square"></i>
+                          </button>
+                        )}
+                        {canDel && (
+                          <button className="mob-btn mob-btn-del" onClick={() => onAction('delete', o)} title="Xóa">
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
+
+          {/* 4. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc chủ sở hữu</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm chủ sở hữu</label>
+                    <input className="filter-input" value={filters.search} placeholder="Tên, SĐT, email, CCCD, địa chỉ…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '' }); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Chủ sở hữu)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showModal && <OwnerModal owner={editing} currentUser={currentUser} onClose={() => { setShowModal(false); setEditing(null); }} onSaved={() => { setShowModal(false); setEditing(null); mutate(); }} />}
           {viewing && <Owner360Modal owner={viewing} currentUser={currentUser} onClose={() => setViewing(null)} />}
         </>

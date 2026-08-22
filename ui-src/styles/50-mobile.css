@@ -3239,5 +3239,305 @@
         grid-template-columns: 1fr 1fr !important;
         gap: 8px !important;
       }
+
+      /* ===== PHÂN HỆ CHỦ SỞ HỮU TRÊN ĐIỆN THOẠI (LUXURY OWNERS UI) ===== */
+      .desk-owners-table-wrap {
+        display: none !important;
+      }
+      .mob-owners-sub-toolbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 2px 0 10px 0 !important;
+        padding: 0 2px !important;
+      }
+      .mob-owners-cards-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      .mob-owner-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 13px 14px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+      }
+      .mob-owner-card:active {
+        transform: scale(0.99) !important;
+      }
+      body.dark-mode .mob-owner-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      /* Hàng 1: Avatar, Tên & SĐT */
+      .mob-owner-header-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        cursor: pointer !important;
+        margin-bottom: 8px !important;
+      }
+      .mob-owner-header-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+      }
+      .mob-owner-name {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 14px !important;
+        color: #1e293b !important;
+      }
+      body.dark-mode .mob-owner-name {
+        color: #f1f5f9 !important;
+      }
+      .mob-owner-id-badge {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        color: #64748b !important;
+        background: #f1f5f9 !important;
+        padding: 1px 6px !important;
+        border-radius: 4px !important;
+      }
+      body.dark-mode .mob-owner-id-badge {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+      }
+      .mob-owner-phone {
+        font-size: 12px !important;
+        color: #0284c7 !important;
+        font-weight: 600 !important;
+        margin-top: 2px !important;
+      }
+      body.dark-mode .mob-owner-phone {
+        color: #38bdf8 !important;
+      }
+
+      /* Hàng 2: Chi tiết Email, CCCD, Địa chỉ */
+      .mob-owner-meta-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        margin-bottom: 8px !important;
+      }
+      body.dark-mode .mob-owner-meta-row {
+        color: #94a3b8 !important;
+      }
+      .mob-owner-meta-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .mob-owner-notes {
+        font-style: italic !important;
+        color: #64748b !important;
+        background: #f8fafc !important;
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+        border: 1px dashed #e2e8f0 !important;
+      }
+      body.dark-mode .mob-owner-notes {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+      }
+
+      /* Hàng 3: Bảng 3 chỉ số tài sản (Portfolio KPI Grid) */
+      .mob-owner-kpi-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1.2fr 1fr !important;
+        gap: 6px !important;
+        margin: 8px 0 !important;
+      }
+      .mob-owner-kpi-tile {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        padding: 6px 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+        text-align: center !important;
+      }
+      body.dark-mode .mob-owner-kpi-tile {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+      }
+      .mob-owner-kpi-tile .kpi-label {
+        font-size: 9.5px !important;
+        color: #64748b !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+      }
+      body.dark-mode .mob-owner-kpi-tile .kpi-label {
+        color: #94a3b8 !important;
+      }
+      .mob-owner-kpi-tile .kpi-val {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+      }
+      .mob-owner-kpi-tile .props-val {
+        color: #0284c7 !important;
+      }
+      .mob-owner-kpi-tile .biz-val {
+        color: #16a34a !important;
+      }
+      .mob-owner-kpi-tile .date-val {
+        color: #475569 !important;
+        font-size: 11px !important;
+      }
+      body.dark-mode .mob-owner-kpi-tile .date-val {
+        color: #cbd5e1 !important;
+      }
+
+      /* Hàng 4: Nút thao tác */
+      .mob-owner-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+      }
+      .mob-owner-actions .mob-btn {
+        flex: 1 1 auto !important;
+        height: 34px !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        border: none !important;
+      }
+      .mob-owner-actions .mob-btn-view {
+        background: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd !important;
+      }
+      .mob-owner-actions .mob-btn-zalo {
+        background: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd !important;
+      }
+      .mob-owner-actions .mob-btn-edit {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0 !important;
+        flex: 0 0 34px !important;
+      }
+      .mob-owner-actions .mob-btn-del {
+        background: #fef2f2 !important;
+        color: #ef4444 !important;
+        border: 1px solid #fecaca !important;
+        flex: 0 0 34px !important;
+      }
+      body.dark-mode .mob-owner-actions .mob-btn-view,
+      body.dark-mode .mob-owner-actions .mob-btn-zalo {
+        background: rgba(2, 132, 199, 0.15) !important;
+        color: #38bdf8 !important;
+        border-color: rgba(2, 132, 199, 0.3) !important;
+      }
+      body.dark-mode .mob-owner-actions .mob-btn-edit {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      body.dark-mode .mob-owner-actions .mob-btn-del {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+      }
+
+      /* Modal Chủ sở hữu dạng Bottom Sheet trên Mobile */
+      .modal.modal-owner-form,
+      .modal.modal-owner360 {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 94vh !important;
+        max-height: 94vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin: auto 0 0 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border: none !important;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
+        animation: slideUp 0.25s ease !important;
+      }
+      .modal-owner-form .modal-header,
+      .modal-owner360 .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+      }
+      .modal-owner-form .modal-body,
+      .modal-owner360 .modal-body {
+        padding: 14px 16px 28px 14px !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .modal-owner-form .form-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .modal-owner-form .form-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1.5fr !important;
+        gap: 10px !important;
+        margin-top: 18px !important;
+        padding-top: 14px !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      body.dark-mode .modal-owner-form .form-actions {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .modal-owner-form .form-actions .btn {
+        height: 42px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+      }
+      .modal-owner360 .id-head {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .modal-owner360 .id-kpis {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 6px !important;
+      }
+      .modal-owner360 .rs-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: flex !important;
+        gap: 6px !important;
+        padding-bottom: 4px !important;
+        margin: 12px 0 !important;
+      }
+      .modal-owner360 .rs-tab {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+      }
+      .modal-owner360 .pd-facts {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
     }
   
