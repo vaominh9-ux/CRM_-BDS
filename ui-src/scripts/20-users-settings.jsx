@@ -802,11 +802,11 @@
       };
 
       return (
-        <div className="profile-section mob-account-page">
+        <div className="profile-section account-page-wrapper">
           {/* HERO CARD: Avatar, Tên đăng nhập & Vai trò */}
-          <div className="mob-account-hero-card">
-            <div className="mob-account-avatar-wrapper">
-              <div className="mob-account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
+          <div className="account-hero-card">
+            <div className="account-avatar-wrapper">
+              <div className="account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
                 {getLeadInitials(currentUser)}
               </div>
               <input
@@ -818,7 +818,7 @@
               />
               <button
                 type="button"
-                className="mob-account-avatar-cam-btn"
+                className="account-avatar-cam-btn"
                 onClick={() => fileInputRef.current && fileInputRef.current.click()}
                 disabled={uploading}
                 title="Thay đổi ảnh đại diện"
@@ -826,29 +826,29 @@
                 <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-camera')}></i>
               </button>
             </div>
-            <div className="mob-account-hero-info">
-              <h2 className="mob-account-hero-title">{currentUser}</h2>
-              <div className="mob-account-hero-meta">
-                <span className={'mob-user-role-badge ' + String(role || 'agent').toLowerCase()}>
+            <div className="account-hero-info">
+              <h2 className="account-hero-title">{currentUser}</h2>
+              <div className="account-hero-meta">
+                <span className={'user-role-badge role-' + String(role || 'agent').toLowerCase()}>
                   {viEnum(role) || role}
                 </span>
-                <span className="mob-account-email-pill">
+                <span className="account-email-pill">
                   <i className="fas fa-envelope"></i> {formData.Email || 'Chưa có email'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mob-account-grid">
+          <div className="account-grid">
             {/* THẺ 1: THÔNG TIN CÁ NHÂN */}
-            <div className="mob-account-card">
-              <div className="mob-account-card-header">
-                <div className="mob-account-header-icon info">
+            <div className="account-card">
+              <div className="account-card-header">
+                <div className="account-header-icon info">
                   <i className="fas fa-id-card"></i>
                 </div>
                 <div>
-                  <h3 className="mob-account-card-title">Thông tin tài khoản</h3>
-                  <p className="mob-account-card-desc">Cập nhật địa chỉ email liên hệ nhận thông báo</p>
+                  <h3 className="account-card-title">Thông tin tài khoản</h3>
+                  <p className="account-card-desc">Cập nhật địa chỉ email liên hệ nhận thông báo</p>
                 </div>
               </div>
 
@@ -879,7 +879,7 @@
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary mob-account-save-btn" disabled={saving}>
+                <button type="submit" className="btn btn-primary account-save-btn" disabled={saving}>
                   {saving ? (
                     <><i className="fas fa-spinner fa-spin"></i> Đang lưu...</>
                   ) : (
@@ -890,21 +890,21 @@
             </div>
 
             {/* THẺ 2: ĐỔI MẬT KHẨU */}
-            <div className="mob-account-card">
-              <div className="mob-account-card-header">
-                <div className="mob-account-header-icon security">
+            <div className="account-card">
+              <div className="account-card-header">
+                <div className="account-header-icon security">
                   <i className="fas fa-shield-halved"></i>
                 </div>
                 <div>
-                  <h3 className="mob-account-card-title">Bảo mật & Mật khẩu</h3>
-                  <p className="mob-account-card-desc">Thay đổi mật khẩu đăng nhập định kỳ để đảm bảo an toàn</p>
+                  <h3 className="account-card-title">Bảo mật & Mật khẩu</h3>
+                  <p className="account-card-desc">Thay đổi mật khẩu đăng nhập định kỳ để đảm bảo an toàn</p>
                 </div>
               </div>
 
               <form onSubmit={handleUpdatePassword}>
                 <div className="form-group" style={{ marginBottom: 14 }}>
                   <label><i className="fas fa-key"></i> Mật khẩu hiện tại *</label>
-                  <div className="mob-password-input-wrap">
+                  <div className="password-input-wrap" style={{ position: 'relative' }}>
                     <input
                       type={showCurPass ? 'text' : 'password'}
                       value={formData.CurrentPassword}
@@ -916,9 +916,10 @@
                     />
                     <button
                       type="button"
-                      className="mob-pwd-toggle-btn"
+                      className="pwd-toggle-btn"
                       onClick={() => setShowCurPass(!showCurPass)}
                       tabIndex="-1"
+                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
                     >
                       <i className={'fas ' + (showCurPass ? 'fa-eye-slash' : 'fa-eye')}></i>
                     </button>
@@ -927,7 +928,7 @@
 
                 <div className="form-group" style={{ marginBottom: 14 }}>
                   <label><i className="fas fa-lock"></i> Mật khẩu mới</label>
-                  <div className="mob-password-input-wrap">
+                  <div className="password-input-wrap" style={{ position: 'relative' }}>
                     <input
                       type={showNewPass ? 'text' : 'password'}
                       value={formData.NewPassword}
@@ -938,9 +939,10 @@
                     />
                     <button
                       type="button"
-                      className="mob-pwd-toggle-btn"
+                      className="pwd-toggle-btn"
                       onClick={() => setShowNewPass(!showNewPass)}
                       tabIndex="-1"
+                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
                     >
                       <i className={'fas ' + (showNewPass ? 'fa-eye-slash' : 'fa-eye')}></i>
                     </button>
@@ -949,7 +951,7 @@
 
                 <div className="form-group" style={{ marginBottom: 16 }}>
                   <label><i className="fas fa-check-double"></i> Xác nhận mật khẩu mới</label>
-                  <div className="mob-password-input-wrap">
+                  <div className="password-input-wrap" style={{ position: 'relative' }}>
                     <input
                       type={showCfmPass ? 'text' : 'password'}
                       value={formData.ConfirmPassword}
@@ -960,9 +962,10 @@
                     />
                     <button
                       type="button"
-                      className="mob-pwd-toggle-btn"
+                      className="pwd-toggle-btn"
                       onClick={() => setShowCfmPass(!showCfmPass)}
                       tabIndex="-1"
+                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
                     >
                       <i className={'fas ' + (showCfmPass ? 'fa-eye-slash' : 'fa-eye')}></i>
                     </button>
@@ -1004,14 +1007,14 @@
         }).catch(() => setSaving(false));
       };
       return (
-        <div className="mob-settings-card">
-          <div className="mob-settings-card-header">
-            <div className="mob-settings-icon-box ai">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-icon-box ai">
               <i className="fas fa-robot"></i>
             </div>
             <div>
-              <h3 className="mob-settings-card-title">Trợ lý AI Thông Minh (ChatGPT)</h3>
-              <p className="mob-settings-card-desc">Cấu hình mô hình và khóa OpenAI API cho trợ lý AI trò chuyện và phân tích BĐS</p>
+              <h3 className="settings-card-title">Trợ lý AI Thông Minh (ChatGPT)</h3>
+              <p className="settings-card-desc">Cấu hình mô hình và khóa OpenAI API cho trợ lý AI trò chuyện và phân tích BĐS</p>
             </div>
           </div>
           <div className="form-grid">
@@ -1026,7 +1029,7 @@
           <p style={{ fontSize: 12, color: '#64748b', margin: '6px 0 12px', background: '#f8fafc', padding: '8px 10px', borderRadius: 8, border: '1px dashed #e2e8f0' }}>
             <i className="fas fa-shield-halved" style={{ color: '#0284c7' }}></i> Khóa API được lưu mã hóa an toàn ở máy chủ và chỉ sử dụng phía backend; không bao giờ gửi xuống trình duyệt.
           </p>
-          <button className="btn btn-primary mob-account-save-btn" onClick={save} disabled={saving}>
+          <button className="btn btn-primary account-save-btn" onClick={save} disabled={saving}>
             {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Lưu cài đặt AI</>}
           </button>
         </div>
@@ -1051,14 +1054,14 @@
         }).catch(() => setSaving(false));
       };
       return (
-        <div className="mob-settings-card">
-          <div className="mob-settings-card-header">
-            <div className="mob-settings-icon-box money">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-icon-box money">
               <i className="fas fa-sack-dollar"></i>
             </div>
             <div>
-              <h3 className="mob-settings-card-title">Thiết lập tài chính mặc định</h3>
-              <p className="mob-settings-card-desc">Quy định tỷ lệ hoa hồng toàn công ty và thuật toán chia khách tự động</p>
+              <h3 className="settings-card-title">Thiết lập tài chính mặc định</h3>
+              <p className="settings-card-desc">Quy định tỷ lệ hoa hồng toàn công ty và thuật toán chia khách tự động</p>
             </div>
           </div>
           <div className="form-grid">
@@ -1089,7 +1092,7 @@
               </div>
             </div>
           </div>
-          <button className="btn btn-primary mob-account-save-btn" onClick={save} disabled={saving}>
+          <button className="btn btn-primary account-save-btn" onClick={save} disabled={saving}>
             {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Lưu thiết lập tài chính</>}
           </button>
         </div>
@@ -1139,14 +1142,14 @@
       };
 
       return (
-        <div className="mob-settings-card">
-          <div className="mob-settings-card-header">
-            <div className="mob-settings-icon-box brand">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-icon-box brand">
               <i className="fas fa-building"></i>
             </div>
             <div>
-              <h3 className="mob-settings-card-title">Thông tin &amp; Thương hiệu công ty</h3>
-              <p className="mob-settings-card-desc">Tên sàn BĐS, Hotline và địa chỉ hiển thị toàn hệ thống</p>
+              <h3 className="settings-card-title">Thông tin &amp; Thương hiệu công ty</h3>
+              <p className="settings-card-desc">Tên sàn BĐS, Hotline và địa chỉ hiển thị toàn hệ thống</p>
             </div>
           </div>
           <form onSubmit={handleSave}>
@@ -1189,7 +1192,7 @@
 
             <button
               type="submit"
-              className="btn btn-primary mob-account-save-btn"
+              className="btn btn-primary account-save-btn"
               disabled={saving}
             >
               {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Lưu thông tin công ty</>}
@@ -1285,64 +1288,59 @@
       const pv = findTheme(previewId) || findTheme(themeId) || UI_THEMES[0];
 
       return (
-        <div className="data-section mob-settings-page">
-          {/* Mobile Horizontally Scrollable Settings Tabs */}
-          <div className="mob-pipeline-bar" style={{ marginBottom: 14 }}>
-            <div className="mob-pills-scroll">
+        <div className="data-section settings-page-wrapper">
+          {/* Settings Tabs (Desktop & Mobile clean tab bar) */}
+          <div className="settings-nav-bar" style={{ marginBottom: 14 }}>
+            <div className="settings-nav-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
               <button
-                className={'mob-pill ' + (activeTab === 'themes' ? 'active' : '')}
+                className={'btn btn-sm ' + (activeTab === 'themes' ? 'btn-primary' : 'btn-secondary')}
                 onClick={() => setActiveTab('themes')}
               >
-                <i className="fas fa-palette"></i>
-                <span>Bảng màu giao diện</span>
+                <i className="fas fa-palette"></i> <span>Bảng màu giao diện</span>
               </button>
               {isAdmin && (
                 <button
-                  className={'mob-pill ' + (activeTab === 'branding' ? 'active' : '')}
+                  className={'btn btn-sm ' + (activeTab === 'branding' ? 'btn-primary' : 'btn-secondary')}
                   onClick={() => setActiveTab('branding')}
                 >
-                  <i className="fas fa-building"></i>
-                  <span>Thông tin công ty</span>
+                  <i className="fas fa-building"></i> <span>Thông tin công ty</span>
                 </button>
               )}
               {isAdmin && (
                 <button
-                  className={'mob-pill ' + (activeTab === 'money' ? 'active' : '')}
+                  className={'btn btn-sm ' + (activeTab === 'money' ? 'btn-primary' : 'btn-secondary')}
                   onClick={() => setActiveTab('money')}
                 >
-                  <i className="fas fa-sack-dollar"></i>
-                  <span>Tài chính & Hoa hồng</span>
+                  <i className="fas fa-sack-dollar"></i> <span>Tài chính & Hoa hồng</span>
                 </button>
               )}
               {isAdmin && (
                 <button
-                  className={'mob-pill ' + (activeTab === 'ai' ? 'active' : '')}
+                  className={'btn btn-sm ' + (activeTab === 'ai' ? 'btn-primary' : 'btn-secondary')}
                   onClick={() => setActiveTab('ai')}
                 >
-                  <i className="fas fa-robot"></i>
-                  <span>Trợ lý AI</span>
+                  <i className="fas fa-robot"></i> <span>Trợ lý AI</span>
                 </button>
               )}
               <button
-                className={'mob-pill ' + (activeTab === 'custom-colors' ? 'active' : '')}
+                className={'btn btn-sm ' + (activeTab === 'custom-colors' ? 'btn-primary' : 'btn-secondary')}
                 onClick={() => setActiveTab('custom-colors')}
               >
-                <i className="fas fa-sliders"></i>
-                <span>Tùy biến màu</span>
+                <i className="fas fa-sliders"></i> <span>Tùy biến màu</span>
               </button>
             </div>
           </div>
 
           {/* TAB 1: BẢNG MÀU GIAO DIỆN */}
           {activeTab === 'themes' && (
-            <div className="mob-settings-card">
-              <div className="mob-settings-card-header">
-                <div className="mob-settings-icon-box theme">
+            <div className="settings-card">
+              <div className="settings-card-header">
+                <div className="settings-icon-box theme">
                   <i className="fas fa-palette"></i>
                 </div>
                 <div>
-                  <h3 className="mob-settings-card-title">Bộ sưu tập chủ đề</h3>
-                  <p className="mob-settings-card-desc">Chọn chủ đề giao diện phù hợp với phong cách thương hiệu</p>
+                  <h3 className="settings-card-title">Bộ sưu tập chủ đề</h3>
+                  <p className="settings-card-desc">Chọn chủ đề giao diện phù hợp với phong cách thương hiệu</p>
                 </div>
               </div>
 
@@ -1433,14 +1431,14 @@
 
           {/* TAB 5: TÙY BIẾN MÀU CHI TIẾT */}
           {activeTab === 'custom-colors' && (
-            <div className="mob-settings-card">
-              <div className="mob-settings-card-header">
-                <div className="mob-settings-icon-box custom">
+            <div className="settings-card">
+              <div className="settings-card-header">
+                <div className="settings-icon-box custom">
                   <i className="fas fa-sliders"></i>
                 </div>
                 <div>
-                  <h3 className="mob-settings-card-title">Tùy biến màu sắc chi tiết</h3>
-                  <p className="mob-settings-card-desc">Tự do chỉnh mã màu Hex cho các thành phần giao diện</p>
+                  <h3 className="settings-card-title">Tùy biến màu sắc chi tiết</h3>
+                  <p className="settings-card-desc">Tự do chỉnh mã màu Hex cho các thành phần giao diện</p>
                 </div>
               </div>
 
