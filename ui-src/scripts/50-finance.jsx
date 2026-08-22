@@ -3157,8 +3157,6 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
             </div>
           </div>
         </div>
-      );
-    }
   );
 }
 
