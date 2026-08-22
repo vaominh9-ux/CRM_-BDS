@@ -133,7 +133,30 @@ async function getProperties(jwt){
   links.forEach(link=>{const list=amenitiesBy.get(Number(link.property_id))||[];list.push(Number(link.amenity_id));amenitiesBy.set(Number(link.property_id),list);});
   return ok({data:rows.map(row=>({...mapProperty(row),ownerId:row.owner_id,images:imagesBy.get(Number(row.id))||[],amenityIds:amenitiesBy.get(Number(row.id))||[]}))});
 }
-async function getLeads(jwt){const rows=await select('leads','*,profiles!leads_assigned_agent_id_fkey(username)',jwt,'&deleted_at=is.null&order=created_at.desc');return ok({data:rows.map(mapLead)});}
+async function getLeads(jwt){
+  const [rows, offers] = await Promise.all([
+    select('leads','*,profiles!leads_assigned_agent_id_fkey(username)',jwt,'&deleted_at=is.null&order=created_at.desc'),
+    select('lead_offers','*,profiles!lead_offers_created_by_fkey(username)',jwt,'&order=created_at.desc').catch(() => [])
+  ]);
+  const offersBy = new Map();
+  (offers || []).forEach(o => {
+    const list = offersBy.get(Number(o.lead_id)) || [];
+    list.push({
+      id: o.id,
+      leadId: o.lead_id,
+      propertyId: o.property_id,
+      by: o.offered_by,
+      offeredBy: o.offered_by,
+      amount: Number(o.amount_vnd || 0),
+      status: o.status,
+      notes: o.notes || '',
+      date: o.created_at,
+      addedBy: o.profiles?.username || ''
+    });
+    offersBy.set(Number(o.lead_id), list);
+  });
+  return ok({data:rows.map(row=>({...mapLead(row), offers: offersBy.get(Number(row.id)) || []}))});
+}
 async function getLocations(jwt){
   await currentProfile(jwt);
   const [rows, properties] = await Promise.all([
@@ -1845,7 +1868,7 @@ async function addOffer(args, jwt) {
   const row = await insertRow('lead_offers', {
     lead_id: leadId,
     property_id: nullableNumber(data.propertyId),
-    offered_by: data.offeredBy || 'Buyer',
+    offered_by: data.offeredBy || data.by || 'Buyer',
     amount_vnd: amount,
     status: data.status || 'Open',
     notes: data.notes || '',
