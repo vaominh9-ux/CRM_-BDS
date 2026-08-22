@@ -2076,16 +2076,35 @@
       );
     }
 
-    // ============== Roles & Permissions Matrix (Editor Only) ==============
+    // ============== Roles & Permissions Matrix (Premium Control Center) ==============
     function PermissionsMatrixView({ currentUser }) {
       const { data: res, isLoading, mutate } = useSWR('rbac:matrix', () => gsRun('getRbacMatrix', currentUser), SWR_LIVE);
+      const { data: usersRes } = useSWR('users:all', () => gsRun('getAllUsers', currentUser), SWR_LIVE);
       const data = res && res.success ? res : null;
-      const PERMS = [['v', 'View'], ['a', 'Add'], ['e', 'Edit'], ['d', 'Delete']];
+      const allUsers = usersRes && usersRes.success ? (usersRes.data || []) : [];
+      
+      const [viewMode, setViewMode] = useState('matrix'); // 'matrix' | 'role_focus'
+      const [selectedRole, setSelectedRole] = useState('Agent');
+      const [search, setSearch] = useState('');
+      
+      const PERMS = [
+        ['v', 'Xem', 'Cho phép xem danh sách và chi tiết hồ sơ', 'perm-v'],
+        ['a', 'Thêm', 'Cho phép tạo mới bản ghi dữ liệu', 'perm-a'],
+        ['e', 'Sửa', 'Cho phép chỉnh sửa và cập nhật trạng thái', 'perm-e'],
+        ['d', 'Xóa', 'Cho phép xóa hoặc đưa bản ghi vào thùng rác', 'perm-d']
+      ];
+
+      const ROLE_ICONS = {
+        Admin: 'fa-crown',
+        Manager: 'fa-user-tie',
+        Agent: 'fa-briefcase',
+        Staff: 'fa-headset'
+      };
 
       const toggle = (roleKey, pageKey, perm, cur, locked) => {
         if (locked) return;
         const nv = cur ? 0 : 1;
-        mutate((d) => { // optimistic — mirror server logic (d = cached response)
+        mutate((d) => {
           if (!d || !d.perms) return d;
           const perms = { ...d.perms }, rp = { ...(perms[roleKey] || {}) }, cell = { ...(rp[pageKey] || { v:0, a:0, e:0, d:0 }) };
           cell[perm] = nv;
@@ -2094,58 +2113,415 @@
           rp[pageKey] = cell; perms[roleKey] = rp; return { ...d, perms };
         }, false);
         gsRun('toggleRbac', roleKey, pageKey, perm, nv, currentUser)
-          .then((r) => { if (!r || !r.success) { Swal.fire({ icon:'error', title:'Error', text:(r && r.message) || 'Failed' }); mutate(); } })
+          .then((r) => {
+            if (!r || !r.success) {
+              Swal.fire({ icon: 'error', title: 'Lỗi phân quyền', text: (r && r.message) || 'Thao tác thất bại' });
+              mutate();
+            }
+          })
           .catch(() => mutate());
+      };
+
+      const bulkSetRole = (roleKey, mode) => {
+        const roleObj = data.roles.find((r) => r.key === roleKey);
+        if (!roleObj || roleObj.is_super) {
+          Swal.fire({ icon: 'info', title: 'Thông báo', text: 'Vai trò Quản trị viên luôn giữ toàn quyền hệ thống' });
+          return;
+        }
+
+        const actionText = mode === 'grant_all' ? 'Cấp toàn quyền' : mode === 'view_only' ? 'Chỉ cấp quyền Xem' : 'Thu hồi tất cả quyền';
+        Swal.fire({
+          icon: 'question',
+          title: actionText + ' cho ' + roleObj.label + '?',
+          text: 'Thao tác này sẽ áp dụng ngay cho toàn bộ các phân hệ của vai trò ' + roleObj.label,
+          showCancelButton: true,
+          confirmButtonColor: 'var(--navy-primary)',
+          confirmButtonText: 'Xác nhận áp dụng',
+          cancelButtonText: 'Hủy'
+        }).then(async (result) => {
+          if (!result.isConfirmed) return;
+
+          // Optimistic local update
+          mutate((d) => {
+            if (!d || !d.perms) return d;
+            const perms = { ...d.perms }, rp = { ...(perms[roleKey] || {}) };
+            d.pages.forEach((pg) => {
+              if (mode === 'grant_all') rp[pg.key] = { v:1, a:1, e:1, d:1 };
+              else if (mode === 'view_only') rp[pg.key] = { v:1, a:0, e:0, d:0 };
+              else rp[pg.key] = { v:0, a:0, e:0, d:0 };
+            });
+            perms[roleKey] = rp;
+            return { ...d, perms };
+          }, false);
+
+          // Backend sync
+          for (const pg of data.pages) {
+            if (mode === 'grant_all') {
+              await gsRun('toggleRbac', roleKey, pg.key, 'v', 1, currentUser);
+              await gsRun('toggleRbac', roleKey, pg.key, 'a', 1, currentUser);
+              await gsRun('toggleRbac', roleKey, pg.key, 'e', 1, currentUser);
+              await gsRun('toggleRbac', roleKey, pg.key, 'd', 1, currentUser);
+            } else if (mode === 'view_only') {
+              await gsRun('toggleRbac', roleKey, pg.key, 'v', 1, currentUser);
+              await gsRun('toggleRbac', roleKey, pg.key, 'a', 0, currentUser);
+              await gsRun('toggleRbac', roleKey, pg.key, 'e', 0, currentUser);
+              await gsRun('toggleRbac', roleKey, pg.key, 'd', 0, currentUser);
+            } else {
+              await gsRun('toggleRbac', roleKey, pg.key, 'v', 0, currentUser);
+            }
+          }
+          mutate();
+          Swal.fire({ icon: 'success', title: 'Đã cập nhật phân quyền thành công!', timer: 1500, showConfirmButton: false });
+        });
       };
 
       if (isLoading) return <div className="data-section"><TableSkeleton rows={8} columns={4} /></div>;
       if (!data) return <NoAccessView />;
-      const groups = data.pages.map((p) => p.group).filter((g, i, a) => a.indexOf(g) === i);
-      const tableMinW = 200 + data.roles.length * 120; // page col + min role col → wrap scrolls when many roles
+
+      // Filter pages by search
+      const q = String(search || '').trim().toLowerCase();
+      const filteredPages = data.pages.filter((p) => !q || p.label.toLowerCase().includes(q) || (p.group || '').toLowerCase().includes(q) || p.key.toLowerCase().includes(q));
+      const groups = filteredPages.map((p) => p.group).filter((g, i, a) => a.indexOf(g) === i);
+      const tableMinW = 240 + data.roles.length * 150;
+
+      // Role metrics
+      const roleStats = data.roles.map((r) => {
+        const usersCount = allUsers.filter((u) => u.role === r.key && u.status !== 'Inactive').length;
+        const totalPossible = data.pages.length * 4;
+        let granted = 0;
+        if (r.is_super) {
+          granted = totalPossible;
+        } else {
+          data.pages.forEach((pg) => {
+            const cell = (data.perms[r.key] && data.perms[r.key][pg.key]) || { v:0, a:0, e:0, d:0 };
+            granted += (cell.v || 0) + (cell.a || 0) + (cell.e || 0) + (cell.d || 0);
+          });
+        }
+        const powerPct = Math.round((granted / totalPossible) * 100);
+        return { ...r, usersCount, powerPct };
+      });
 
       return (
-        <div className="data-section">
-          <p style={{ color:'#666', fontSize:'13px', marginBottom:'12px' }}>
-            <i className="fas fa-info-circle"></i> Bật hoặc tắt quyền V·A·E·D theo từng vai trò và màn hình. Mọi thay đổi được lưu ngay. Quyền Admin được khóa toàn quyền.
-          </p>
-          <div className="rbac-wrap">
-            <table className="rbac-table" style={{ minWidth: tableMinW + 'px' }}>
-              <thead><tr>
-                <th className="rbac-pagecol">Màn hình</th>
-                {data.roles.map((r) => (
-                  <th key={r.key}>
-                    <span className="rbac-rolehead" style={{ background:r.color }}>{r.label}</span>
-                    <div className="rbac-perm-legend">V·A·E·D</div>
-                  </th>
-                ))}
-              </tr></thead>
-              <tbody>
-                {groups.map((grp) => (
-                  <React.Fragment key={grp}>
-                    <tr className="rbac-grouprow"><td className="rbac-pagecol">{grp}</td>{data.roles.map((r) => <td key={r.key}></td>)}</tr>
-                    {data.pages.filter((p) => p.group === grp).map((pg) => (
-                      <tr key={pg.key}>
-                        <td className="rbac-pagecol">{pg.label}</td>
-                        {data.roles.map((r) => {
-                          const cell = (data.perms[r.key] && data.perms[r.key][pg.key]) || { v:0, a:0, e:0, d:0 };
-                          const locked = !!r.is_super;
+        <div className="data-section" style={{ padding: '20px 24px' }}>
+          {/* 1. Header Hero */}
+          <div className="rbac-hero">
+            <div>
+              <h2 className="rbac-hero-title">
+                <i className="fas fa-shield-halved" style={{ color: 'var(--navy-accent)' }}></i>
+                Trung tâm Quản trị Phân quyền (RBAC Matrix)
+              </h2>
+              <p className="rbac-hero-subtitle">
+                Kiểm soát ma trận phân quyền View · Add · Edit · Delete theo từng vai trò trong doanh nghiệp. Mọi thay đổi đồng bộ ngay lập tức.
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className="badge badge-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+                <i className="fas fa-bolt"></i> Live Realtime Sync
+              </span>
+            </div>
+          </div>
+
+          {/* 2. Role Power Overview Cards */}
+          <div className="rbac-power-grid">
+            {roleStats.map((r) => {
+              const icon = ROLE_ICONS[r.key] || 'fa-user-tag';
+              const isSelected = selectedRole === r.key;
+              return (
+                <div
+                  key={r.key}
+                  className={'rbac-power-card' + (isSelected ? ' active' : '')}
+                  onClick={() => { setSelectedRole(r.key); }}
+                  title="Nhấp để xem và chỉnh sửa vai trò này"
+                >
+                  <div className="rbac-power-card-top">
+                    <span className="rbac-role-badge" style={{ background: r.color || 'var(--navy-primary)' }}>
+                      <i className={'fas ' + icon}></i> {r.label}
+                    </span>
+                    <span className="rbac-role-users">
+                      <i className="fas fa-users"></i> {r.usersCount} nhân sự
+                    </span>
+                  </div>
+                  <div className="rbac-meter-label">
+                    <span>Mức độ quyền hạn</span>
+                    <strong style={{ color: r.is_super ? '#d97706' : r.powerPct > 60 ? '#16a34a' : '#0284c7' }}>
+                      {r.is_super ? '100% (Toàn quyền)' : r.powerPct + '%'}
+                    </strong>
+                  </div>
+                  <div className="rbac-meter-track">
+                    <div
+                      className="rbac-meter-fill"
+                      style={{
+                        width: r.powerPct + '%',
+                        background: r.is_super
+                          ? 'linear-gradient(90deg, #f59e0b, #d97706)'
+                          : r.powerPct > 60
+                          ? 'linear-gradient(90deg, #22c55e, #16a34a)'
+                          : 'linear-gradient(90deg, #38bdf8, #0284c7)'
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 3. Toolbar: View Switcher, Search, Bulk Actions */}
+          <div className="rbac-toolbar">
+            <div className="rbac-view-tabs">
+              <button
+                className={'rbac-view-btn' + (viewMode === 'matrix' ? ' active' : '')}
+                onClick={() => setViewMode('matrix')}
+              >
+                <i className="fas fa-table-cells"></i> Ma trận tổng thể
+              </button>
+              <button
+                className={'rbac-view-btn' + (viewMode === 'role_focus' ? ' active' : '')}
+                onClick={() => setViewMode('role_focus')}
+              >
+                <i className="fas fa-sliders"></i> Theo vai trò ({data.roles.find(r => r.key === selectedRole)?.label || selectedRole})
+              </button>
+            </div>
+
+            <div className="rbac-search-box">
+              <i className="fas fa-magnifying-glass"></i>
+              <input
+                type="text"
+                placeholder="Tìm kiếm phân hệ, tính năng..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  style={{ position: 'absolute', right: 8, top: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+
+            <div className="rbac-bulk-actions">
+              {viewMode === 'role_focus' && selectedRole !== 'Admin' && (
+                <>
+                  <button
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => bulkSetRole(selectedRole, 'grant_all')}
+                    title="Cấp đủ 4 quyền cho tất cả phân hệ"
+                  >
+                    <i className="fas fa-check-double"></i> Cấp tất cả
+                  </button>
+                  <button
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => bulkSetRole(selectedRole, 'view_only')}
+                    title="Chỉ cho phép xem"
+                  >
+                    <i className="fas fa-eye"></i> Chỉ xem
+                  </button>
+                  <button
+                    className="btn btn-sm btn-secondary"
+                    style={{ color: '#dc2626' }}
+                    onClick={() => bulkSetRole(selectedRole, 'revoke_all')}
+                    title="Thu hồi toàn bộ quyền"
+                  >
+                    <i className="fas fa-ban"></i> Thu hồi
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 4. Mode 1: MATRIX VIEW (Ma trận tổng thể) */}
+          {viewMode === 'matrix' && (
+            <div className="rbac-wrap">
+              <table className="rbac-table" style={{ minWidth: tableMinW + 'px' }}>
+                <thead>
+                  <tr>
+                    <th className="rbac-pagecol">
+                      <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--navy-primary)' }}>Phân hệ / Màn hình</div>
+                      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>{filteredPages.length} tính năng</div>
+                    </th>
+                    {data.roles.map((r) => (
+                      <th key={r.key} style={{ minWidth: 150 }}>
+                        <span className="rbac-rolehead" style={{ background: r.color }}>
+                          <i className={'fas ' + (ROLE_ICONS[r.key] || 'fa-user')}></i> {r.label}
+                        </span>
+                        <div className="rbac-perm-legend">V · A · E · D</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {groups.map((grp) => (
+                    <React.Fragment key={grp}>
+                      <tr className="rbac-grouprow">
+                        <td className="rbac-pagecol">
+                          <i className="fas fa-folder-open" style={{ marginRight: 6 }}></i> {grp}
+                        </td>
+                        {data.roles.map((r) => <td key={r.key}></td>)}
+                      </tr>
+                      {filteredPages.filter((p) => p.group === grp).map((pg) => {
+                        const meta = PAGE_META[pg.key] || { icon: 'fa-cube' };
+                        return (
+                          <tr key={pg.key}>
+                            <td className="rbac-pagecol">
+                              <div className="rbac-page-item">
+                                <span className="rbac-page-icon">
+                                  <i className={'fas ' + meta.icon}></i>
+                                </span>
+                                <div>
+                                  <div style={{ fontSize: 13, fontWeight: 700 }}>{pg.label}</div>
+                                  <small style={{ color: '#94a3b8', fontSize: 11 }}>{pg.key}</small>
+                                </div>
+                              </div>
+                            </td>
+                            {data.roles.map((r) => {
+                              const cell = (data.perms[r.key] && data.perms[r.key][pg.key]) || { v:0, a:0, e:0, d:0 };
+                              const locked = !!r.is_super;
+                              if (locked) {
+                                return (
+                                  <td key={r.key}>
+                                    <span className="rbac-admin-lock" title="Quản trị viên có toàn quyền">
+                                      <i className="fas fa-lock"></i> Toàn quyền
+                                    </span>
+                                  </td>
+                                );
+                              }
+                              return (
+                                <td key={r.key}>
+                                  <div className="rbac-cell">
+                                    {PERMS.map(([pk, pLabel, pDesc, pClass]) => {
+                                      const isOn = !!cell[pk];
+                                      return (
+                                        <button
+                                          key={pk}
+                                          type="button"
+                                          title={`${pLabel}: ${pDesc}`}
+                                          className={`rbac-pill-btn ${isOn ? 'on ' + pClass : ''}`}
+                                          onClick={() => toggle(r.key, pg.key, pk, cell[pk], locked)}
+                                        >
+                                          {pk.toUpperCase()}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* 5. Mode 2: ROLE-FOCUS VIEW (Quản lý chi tiết theo vai trò) */}
+          {viewMode === 'role_focus' && (
+            <div className="rbac-focus-wrap">
+              {/* Role Selection Bar */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+                {data.roles.map((r) => {
+                  const isCur = selectedRole === r.key;
+                  return (
+                    <button
+                      key={r.key}
+                      className={'btn ' + (isCur ? 'btn-primary' : 'btn-secondary')}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 7,
+                        padding: '8px 16px',
+                        borderRadius: 8,
+                        fontWeight: 700
+                      }}
+                      onClick={() => setSelectedRole(r.key)}
+                    >
+                      <i className={'fas ' + (ROLE_ICONS[r.key] || 'fa-user')}></i> {r.label}
+                      {r.is_super && <span className="badge badge-warning" style={{ fontSize: 10, padding: '2px 5px' }}>Khóa</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Grouped Category Cards */}
+              <div className="rbac-focus-groups">
+                {groups.map((grp) => {
+                  const grpPages = filteredPages.filter((p) => p.group === grp);
+                  if (!grpPages.length) return null;
+                  const isLocked = !!data.roles.find(r => r.key === selectedRole)?.is_super;
+
+                  return (
+                    <div key={grp} className="rbac-group-card">
+                      <div className="rbac-group-header">
+                        <span><i className="fas fa-layer-group" style={{ color: 'var(--navy-accent)', marginRight: 6 }}></i> {grp}</span>
+                        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{grpPages.length} phân hệ</span>
+                      </div>
+                      <div className="rbac-group-body">
+                        {grpPages.map((pg) => {
+                          const meta = PAGE_META[pg.key] || { icon: 'fa-cube' };
+                          const cell = (data.perms[selectedRole] && data.perms[selectedRole][pg.key]) || { v:0, a:0, e:0, d:0 };
+
                           return (
-                            <td key={r.key}><div className="rbac-cell">
-                              {PERMS.map(([pk, label]) => (
-                                <button key={pk} title={label}
-                                  className={`rbac-dot${cell[pk] ? ' on' : ''}${locked ? ' locked' : ''}`}
-                                  disabled={locked}
-                                  onClick={() => toggle(r.key, pg.key, pk, cell[pk], locked)}>{pk.toUpperCase()}</button>
-                              ))}
-                            </div></td>
+                            <div key={pg.key} className="rbac-module-item">
+                              <div className="rbac-module-info">
+                                <span className="rbac-page-icon">
+                                  <i className={'fas ' + meta.icon}></i>
+                                </span>
+                                <div>
+                                  <div className="rbac-module-title">{pg.label}</div>
+                                  <small style={{ color: '#94a3b8', fontSize: 11 }}>{pg.key}</small>
+                                </div>
+                              </div>
+
+                              {isLocked ? (
+                                <span className="rbac-admin-lock">
+                                  <i className="fas fa-lock"></i> Toàn quyền
+                                </span>
+                              ) : (
+                                <div className="rbac-switch-group">
+                                  {PERMS.map(([pk, pLabel, pDesc]) => {
+                                    const isOn = !!cell[pk];
+                                    const chipClass = pk === 'v' ? 'v-chip' : pk === 'a' ? 'a-chip' : pk === 'e' ? 'e-chip' : 'd-chip';
+                                    return (
+                                      <button
+                                        key={pk}
+                                        type="button"
+                                        title={`${pLabel}: ${pDesc}`}
+                                        className={`rbac-switch-chip ${isOn ? 'on ' + chipClass : ''}`}
+                                        onClick={() => toggle(selectedRole, pg.key, pk, cell[pk], false)}
+                                      >
+                                        <i className={`fas ${isOn ? 'fa-check' : 'fa-xmark'}`} style={{ fontSize: 10 }}></i>
+                                        {pLabel}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 6. Footer Guide & Best Practices */}
+          <div style={{ marginTop: 24, padding: '14px 18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12.5, color: '#475569' }}>
+              <span><strong>Chú thích:</strong></span>
+              <span><span style={{ color: '#0284c7', fontWeight: 800 }}>V</span> = Xem (View)</span>
+              <span><span style={{ color: '#16a34a', fontWeight: 800 }}>A</span> = Thêm (Add)</span>
+              <span><span style={{ color: '#ea580c', fontWeight: 800 }}>E</span> = Sửa (Edit)</span>
+              <span><span style={{ color: '#dc2626', fontWeight: 800 }}>D</span> = Xóa (Delete)</span>
+            </div>
+            <div style={{ fontSize: 12, color: '#94a3b8' }}>
+              <i className="fas fa-shield"></i> Cơ chế phân quyền RBAC đa cấp bảo vệ an toàn 100% dữ liệu doanh nghiệp
+            </div>
           </div>
         </div>
       );
