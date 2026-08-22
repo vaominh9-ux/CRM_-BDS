@@ -454,8 +454,8 @@
                         </div>
                       </div>
 
-                      {/* HÀNG 2: SĐT + Nguồn khách (Trải đều cùng một hàng) */}
-                      <div className="mob-lead-row2">
+                      {/* HÀNG 2: Dải thông tin liên hệ & Nhu cầu (SĐT, Nguồn, Nhu cầu Mua/Thuê/Bán, Ngân sách) */}
+                      <div className="mob-lead-row2 mob-lead-tags-strip">
                         {l.phone ? (
                           <span className="mob-lead-phone-text">
                             <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
@@ -470,32 +470,26 @@
                             <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
                           </span>
                         )}
+                        {l.interestType && (
+                          <span className="mob-chip chip-interest">
+                            <i className="fas fa-tag"></i> {viEnum(l.interestType)}
+                          </span>
+                        )}
+                        {(l.budgetMin || l.budgetMax) && (
+                          <span className="mob-chip chip-budget">
+                            <i className="fas fa-wallet"></i> {pkrShort(l.budgetMin || 0)} – {pkrShort(l.budgetMax || 0)}
+                          </span>
+                        )}
+                        {l.preferredLocationPath && (
+                          <span className="mob-chip chip-loc">
+                            <i className="fas fa-location-dot"></i> {l.preferredLocationPath}
+                          </span>
+                        )}
                       </div>
 
-                      {/* HÀNG 3: Nhu cầu (Mua/Thuê/Bán) + Số tiền (Ngân sách) + Vị trí */}
-                      <div className="mob-lead-row3">
-                        <div className="mob-lead-chips">
-                          {l.interestType && (
-                            <span className="mob-chip chip-interest">
-                              <i className="fas fa-tag"></i> {viEnum(l.interestType)}
-                            </span>
-                          )}
-                          {(l.budgetMin || l.budgetMax) && (
-                            <span className="mob-chip chip-budget">
-                              <i className="fas fa-wallet"></i> {pkrShort(l.budgetMin || 0)} – {pkrShort(l.budgetMax || 0)}
-                            </span>
-                          )}
-                          {l.preferredLocationPath && (
-                            <span className="mob-chip chip-loc">
-                              <i className="fas fa-location-dot"></i> {l.preferredLocationPath}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* HÀNG 4: BĐS quan tâm & Ghi chú */}
+                      {/* HÀNG 3: BĐS quan tâm & Ghi chú */}
                       {(l.propertyRef || l.message) && (
-                        <div className="mob-lead-row4">
+                        <div className="mob-lead-row3">
                           {l.propertyRef && (
                             <div className="mob-lead-prop-box">
                               <i className="fas fa-building"></i>
@@ -512,8 +506,8 @@
                         </div>
                       )}
 
-                      {/* HÀNG 5: Nhân viên phụ trách & Ngày tạo */}
-                      <div className="mob-lead-row5 mob-lead-meta-row">
+                      {/* HÀNG 4: Nhân viên phụ trách & Ngày tạo */}
+                      <div className="mob-lead-row4 mob-lead-meta-row">
                         <span className="mob-meta-agent">
                           <i className="fas fa-user-tie"></i> {l.assignedAgent || 'Chưa phân công'}
                         </span>
@@ -522,8 +516,8 @@
                         </span>
                       </div>
 
-                      {/* HÀNG 6: 4 Nút hành động 1-chạm */}
-                      <div className="mob-lead-row6 mob-lead-action-bar" onClick={(e) => e.stopPropagation()}>
+                      {/* HÀNG 5: 4 Nút hành động 1-chạm */}
+                      <div className="mob-lead-row5 mob-lead-action-bar" onClick={(e) => e.stopPropagation()}>
                         <a href={'tel:' + String(l.phone || '').replace(/\D/g, '')} className={'mob-btn mob-btn-call' + (!l.phone ? ' disabled' : '')} title="Gọi điện">
                           <i className="fas fa-phone"></i> Gọi ngay
                         </a>

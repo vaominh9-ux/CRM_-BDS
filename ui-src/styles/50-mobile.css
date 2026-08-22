@@ -1341,12 +1341,12 @@
         opacity: 0.8 !important;
       }
 
-      /* HÀNG 2: SĐT + Nguồn Khách Hàng (Ngang hàng, thẳng thớm) */
+      /* HÀNG 2: Dải SĐT + Nguồn + Nhu cầu (Mua/Thuê/Bán) + Ngân sách */
       .mob-lead-row2 {
         display: flex !important;
         align-items: center !important;
         flex-wrap: wrap !important;
-        gap: 8px !important;
+        gap: 5px 8px !important;
         margin-bottom: 8px !important;
       }
       .mob-lead-phone-text {
@@ -1384,19 +1384,10 @@
         color: #cbd5e1 !important;
       }
 
-      /* HÀNG 3: Chips Nhu cầu (Mua/Thuê/Bán), Ngân sách, Vị trí */
-      .mob-lead-row3 {
-        margin-bottom: 8px !important;
-      }
-      .mob-lead-chips {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 6px !important;
-      }
       .mob-chip {
         font-size: 11px !important;
         font-weight: 600 !important;
-        padding: 2px 8px !important;
+        padding: 2px 7px !important;
         border-radius: 6px !important;
         display: inline-flex !important;
         align-items: center !important;
