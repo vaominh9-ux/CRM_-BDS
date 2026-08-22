@@ -4148,7 +4148,101 @@
 
     /* ===== CỔNG THÔNG TIN BĐS - TOÀN BỘ GIAO DIỆN MOBILE CHUẨN 100% TRÀN VIỀN KHÔNG THỪA KHOẢNG TRỐNG ===== */
     @media (max-width: 768px) {
-      /* ===== PHẦN 1: TỐI ƯU DASHBOARD CRM & BOTTOM NAV TRÊN ĐIỆN THOẠI ===== */
+      /* ===== PHẦN 1: TỐI ƯU THANH TIÊU ĐỀ HEADER TRÊN ĐIỆN THOẠI (1 DÒNG SIÊU GỌN CAO CẤP) ===== */
+      .header {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 6px 12px !important;
+        min-height: 48px !important;
+        height: 48px !important;
+        margin-bottom: 10px !important;
+        border-radius: 12px !important;
+        background: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+        border: 1px solid #edf2f7 !important;
+        gap: 8px !important;
+        overflow: visible !important;
+      }
+      .header h1 {
+        font-size: 15px !important;
+        font-weight: 800 !important;
+        color: #001f3f !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        letter-spacing: -0.3px !important;
+        flex-shrink: 0 !important;
+      }
+      .header h1 i {
+        font-size: 14px !important;
+        color: var(--blue-primary, #1877f2) !important;
+      }
+      .hdr-actions {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 5px !important;
+        margin: 0 !important;
+        flex: 1 !important;
+      }
+      /* Ẩn chữ chào rườm rà trên mobile để thanh tiêu đề thẳng hàng 1 dòng */
+      .header-welcome {
+        display: none !important;
+      }
+      /* Ô tìm kiếm nhanh dạng viên thuốc nhỏ gọn */
+      .global-search {
+        position: relative !important;
+        flex: 1 !important;
+        max-width: 130px !important;
+        min-width: 60px !important;
+      }
+      .global-search input {
+        height: 32px !important;
+        font-size: 11px !important;
+        padding: 4px 6px 4px 24px !important;
+        border-radius: 18px !important;
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .global-search i {
+        font-size: 10.5px !important;
+        left: 8px !important;
+      }
+      /* Nút icon tròn 32px tinh tế */
+      .theme-menu-btn,
+      .notif-btn,
+      .clear-cache-btn,
+      .hdr-act-btn {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        background: #f1f5f9 !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #475569 !important;
+        font-size: 12.5px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .notif-badge {
+        top: -1px !important;
+        right: -1px !important;
+        min-width: 14px !important;
+        height: 14px !important;
+        font-size: 9px !important;
+        padding: 0 3px !important;
+      }
+
+      /* ===== TỐI ƯU DASHBOARD CRM & BOTTOM NAV TRÊN ĐIỆN THOẠI ===== */
       /* 1. Lưới 4 Thẻ KPI chính chuyển sang 2x2 nhỏ gọn thay vì 1 cột dài */
       .lte-kpi-grid {
         display: grid !important;
