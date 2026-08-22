@@ -1604,15 +1604,15 @@
     @media (max-width: 1200px) { .lte-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 576px)  { .lte-kpi-grid { grid-template-columns: 1fr; } }
 
-    .small-box { position: relative; display: block; box-shadow: 0 2px 8px rgba(0,0,0,.15); color: #fff; overflow: hidden; transition: transform .25s, box-shadow .25s; }
-    .small-box:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.2); }
-    .small-box .inner { padding: 20px 21px 14px; position: relative; z-index: 2; }
-    .small-box .inner h3 { font-size: clamp(26px, 2.15vw, 34px); font-weight: 750; line-height: 1.05; letter-spacing: -0.045em; font-variant-numeric: tabular-nums lining-nums; margin: 0 0 9px; white-space: nowrap; }
+    .small-box { position: relative; display: block; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.04); color: #fff; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; border: 1px solid rgba(255,255,255,.1); }
+    .small-box:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.16); }
+    .small-box .inner { padding: 20px 22px 14px; position: relative; z-index: 2; }
+    .small-box .inner h3 { font-size: clamp(26px, 2.15vw, 34px); font-weight: 800; line-height: 1.05; letter-spacing: -0.04em; font-variant-numeric: tabular-nums lining-nums; margin: 0 0 8px; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.15); }
     .small-box .inner p { font-size: 13.5px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; margin: 0; opacity: .96; }
-    .small-box .icon { position: absolute; top: 10px; right: 14px; z-index: 1; font-size: 62px; color: rgba(0,0,0,.15); transition: font-size .3s; }
-    .small-box:hover .icon { font-size: 70px; }
-    .small-box-footer { position: relative; display: block; width: 100%; padding: 8px 0; text-align: center; background: rgba(0,0,0,.12); color: rgba(255,255,255,.9); font-size: 13px; border: none; cursor: pointer; z-index: 3; }
-    .small-box-footer:hover { background: rgba(0,0,0,.22); color: #fff; }
+    .small-box .icon { position: absolute; top: 12px; right: 16px; z-index: 1; font-size: 60px; color: rgba(0,0,0,.12); transition: all .3s ease; }
+    .small-box:hover .icon { font-size: 68px; transform: scale(1.06); color: rgba(0,0,0,.18); }
+    .small-box-footer { position: relative; display: block; width: 100%; padding: 9px 0; text-align: center; background: rgba(0,0,0,.14); color: rgba(255,255,255,.95); font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; z-index: 3; transition: background .2s ease; }
+    .small-box-footer:hover { background: rgba(0,0,0,.26); color: #fff; }
     .small-box-footer i { margin-left: 4px; }
 
     /* box colors — navy theme (drive off theme vars so palettes recolor the dashboard too) */
@@ -1623,16 +1623,17 @@
     .bg-warning .small-box-footer { color: rgba(0,0,0,.65); }
     .bg-danger  { background: linear-gradient(135deg, #c5221f 0%, var(--danger) 100%); }
 
-    .info-box { display: flex; align-items: center; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.1); padding: 12px; min-height: 80px; }
-    .info-box-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; flex-shrink: 0; }
-    .info-box-content { padding-left: 12px; flex: 1; min-width: 0; }
-    .info-box-text { text-transform: uppercase; font-size: 12px; color: #666; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .info-box-number { font-size: 21px; line-height: 1.15; font-weight: 750; letter-spacing: -0.035em; font-variant-numeric: tabular-nums lining-nums; color: var(--navy-primary); }
+    .info-box { display: flex; align-items: center; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.02); border: 1px solid #edf2f7; padding: 14px 16px; min-height: 84px; transition: transform .2s ease, box-shadow .2s ease; }
+    .info-box:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+    .info-box-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+    .info-box-content { padding-left: 14px; flex: 1; min-width: 0; }
+    .info-box-text { text-transform: uppercase; font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+    .info-box-number { font-size: 20px; line-height: 1.2; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums lining-nums; color: var(--navy-primary); }
 
-    .lte-card { background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.1); margin-bottom: 20px; border-top: 3px solid var(--navy-accent); }
-    .lte-card-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #f0f0f0; }
-    .lte-card-title { font-size: 16px; font-weight: 600; color: var(--navy-primary); margin: 0; display: flex; align-items: center; gap: 8px; }
-    .lte-card-tools button { background: none; border: none; color: #999; cursor: pointer; padding: 4px 8px; font-size: 14px; }
+    .lte-card { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.02); border: 1px solid #edf2f7; margin-bottom: 20px; border-top: 3.5px solid var(--navy-accent); overflow: hidden; }
+    .lte-card-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; border-bottom: 1px solid #f1f5f9; background: #fafbfc; }
+    .lte-card-title { font-size: 15.5px; font-weight: 750; color: var(--navy-primary); margin: 0; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px; }
+    .lte-card-tools button { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px 8px; font-size: 13.5px; transition: color .15s ease; }
     .lte-card-tools button:hover { color: var(--navy-accent); }
     .lte-card-body { padding: 18px; }
     .lte-card.collapsed .lte-card-body { display: none; }
@@ -5543,12 +5544,12 @@
       const targetPct = stats.myTarget ? Math.round((stats.dealsMonthValue || 0) / stats.myTarget * 100) : 0;
       // [value, label, icon, color, page]
       const KPI = [
-        [stats.activeListings || 0, agency ? 'Active Listings' : 'My Active Listings', 'fa-building', 'bg-navy', 'properties'],
-        [stats.openLeads || 0, agency ? 'Open Leads' : 'My Open Leads', 'fa-user-tag', 'bg-info', 'leads'],
-        [stats.overdueFollowUps || 0, 'Overdue Follow-Ups', 'fa-bell', 'bg-danger', 'followups'],
-        [stats.todayAppointments || 0, "Today's Viewings", 'fa-calendar-check', 'bg-success', 'appointments']
+        [stats.activeListings || 0, agency ? 'Bất động sản đang mở' : 'BĐS tôi phụ trách', 'fa-building', 'bg-navy', 'properties'],
+        [stats.openLeads || 0, agency ? 'Khách hàng đang xử lý' : 'Khách hàng của tôi', 'fa-user-tag', 'bg-info', 'leads'],
+        [stats.overdueFollowUps || 0, 'Lịch chăm sóc quá hạn', 'fa-bell', 'bg-danger', 'followups'],
+        [stats.todayAppointments || 0, 'Lịch xem nhà hôm nay', 'fa-calendar-check', 'bg-success', 'appointments']
       ];
-      const viewAll = (p) => <button className="card-link" onClick={() => go(p)}>View all <i className="fas fa-arrow-right" style={{ fontSize: 10 }}></i></button>;
+      const viewAll = (p) => <button className="card-link" onClick={() => go(p)}>Xem tất cả <i className="fas fa-arrow-right" style={{ fontSize: 10 }}></i></button>;
 
       return (
         <>
@@ -5578,13 +5579,13 @@
             <InfoBox value={(stats.totalLeads || 0).toLocaleString('vi-VN')} label="Tổng yêu cầu tư vấn" icon="fa-comments" color="bg-info"
                      trend={delta(stats.leadsMonth || 0, prev.leads || 0)} sub={(stats.leadsMonth || 0) + ' trong tháng này'} onClick={() => go('leads')} />
             <InfoBox value={pkrShort(stats.rentArrears || 0)} label="Công nợ tiền thuê" icon="fa-triangle-exclamation" color="bg-danger"
-                     sub={(stats.activeTenancies || 0) + ' active tenancies'} onClick={() => go('tenancies')} />
+                     sub={(stats.activeTenancies || 0) + ' hợp đồng đang hoạt động'} onClick={() => go('tenancies')} />
             <InfoBox value={pkrShort(stats.balanceDue || 0)} label="Số tiền còn lại" icon="fa-file-invoice-dollar" color="bg-warning"
-                     sub="Giao dịch đang mở — chưa thanh toán" onClick={() => go('deals')} />
+                     sub="Giao dịch đang mở — chưa tất toán" onClick={() => go('deals')} />
             {agency
-              ? <InfoBox value={stats.activeAgents || 0} label="Nhân viên đang hoạt động" icon="fa-user-check" color="bg-success" sub="Hiện có trong danh sách nhân sự" />
+              ? <InfoBox value={stats.activeAgents || 0} label="Nhân viên đang hoạt động" icon="fa-user-check" color="bg-success" sub="Đang hoạt động trong danh sách nhân sự" />
               : <InfoBox value={stats.myTarget ? targetPct + '%' : '—'} label="Mục tiêu tháng" icon="fa-bullseye" color="bg-success"
-                         sub={stats.myTarget ? pkrShort(stats.dealsMonthValue || 0) + ' of ' + pkrShort(stats.myTarget) : 'No target set'} />}
+                         sub={stats.myTarget ? pkrShort(stats.dealsMonthValue || 0) + ' / ' + pkrShort(stats.myTarget) : 'Chưa đặt mục tiêu'} />}
           </div>
 
           <div className="dash-grid-3">
@@ -5599,7 +5600,7 @@
             </LteCard>
             <LteCard title="Lịch xem sắp tới" icon="fa-calendar-day" tools={viewAll('appointments')}>
               {(stats.upcomingViewings || []).length === 0
-                ? <p className="dash-empty"><i className="fas fa-calendar-xmark"></i>No upcoming viewings</p>
+                ? <p className="dash-empty"><i className="fas fa-calendar-check"></i>Không có lịch xem nào sắp tới</p>
                 : stats.upcomingViewings.map((v) => (
                     <DashRow key={v.id} image={v.image} icon="fa-building" title={v.title} sub={v.address || '—'}
                              right={<Badge s={v.status} />} small={fmtDT(v.when)} onClick={() => go('appointments')} />
@@ -5610,7 +5611,7 @@
           <div className="dash-grid-3">
             <LteCard title="Bất động sản gần đây" icon="fa-building-circle-check" tools={viewAll('properties')}>
               {(stats.recentProperties || []).length === 0
-                ? <p className="dash-empty"><i className="fas fa-house-circle-xmark"></i>No properties yet</p>
+                ? <p className="dash-empty"><i className="fas fa-building"></i>Chưa có bất động sản nào</p>
                 : stats.recentProperties.map((p) => (
                     <DashRow key={p.id} image={p.image} icon="fa-house" title={p.title} sub={p.address || '—'}
                              right={<>{pkrShort(p.price)}<div style={{ marginTop: 4 }}><Badge s={p.status} /></div></>}
@@ -5626,15 +5627,15 @@
               </LteCard>
             ) : (
               <LteCard title="Tháng của tôi" icon="fa-bullseye">
-                <div className="mm-row"><span>Deals closed</span><b>{stats.dealsMonth || 0}</b></div>
-                <div className="mm-row"><span>Sales value</span><b>{pkrShort(stats.dealsMonthValue || 0)}</b></div>
-                <div className="mm-row"><span>Commission</span><b>{pkrShort(stats.commissionMonth || 0)}</b></div>
-                <div className="mm-row"><span>Won leads</span><b>{stats.wonLeads || 0}</b></div>
-                <div className="mm-row"><span>Monthly target</span><b>{stats.myTarget ? pkrShort(stats.myTarget) : '—'}</b></div>
+                <div className="mm-row"><span>Giao dịch đã chốt</span><b>{stats.dealsMonth || 0}</b></div>
+                <div className="mm-row"><span>Doanh số đạt được</span><b>{pkrShort(stats.dealsMonthValue || 0)}</b></div>
+                <div className="mm-row"><span>Hoa hồng nhận được</span><b>{pkrShort(stats.commissionMonth || 0)}</b></div>
+                <div className="mm-row"><span>Khách thành công</span><b>{stats.wonLeads || 0}</b></div>
+                <div className="mm-row"><span>Mục tiêu tháng</span><b>{stats.myTarget ? pkrShort(stats.myTarget) : '—'}</b></div>
                 {stats.myTarget > 0 && (
                   <>
                     <div className="ag-bar" style={{ height: 6, marginTop: 12 }}><span style={{ width: Math.min(100, targetPct) + '%' }}></span></div>
-                    <div className="fn-foot" style={{ marginTop: 8, paddingTop: 8 }}>{targetPct}% of target</div>
+                    <div className="fn-foot" style={{ marginTop: 8, paddingTop: 8 }}>{targetPct}% mục tiêu tháng</div>
                   </>
                 )}
               </LteCard>
@@ -5644,13 +5645,13 @@
           <div className="dash-grid-2">
             <LteCard title="Khách hàng gần đây" icon="fa-user-clock" tools={<button onClick={() => go('leads')} title="Mở danh sách khách hàng"><i className="fas fa-arrow-right"></i></button>}>
               {(stats.recentLeads || []).length === 0
-                ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>No leads yet</p>
+                ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>Chưa có khách hàng nào</p>
                 : stats.recentLeads.map((l) => (
                     <div className="recent-lead-row" key={l.id}>
                       <div className="recent-lead-ic"><i className="fas fa-user"></i></div>
                       <div className="recent-lead-t">
                         <div className="n">{l.fullName}</div>
-                        <div className="s">{l.phone} · {l.source} · {l.assignedAgent || 'Unassigned'} · {fmtDate(l.created)}</div>
+                        <div className="s">{l.phone} · {l.source} · {l.assignedAgent || 'Chưa phân công'} · {fmtDate(l.created)}</div>
                       </div>
                       <Badge s={l.status} />
                     </div>
@@ -5659,7 +5660,7 @@
             {agency ? (
               <LteCard title="Bảng xếp hạng nhân viên — chi tiết" icon="fa-table-list">
                 {(stats.leaderboard || []).length === 0
-                  ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>No agent activity yet</p>
+                  ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>Chưa có số liệu nhân viên</p>
                   : (
                     <div className="about-table-wrapper">
                       <table className="about-roles-table">
