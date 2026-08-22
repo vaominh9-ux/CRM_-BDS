@@ -129,7 +129,43 @@ async function getProperties(jwt){
 async function getLeads(jwt){const rows=await select('leads','*,profiles!leads_assigned_agent_id_fkey(username)',jwt,'&deleted_at=is.null&order=created_at.desc');return ok({data:rows.map(mapLead)});}
 async function getLocations(jwt){await currentProfile(jwt);const rows=await adminSelectAll('locations','*','&deleted_at=is.null&order=id.asc');return ok({data:rows.map(r=>({id:r.id,name:r.name,level:r.level,parentId:r.parent_id,slug:r.slug,created:r.created_at,updated:r.updated_at}))});}
 async function getAmenities(jwt){const rows=await select('amenities','*',jwt,'&deleted_at=is.null&order=name.asc');return ok({data:rows.map(r=>({id:r.id,name:r.name,icon:r.icon||'',created:r.created_at,updated:r.updated_at}))});}
-async function getOwners(jwt){const rows=await select('owners','*',jwt,'&deleted_at=is.null&order=created_at.desc');return ok({data:rows.map(r=>({id:r.id,name:r.name,phone:r.phone,email:r.email||'',cnic:r.identity_number||'',address:r.address||'',notes:r.notes||'',created:r.created_at,updated:r.updated_at}))});}
+async function getOwners(jwt){
+  const [rows,properties,deals]=await Promise.all([
+    select('owners','*',jwt,'&deleted_at=is.null&order=created_at.desc'),
+    select('properties','id,owner_id,owner_phone_snapshot',jwt,'&deleted_at=is.null'),
+    select('deals','id,property_id,deal_amount_vnd,status',jwt,'&deleted_at=is.null&status=eq.Completed')
+  ]);
+  const phoneToOwnerId=new Map();
+  rows.forEach(o=>{if(o.phone)phoneToOwnerId.set(String(o.phone).trim(),Number(o.id));});
+  const propsByOwner=new Map(),propOwner=new Map();
+  (properties||[]).forEach(p=>{
+    const oid=p.owner_id?Number(p.owner_id):(p.owner_phone_snapshot?phoneToOwnerId.get(String(p.owner_phone_snapshot).trim()):null);
+    if(oid){
+      const list=propsByOwner.get(oid)||[];
+      list.push(p);
+      propsByOwner.set(oid,list);
+      propOwner.set(Number(p.id),oid);
+    }
+  });
+  const dealVal=new Map();
+  (deals||[]).forEach(d=>{
+    const oid=propOwner.get(Number(d.property_id));
+    if(oid)dealVal.set(oid,(dealVal.get(oid)||0)+Number(d.deal_amount_vnd||0));
+  });
+  return ok({data:rows.map(r=>({
+    id:r.id,
+    name:r.name,
+    phone:r.phone,
+    email:r.email||'',
+    cnic:r.identity_number||'',
+    address:r.address||'',
+    notes:r.notes||'',
+    created:r.created_at,
+    updated:r.updated_at,
+    propertyCount:(propsByOwner.get(Number(r.id))||[]).length,
+    totalBusiness:dealVal.get(Number(r.id))||0
+  }))});
+}
 async function getAllUsers(jwt){const rows=await select('profiles','*',jwt,'&order=created_at.desc');return ok({data:rows.map(r=>({Username:r.username,Email:r.email,Role:r.role_key,Status:r.status,ProfileImage:r.profile_image||'',ThemeMode:r.theme_mode||'light',CustomColors:JSON.stringify(r.custom_colors||{}),CreatedAt:r.created_at,MonthlyTarget:Number(r.monthly_target_vnd||0)}))});}
 async function getFollowUps(jwt){const rows=await select('follow_ups','*,profiles!follow_ups_assigned_agent_id_fkey(username),leads(full_name,phone)',jwt,'&deleted_at=is.null&order=created_at.desc');return ok({data:rows.map(r=>({id:r.id,leadId:r.lead_id,assignedAgent:r.profiles?.username||'',type:r.type,notes:r.notes||'',dueAt:r.due_at,status:r.status,completedAt:r.completed_at,reminderSent:r.reminder_sent_at?1:0,leadName:r.leads?.full_name||'',leadPhone:r.leads?.phone||'',created:r.created_at,updated:r.updated_at}))});}
 async function getAppointments(jwt){const rows=await select('appointments','*,profiles!appointments_agent_id_fkey(username),leads(full_name,phone),properties(title,reference_code)',jwt,'&deleted_at=is.null&order=scheduled_at.desc');return ok({data:rows.map(r=>({id:r.id,leadId:r.lead_id,propertyId:r.property_id,agent:r.profiles?.username||'',scheduledAt:r.scheduled_at,durationMinutes:r.duration_minutes,status:r.status,notes:r.notes||'',cancellationReason:r.cancellation_reason||'',reminderSent:r.reminder_sent_at?1:0,interestLevel:r.interest_level,feedback:r.feedback||'',leadName:r.leads?.full_name||'',leadPhone:r.leads?.phone||'',propertyTitle:r.properties?.title||'',propertyRef:r.properties?.reference_code||'',created:r.created_at,updated:r.updated_at}))});}

@@ -144,6 +144,35 @@ async function runLocalApi(req, res, method) {
     });
     return jsonResponse(res, 200, { success: true, data });
   }
+  if (method === 'getOwners') {
+    const props = (crm.sheets.Properties || []).filter(p => !p.deleted);
+    const deals = (crm.sheets.Deals || []).filter(d => !d.deleted && d.status === 'Completed');
+    const phoneToOwnerId = {};
+    (crm.sheets.Owners || []).forEach(o => {
+      if (o.phone) phoneToOwnerId[String(o.phone).trim()] = Number(o.id);
+    });
+    const propsByOwner = {}, propOwner = {};
+    props.forEach(p => {
+      const oid = p.ownerId ? Number(p.ownerId) : (p.ownerPhone ? phoneToOwnerId[String(p.ownerPhone).trim()] : null);
+      if (oid) {
+        (propsByOwner[oid] = propsByOwner[oid] || []).push(p);
+        propOwner[Number(p.id)] = oid;
+      }
+    });
+    const dealVal = {};
+    deals.forEach(d => {
+      const oid = propOwner[Number(d.propertyId)];
+      if (oid) {
+        dealVal[oid] = (dealVal[oid] || 0) + Number(d.dealAmount || 0);
+      }
+    });
+    const data = (crm.sheets.Owners || []).filter(o => !o.deleted).map(o => ({
+      ...o,
+      propertyCount: (propsByOwner[Number(o.id)] || []).length,
+      totalBusiness: dealVal[Number(o.id)] || 0
+    }));
+    return jsonResponse(res, 200, { success: true, data });
+  }
   if (sheetMap[method]) {
     let data = crm.sheets[sheetMap[method]] || [];
     if (method === 'getProperties') data = data.map(item => ({ ...item, locationPath:locationPath(crm.sheets.Locations, item.locationId) }));

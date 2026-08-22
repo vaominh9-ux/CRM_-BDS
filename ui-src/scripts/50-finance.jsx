@@ -714,7 +714,7 @@
     function Owner360Modal({ owner, currentUser, onClose }) {
       const { data: pRes } = useSWR('props:all', () => gsRun('getProperties', currentUser), SWR_LIVE);
       const { data: dRes } = useSWR('deals:all', () => gsRun('getDeals', currentUser), SWR_LIVE);
-      const props = (pRes && pRes.success ? pRes.data : []).filter((p) => p.ownerId == owner.id);
+      const props = (pRes && pRes.success ? pRes.data : []).filter((p) => p.ownerId == owner.id || (!p.ownerId && p.ownerPhone && String(p.ownerPhone).trim() === String(owner.phone).trim()));
       const propIds = {}; props.forEach((p) => { propIds[p.id] = 1; });
       const deals = (dRes && dRes.success ? dRes.data : []).filter((x) => propIds[x.propertyId]);
       const [tab, setTab] = useState('over');
@@ -788,7 +788,7 @@
 
       const kpi = useMemo(() => { const r = rows || []; return [
         [r.length, 'Tổng chủ sở hữu', 'fa-user-tie', 'bg-navy'],
-        [r.filter((o) => o.propertyCount > 0).length, 'Có BĐS gửi bán/thuê', 'fa-building', 'bg-info'],
+        [r.filter((o) => (o.propertyCount || 0) > 0).length, 'Có BĐS gửi bán/thuê', 'fa-building', 'bg-info'],
         [r.reduce((s, o) => s + (o.propertyCount || 0), 0), 'BĐS liên kết', 'fa-link', 'bg-success'],
         [pkrShort(r.reduce((s, o) => s + (o.totalBusiness || 0), 0)), 'Tổng doanh số', 'fa-sack-dollar', 'bg-warning']
       ]; }, [rows]);
@@ -831,7 +831,7 @@
               : d },
           { data: 'email', title: 'Email', render: (d) => esc(d || '—') },
           { data: 'address', title: 'Địa chỉ', render: (d) => esc(d || '—') },
-          { data: 'propertyCount', title: 'Số BĐS' },
+          { data: 'propertyCount', title: 'Số BĐS', render: (d, t) => t === 'display' ? (Number(d || 0) > 0 ? '<span class="badge badge-success" style="font-weight:700;">' + Number(d || 0) + ' BĐS</span>' : '<span style="color:#94a3b8;">0</span>') : Number(d || 0) },
           { data: 'totalBusiness', title: 'Tổng doanh số', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
           { data: 'created', title: 'Ngày tạo', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
           { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-4', width: '140px', render: () => `<div class="table-actions slots-4">
