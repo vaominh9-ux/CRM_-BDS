@@ -2742,14 +2742,101 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
       };
 
       // Xử lý tải lên file mẫu (.html, .htm, .docx, .txt)
-      const handleFileUpload = (e) => {
+      const handleFileUpload = async (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
 
         const ext = file.name.split('.').pop().toLowerCase();
-        const reader = new FileReader();
+
+        if (ext === 'docx') {
+          try {
+            if (window.JSZip) {
+              const arrayBuffer = await file.arrayBuffer();
+              const zip = await window.JSZip.loadAsync(arrayBuffer);
+              const docXmlFile = zip.file('word/document.xml');
+              if (docXmlFile) {
+                const xmlStr = await docXmlFile.async('string');
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlStr, 'text/xml');
+                let htmlOutput = '';
+                const body = xmlDoc.getElementsByTagName('w:body')[0];
+                if (body) {
+                  for (let i = 0; i < body.children.length; i++) {
+                    const child = body.children[i];
+                    if (child.nodeName === 'w:p') {
+                      let pText = '';
+                      const runs = child.getElementsByTagName('w:r');
+                      for (let r = 0; r < runs.length; r++) {
+                        const run = runs[r];
+                        const isBold = run.getElementsByTagName('w:b').length > 0;
+                        const isItalic = run.getElementsByTagName('w:i').length > 0;
+                        const isUnderline = run.getElementsByTagName('w:u').length > 0;
+                        let tText = '';
+                        const texts = run.getElementsByTagName('w:t');
+                        for (let t = 0; t < texts.length; t++) {
+                          tText += texts[t].textContent || '';
+                        }
+                        if (tText) {
+                          if (isBold) tText = '<b>' + tText + '</b>';
+                          if (isItalic) tText = '<i>' + tText + '</i>';
+                          if (isUnderline) tText = '<u>' + tText + '</u>';
+                          pText += tText;
+                        }
+                      }
+                      if (pText.trim()) {
+                        htmlOutput += '<p>' + pText + '</p>';
+                      } else {
+                        htmlOutput += '<p><br/></p>';
+                      }
+                    } else if (child.nodeName === 'w:tbl') {
+                      let tblHtml = '<table class="tb" style="width:100%;border-collapse:collapse;margin:12px 0;">';
+                      const rows = child.getElementsByTagName('w:tr');
+                      for (let r = 0; r < rows.length; r++) {
+                        tblHtml += '<tr>';
+                        const cells = rows[r].getElementsByTagName('w:tc');
+                        for (let c = 0; c < cells.length; c++) {
+                          let cellText = '';
+                          const pList = cells[c].getElementsByTagName('w:p');
+                          for (let p = 0; p < pList.length; p++) {
+                            let pInner = '';
+                            const texts = pList[p].getElementsByTagName('w:t');
+                            for (let t = 0; t < texts.length; t++) pInner += texts[t].textContent || '';
+                            if (pInner.trim()) cellText += '<p>' + pInner + '</p>';
+                          }
+                          tblHtml += '<td style="border:1px solid #94a3b8;padding:6px 10px;vertical-align:top;">' + (cellText || '&nbsp;') + '</td>';
+                        }
+                        tblHtml += '</tr>';
+                      }
+                      tblHtml += '</table>';
+                      htmlOutput += tblHtml;
+                    }
+                  }
+                }
+                if (htmlOutput) {
+                  setTemplateMode('full');
+                  setFullTemplateHtml(htmlOutput);
+                  if (richEditorRef.current) {
+                    richEditorRef.current.innerHTML = htmlOutput;
+                  }
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Đã nạp file Word thành công!',
+                    text: 'File ' + file.name + ' đã được trích xuất hoàn chỉnh vào trang in A4!',
+                    timer: 2200,
+                    showConfirmButton: false
+                  });
+                  e.target.value = '';
+                  return;
+                }
+              }
+            }
+          } catch (docxErr) {
+            console.warn('JSZip docx parse fallback:', docxErr);
+          }
+        }
 
         if (ext === 'html' || ext === 'htm' || ext === 'txt') {
+          const reader = new FileReader();
           reader.onload = (event) => {
             let resText = event.target.result;
             if (ext === 'txt') {
@@ -2763,43 +2850,19 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
             Swal.fire({
               icon: 'success',
               title: 'Đã nạp file mẫu thành công!',
-              text: 'File ' + file.name + ' đã được tải vào trang A4. Định dạng in đậm, in nghiêng và bảng được bảo toàn.',
+              text: 'File ' + file.name + ' đã được tải vào trang A4!',
               timer: 2200,
               showConfirmButton: false
             });
           };
           reader.readAsText(file);
-        } else if (ext === 'docx') {
-          reader.onload = (event) => {
-            try {
-              const arrayBuffer = event.target.result;
-              const uintArray = new Uint8Array(arrayBuffer);
-              let text = '';
-              for (let i = 0; i < uintArray.length; i++) {
-                if (uintArray[i] >= 32 && uintArray[i] <= 126) {
-                  text += String.fromCharCode(uintArray[i]);
-                }
-              }
-              const lines = text.split(/[\r\n]+/).filter((l) => l.trim().length > 3);
-              const formattedHtml = lines.map((line) => '<p>' + line.trim() + '</p>').join('');
-              setTemplateMode('full');
-              setFullTemplateHtml(formattedHtml);
-              if (richEditorRef.current) {
-                richEditorRef.current.innerHTML = formattedHtml;
-              }
-              Swal.fire({
-                icon: 'info',
-                title: 'Đã nạp nội dung tệp Word',
-                text: 'Nội dung tệp Word đã được đưa vào trang A4. Bạn có thể định dạng in đậm, in nghiêng hoặc chèn thêm thẻ biến.',
-                confirmButtonText: 'Đã hiểu'
-              });
-            } catch (err) {
-              Swal.fire({ icon: 'error', title: 'Lỗi nạp Word', text: 'Bạn có thể Copy nội dung trong Word và Dán (Paste) trực tiếp vào khung A4 để giữ nguyên 100% định dạng.' });
-            }
-          };
-          reader.readAsArrayBuffer(file);
         } else {
-          Swal.fire({ icon: 'warning', title: 'Định dạng chưa hỗ trợ', text: 'Vui lòng chọn file .html, .txt hoặc .docx, hoặc copy/paste trực tiếp từ Word vào khung A4.' });
+          Swal.fire({
+            icon: 'info',
+            title: 'Mẹo nạp nhanh từ Word',
+            text: 'Bạn có thể mở tệp Word trên máy, nhấn Ctrl+A (chọn tất cả) -> Ctrl+C (sao chép) rồi dán (Ctrl+V) trực tiếp vào trang A4 để giữ nguyên 100% định dạng.',
+            confirmButtonText: 'Đã hiểu'
+          });
         }
         e.target.value = '';
       };
@@ -2971,6 +3034,15 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                     CỘT 3: KHUNG SOẠN THẢO TRANG IN A4 STUDIO CAO CẤP (~950px+)
                     ========================================================= */}
                 <div className="tpl-studio-col-canvas">
+                  {/* Hidden Global File Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    accept=".html,.htm,.txt,.docx"
+                    onChange={handleFileUpload}
+                  />
+
                   {/* Top metadata row */}
                   <div className="tpl-canvas-meta-bar">
                     <div className="tpl-canvas-meta-fields">
@@ -3039,7 +3111,18 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                           <span className="tpl-terms-box-title">
                             <i className="fas fa-file-lines" style={{ color: 'var(--navy-primary)' }}></i> Các điều khoản thỏa thuận hoặc ghi chú bổ sung riêng:
                           </span>
-                          <small style={{ color: '#64748b' }}>Hệ thống sẽ tự động ghép các điều khoản này vào cuối bản in A4</small>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <small style={{ color: '#64748b' }}>Hệ thống sẽ tự động ghép vào cuối bản in A4</small>
+                            <button
+                              type="button"
+                              className="tpl-upload-btn"
+                              style={{ height: 26, fontSize: 11, padding: '0 10px' }}
+                              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                              title="Tải tệp .docx, .html hoặc .txt từ máy tính"
+                            >
+                              <i className="fas fa-cloud-arrow-up"></i> Tải file Word/HTML
+                            </button>
+                          </div>
                         </div>
                         <div className="tpl-a4-sheet-paper-container">
                           <div className="tpl-a4-sheet-paper">
@@ -3113,13 +3196,6 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                             >
                               <i className="fas fa-cloud-arrow-up"></i> Tải file Word/HTML
                             </button>
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              style={{ display: 'none' }}
-                              accept=".html,.htm,.txt,.docx"
-                              onChange={handleFileUpload}
-                            />
                             <button type="button" className="tpl-tool-btn" onClick={() => execCmd('removeFormat')} title="Xóa định dạng"><i className="fas fa-eraser"></i></button>
                           </div>
                         </div>
