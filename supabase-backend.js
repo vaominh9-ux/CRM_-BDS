@@ -270,6 +270,14 @@ async function publicSubmitEnquiry(args) {
   const data = args[0] || {};
   if (String(data.website || '').trim()) return ok({message:'Yêu cầu đã được ghi nhận.'});
   if (!String(data.fullName||'').trim() || !String(data.phone||'').trim()) return fail('Vui lòng nhập họ tên và số điện thoại');
+  
+  let msg = String(data.message || '').trim();
+  if (data.preferredTime) {
+    const timeStr = String(data.preferredTime).trim().replace('T', ' ');
+    msg = msg ? `[Lịch xem mong muốn: ${timeStr}]
+${msg}` : `[Lịch xem mong muốn: ${timeStr}]`;
+  }
+
   const leadData = clean({
     full_name: String(data.fullName).trim(),
     phone: String(data.phone).trim(),
@@ -277,7 +285,7 @@ async function publicSubmitEnquiry(args) {
     source: 'Website',
     interest_type: ['Buy','Rent','Sell','Rent Out'].includes(data.interestType) ? data.interestType : 'Buy',
     property_id: Number(data.propertyId) || null,
-    message: String(data.message || '').trim(),
+    message: msg || null,
     status: 'New'
   });
   await insertRow('leads', leadData, null, true);
