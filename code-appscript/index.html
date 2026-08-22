@@ -12543,7 +12543,10 @@
             }
             updated = [...prev, key];
           }
+          // 1. Lưu tức thì trên máy hiện tại
           try { localStorage.setItem('crm_pinned_tabs_' + user, JSON.stringify(updated)); } catch (e) {}
+          // 2. Đồng bộ vĩnh viễn lên cơ sở dữ liệu Supabase theo tài khoản người dùng
+          gsRun('updateUserSettings', user, { pinnedTabs: updated }).catch(() => {});
           return updated;
         });
       };

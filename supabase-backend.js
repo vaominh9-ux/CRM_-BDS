@@ -156,7 +156,26 @@ async function getLookups(jwt){
 }
 async function getAppConfig(jwt){const rows=await select('app_settings','setting_value',jwt,'&setting_key=eq.crm&limit=1');return ok({cfg:rows[0]?.setting_value||{},config:rows[0]?.setting_value||{}});}
 async function getUserSettings(jwt){const p=await currentProfile(jwt);return ok({settings:{profileImage:p.profile_image||'',themeMode:p.theme_mode||'light',customColors:JSON.stringify(p.custom_colors||{})}});}
-async function updateUserSettings(args,jwt){const p=await currentProfile(jwt),settings=args[1]||args[0]||{};let colors;if(has(settings,'customColors')){if(!settings.customColors)colors={};else if(typeof settings.customColors==='string'){try{colors=JSON.parse(settings.customColors);}catch{colors={};}}else colors=settings.customColors;}await patchRow('profiles',p.id,{profile_image:settings.profileImage,theme_mode:settings.themeMode,custom_colors:colors,updated_at:new Date().toISOString()},jwt);await audit(jwt,'Settings Updated','Cập nhật tùy chọn tài khoản');return ok({message:'Đã lưu cài đặt tài khoản'});}
+async function updateUserSettings(args,jwt){
+  const p=await currentProfile(jwt),settings=args[1]||args[0]||{};
+  let colors = p.custom_colors || {};
+  if(typeof colors==='string'){try{colors=JSON.parse(colors);}catch{colors={};}}
+  if(has(settings,'customColors')){
+    if(!settings.customColors)colors={};
+    else if(typeof settings.customColors==='string'){try{colors=JSON.parse(settings.customColors);}catch{colors={};}}
+    else colors=settings.customColors;
+  }
+  if(has(settings,'pinnedTabs')){
+    colors = {...colors, pinnedTabs: settings.pinnedTabs};
+  }
+  const patchData = {updated_at:new Date().toISOString()};
+  if(has(settings,'profileImage')) patchData.profile_image = settings.profileImage;
+  if(has(settings,'themeMode')) patchData.theme_mode = settings.themeMode;
+  if(has(settings,'customColors') || has(settings,'pinnedTabs')) patchData.custom_colors = colors;
+  await patchRow('profiles',p.id,patchData,jwt);
+  await audit(jwt,'Settings Updated','Cập nhật tùy chọn tài khoản');
+  return ok({message:'Đã lưu cài đặt tài khoản'});
+}
 
 function normalizeAgencyBranding(value = {}) {
   const branding = { ...DEFAULT_AGENCY_BRANDING, ...(value || {}) };
