@@ -1395,7 +1395,16 @@ function docShell(title, refNo, body, branding) {
 <html><head><meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-@page { size: A4; margin: 0; }
+@page {
+  size: A4 portrait;
+  margin: 10mm 15mm 15mm 15mm;
+  @bottom-right {
+    content: "Trang " counter(page) " / " counter(pages);
+    font-size: 8pt;
+    color: #64748b;
+    font-family: "PT Sans", sans-serif;
+  }
+}
 * { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
 body { font-family: "PT Serif", Georgia, "Times New Roman", serif; margin: 0; color: #1a1a1a; background: #fff; -webkit-font-smoothing: antialiased; }
 .sheet { width: 210mm; min-height: 297mm; padding: 15mm 18mm 15mm; margin: 0 auto; box-sizing: border-box; }
