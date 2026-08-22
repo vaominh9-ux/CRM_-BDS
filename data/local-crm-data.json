@@ -2203,7 +2203,18 @@
         "createdBy": "",
         "created": "2026-08-05T07:09:26.448Z",
         "id": 20,
-        "updated": "2026-08-05T11:09:26.509Z"
+        "updated": "2026-08-22T17:12:14.302Z",
+        "offers": [
+          {
+            "amount": "400000",
+            "by": "Buyer",
+            "notes": "",
+            "id": 1,
+            "date": "2026-08-22T17:12:14.302Z",
+            "status": "Open",
+            "addedBy": "admin"
+          }
+        ]
       }
     ],
     "FollowUps": [
