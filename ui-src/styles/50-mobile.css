@@ -2075,6 +2075,7 @@
       }
 
       /* Bảng sự kiện timeline 360 */
+      .modal-prop-detail .tl-item,
       .modal-lead360 .tl-item {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
@@ -2086,6 +2087,7 @@
         align-items: center !important;
         gap: 10px !important;
       }
+      body.dark-mode .modal-prop-detail .tl-item,
       body.dark-mode .modal-lead360 .tl-item {
         background: #1e293b !important;
         border-color: rgba(255, 255, 255, 0.08) !important;
