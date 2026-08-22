@@ -705,20 +705,22 @@
                 <i className="fas fa-arrow-left"></i>
               </button>
             )}
-            <i className="fas fa-magnifying-glass gs-lead"></i>
-            <input
-              ref={inputRef}
-              className="gs-input"
-              value={q}
-              placeholder="Tìm kiếm BĐS, khách hàng, giao dịch…"
-              onChange={(e) => { setQ(e.target.value); setOpen(true); }}
-              onFocus={() => term && setOpen(true)}
-            />
-            {q && (
-              <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Xóa">
-                <i className="fas fa-xmark"></i>
-              </button>
-            )}
+            <div className="gs-input-box">
+              <i className="fas fa-magnifying-glass gs-lead"></i>
+              <input
+                ref={inputRef}
+                className="gs-input"
+                value={q}
+                placeholder="Tìm kiếm BĐS, khách hàng, giao dịch…"
+                onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+                onFocus={() => term && setOpen(true)}
+              />
+              {q && (
+                <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Xóa">
+                  <i className="fas fa-xmark"></i>
+                </button>
+              )}
+            </div>
           </div>
 
           {open && term && (

@@ -671,11 +671,12 @@
     .gsearch-mob-trigger { display: none; }
     .gs-mob-back { display: none; }
     .gs-bar-wrap { display: flex; align-items: center; position: relative; }
-    .gs-lead { position: absolute; left: 11px; color: #9aa6b2; font-size: 13px; pointer-events: none; }
+    .gs-input-box { position: relative; display: flex; align-items: center; width: 100%; flex: 1; }
+    .gs-lead { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #9aa6b2; font-size: 13px; pointer-events: none; z-index: 2; }
     .gs-input { width: 230px; max-width: 40vw; padding: 9px 30px 9px 32px; border: 1px solid #e2e8f1; background: #f6f8fb; font-size: 13.5px; color: var(--text-primary); border-radius: var(--r-sm); outline: none; transition: border-color .15s, background .15s, width .2s; }
     .gs-input:focus { border-color: var(--navy-accent); background: #fff; width: 280px; }
     .gs-input::placeholder { color: #9aa6b2; }
-    .gs-x { position: absolute; right: 6px; border: none; background: none; color: #9aa6b2; cursor: pointer; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+    .gs-x { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #9aa6b2; cursor: pointer; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; z-index: 2; }
     .gs-x:hover { color: var(--danger); }
     .gs-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 340px; max-width: 86vw; background: #fff; border: 1px solid #e6e9ef; box-shadow: 0 12px 32px rgba(0,0,0,.18); z-index: 500; border-radius: var(--r-md); overflow: hidden; }
     .gs-scroll { max-height: 60vh; overflow-y: auto; }

@@ -803,11 +803,12 @@
     .gsearch-mob-trigger { display: none; }
     .gs-mob-back { display: none; }
     .gs-bar-wrap { display: flex; align-items: center; position: relative; }
-    .gs-lead { position: absolute; left: 11px; color: #9aa6b2; font-size: 13px; pointer-events: none; }
+    .gs-input-box { position: relative; display: flex; align-items: center; width: 100%; flex: 1; }
+    .gs-lead { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #9aa6b2; font-size: 13px; pointer-events: none; z-index: 2; }
     .gs-input { width: 230px; max-width: 40vw; padding: 9px 30px 9px 32px; border: 1px solid #e2e8f1; background: #f6f8fb; font-size: 13.5px; color: var(--text-primary); border-radius: var(--r-sm); outline: none; transition: border-color .15s, background .15s, width .2s; }
     .gs-input:focus { border-color: var(--navy-accent); background: #fff; width: 280px; }
     .gs-input::placeholder { color: #9aa6b2; }
-    .gs-x { position: absolute; right: 6px; border: none; background: none; color: #9aa6b2; cursor: pointer; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+    .gs-x { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #9aa6b2; cursor: pointer; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; z-index: 2; }
     .gs-x:hover { color: var(--danger); }
     .gs-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 340px; max-width: 86vw; background: #fff; border: 1px solid #e6e9ef; box-shadow: 0 12px 32px rgba(0,0,0,.18); z-index: 500; border-radius: var(--r-md); overflow: hidden; }
     .gs-scroll { max-height: 60vh; overflow-y: auto; }
@@ -4717,20 +4718,30 @@
         background: #1e293b !important;
         color: #cbd5e1 !important;
       }
+      .gsearch .gs-bar-wrap.open .gs-input-box {
+        position: relative !important;
+        flex: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        height: 40px !important;
+      }
       .gsearch .gs-bar-wrap.open .gs-lead {
-        left: 56px !important;
+        position: absolute !important;
+        left: 13px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
         font-size: 13.5px !important;
         color: #94a3b8 !important;
+        pointer-events: none !important;
         z-index: 2 !important;
       }
       .gsearch .gs-bar-wrap.open .gs-input {
-        flex: 1 !important;
         width: 100% !important;
         max-width: none !important;
         height: 40px !important;
         font-size: 13.5px !important;
         font-weight: 500 !important;
-        padding: 0 34px 0 34px !important;
+        padding: 0 34px 0 36px !important;
         border-radius: 20px !important;
         border: 1.5px solid #cbd5e1 !important;
         background: #f8fafc !important;
@@ -4753,9 +4764,12 @@
         box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
       }
       .gsearch .gs-bar-wrap.open .gs-x {
-        right: 18px !important;
-        width: 28px !important;
-        height: 28px !important;
+        position: absolute !important;
+        right: 8px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 26px !important;
+        height: 26px !important;
         font-size: 13px !important;
         color: #94a3b8 !important;
         z-index: 2 !important;
@@ -7041,20 +7055,22 @@
                 <i className="fas fa-arrow-left"></i>
               </button>
             )}
-            <i className="fas fa-magnifying-glass gs-lead"></i>
-            <input
-              ref={inputRef}
-              className="gs-input"
-              value={q}
-              placeholder="Tìm kiếm BĐS, khách hàng, giao dịch…"
-              onChange={(e) => { setQ(e.target.value); setOpen(true); }}
-              onFocus={() => term && setOpen(true)}
-            />
-            {q && (
-              <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Xóa">
-                <i className="fas fa-xmark"></i>
-              </button>
-            )}
+            <div className="gs-input-box">
+              <i className="fas fa-magnifying-glass gs-lead"></i>
+              <input
+                ref={inputRef}
+                className="gs-input"
+                value={q}
+                placeholder="Tìm kiếm BĐS, khách hàng, giao dịch…"
+                onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+                onFocus={() => term && setOpen(true)}
+              />
+              {q && (
+                <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Xóa">
+                  <i className="fas fa-xmark"></i>
+                </button>
+              )}
+            </div>
           </div>
 
           {open && term && (
