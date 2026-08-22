@@ -1643,28 +1643,55 @@
       }
 
       /* 4. Bottom Sheet Bộ Lọc Di Động */
-      .mob-filter-sheet-overlay {
+      .mob-filter-sheet-overlay,
+      .mob-filter-drawer-overlay,
+      .mob-loc-filter-drawer-overlay {
         position: fixed !important;
-        inset: 0 !important;
-        background: rgba(0, 0, 0, 0.5) !important;
-        backdrop-filter: blur(4px) !important;
-        z-index: 10000 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: rgba(15, 23, 42, 0.65) !important;
+        backdrop-filter: blur(5px) !important;
+        -webkit-backdrop-filter: blur(5px) !important;
+        z-index: 99999 !important;
         display: flex !important;
         align-items: flex-end !important;
         justify-content: center !important;
+        animation: mobFadeIn 0.2s ease !important;
       }
-      .mob-filter-sheet {
+      .mob-filter-sheet,
+      .mob-filter-drawer,
+      .mob-loc-filter-drawer {
+        display: block !important;
         background: #ffffff !important;
         width: 100% !important;
         max-width: 500px !important;
         border-radius: 20px 20px 0 0 !important;
         padding: 12px 16px 24px 16px !important;
-        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2) !important;
-        animation: slideUp 0.25s ease !important;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3) !important;
+        animation: mobSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        position: relative !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
       }
-      body.dark-mode .mob-filter-sheet {
+      body.dark-mode .mob-filter-sheet,
+      body.dark-mode .mob-filter-drawer,
+      body.dark-mode .mob-loc-filter-drawer {
         background: #0f172a !important;
         color: #ffffff !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+      }
+      @keyframes mobSlideUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes mobFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
       .mob-sheet-handle {
         width: 40px !important;
