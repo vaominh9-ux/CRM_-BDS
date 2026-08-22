@@ -22241,18 +22241,26 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
       const [tagQuery, setTagQuery] = useState('');
       const [pageCount, setPageCount] = useState(1);
 
+      const breakCount = useMemo(() => {
+        const matches = (fullTemplateHtml || '').match(/tpl-page-break-gap|tpl-page-break-tag/g);
+        return matches ? matches.length : 0;
+      }, [fullTemplateHtml]);
+
+      const totalA4Pages = Math.max(pageCount, breakCount + 1);
+      const paperMinHeight = totalA4Pages * 1123 + breakCount * 44;
+
       useEffect(() => {
         const calculatePages = () => {
           if (richEditorRef.current) {
             const h = richEditorRef.current.scrollHeight || 0;
-            const p = Math.max(1, Math.ceil(h / 960));
-            setPageCount(p);
+            const p = Math.max(1, Math.ceil(h / 1050));
+            setPageCount(Math.max(p, breakCount + 1));
           }
         };
         calculatePages();
         const t = setTimeout(calculatePages, 200);
         return () => clearTimeout(t);
-      }, [fullTemplateHtml, templateMode]);
+      }, [fullTemplateHtml, templateMode, breakCount]);
 
       const MERGE_TAG_GROUPS = [
         {
@@ -22857,7 +22865,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
 
                         {/* TỜ GIẤY IN A4 SHEET THỰC TẾ (A4 CANVAS SHEET) */}
                         <div className="tpl-a4-sheet-paper-container">
-                          <div className="tpl-a4-sheet-paper">
+                          <div className="tpl-a4-sheet-paper" style={{ minHeight: `${paperMinHeight}px` }}>
                             <div
                               ref={richEditorRef}
                               className="tpl-a4-wysiwyg-editor"
