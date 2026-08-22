@@ -872,7 +872,7 @@ async function getDashboardStats(jwt) {
     conversionRate:leads.length?Math.round(leads.filter(item=>item.status==='Won').length/leads.length*1000)/10:0,
     overdueFollowUps:followUps.filter(item=>item.status==='Pending'&&item.dueAt&&new Date(item.dueAt)<now).length,
     todayAppointments:appointments.filter(item=>['Scheduled','Confirmed'].includes(item.status)&&item.scheduledAt&&vnDateKey(item.scheduledAt)===today).length,
-    recentLeads:leads.slice(0,6),recentProperties:properties.slice(0,6),
+    recentLeads:leads.slice(0,6),recentProperties:properties.slice(0,6).map(p => ({ ...p, image: (p.images && p.images.length ? (p.images.find(x=>x.isPrimary)||p.images[0]).url : '') || p.image || '' })),
     upcomingViewings:appointments.filter(item=>['Scheduled','Confirmed'].includes(item.status)&&item.scheduledAt&&new Date(item.scheduledAt)>=now)
       .sort((a,b)=>new Date(a.scheduledAt)-new Date(b.scheduledAt)).slice(0,6).map(item=>{
         const property=properties.find(p=>String(p.id)===String(item.propertyId));

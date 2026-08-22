@@ -6173,11 +6173,14 @@
             <LteCard title="Bất động sản gần đây" icon="fa-building-circle-check" tools={viewAll('properties')}>
               {(stats.recentProperties || []).length === 0
                 ? <p className="dash-empty"><i className="fas fa-building"></i>Chưa có bất động sản nào</p>
-                : stats.recentProperties.map((p) => (
-                    <DashRow key={p.id} image={p.image} icon="fa-house" title={p.title} sub={p.address || '—'}
-                             right={<>{pkrShort(p.price)}<div style={{ marginTop: 4 }}><Badge s={p.status} /></div></>}
-                             small={'Đã thêm ' + fmtDate(p.created)} onClick={() => go('properties')} />
-                  ))}
+                : stats.recentProperties.map((p) => {
+                    const imgUrl = p.image || (p.images && p.images.length ? (p.images.find(x => x.isPrimary) || p.images[0]).url : '') || '';
+                    return (
+                      <DashRow key={p.id} image={imgUrl} icon="fa-house" title={p.title} sub={p.address || '—'}
+                               right={<>{pkrShort(p.price)}<div style={{ marginTop: 4 }}><Badge s={p.status} /></div></>}
+                               small={'Đã thêm ' + fmtDate(p.created)} onClick={() => go('properties')} />
+                    );
+                  })}
             </LteCard>
             <LteCard title="Quy trình giao dịch" icon="fa-filter" tools={viewAll('leads')}>
               <FunnelChart steps={stats.funnelSteps} rate={stats.conversionRate || 0} onPick={() => go('leads')} />
