@@ -499,7 +499,7 @@
       const items = data && data.success ? (data.items || []) : [];
       const [open, setOpen] = useState(false);
       const [seen, setSeen] = useState(() => { try { return localStorage.getItem('notif_seen_' + currentUser) || ''; } catch (e) { return ''; } });
-      const sig = items.map((n) => `${n.page}:${n.count}:${n.text}`).join('|');
+      const sig = items.map((n) => `${n.page}:${n.count}:${n.text}:${n.urgent ? '1' : '0'}`).join('|');
       const unread = items.length > 0 && sig !== seen;
       const ref = useRef(null);
 
@@ -508,6 +508,24 @@
         document.addEventListener('mousedown', close);
         return () => document.removeEventListener('mousedown', close);
       }, []);
+
+      useEffect(() => {
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().catch(() => {});
+        }
+      }, []);
+
+      useEffect(() => {
+        const urgentItem = items.find((n) => n.urgent);
+        if (urgentItem && unread && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification('BĐS MASTER CRM — Nhắc lịch hẹn', {
+              body: urgentItem.text,
+              icon: 'https://cdn-icons-png.flaticon.com/512/3652/3652191.png'
+            });
+          } catch (e) {}
+        }
+      }, [sig, unread]);
       
       const openMenu = () => {
         const nextOpen = !open;
@@ -543,7 +561,7 @@
               {items.length === 0 ? (
                 <div className="notif-empty"><i className="fas fa-bell-slash" style={{fontSize: '22px', display: 'block', marginBottom: '8px', opacity: .5}}></i>Tuyệt vời! Không còn việc tồn đọng cần xử lý</div>
               ) : items.map((n, i) => (
-                <div className="notif-item" key={i} style={{ cursor: 'pointer' }} onClick={() => { setActiveMenu(n.page); setOpen(false); }}>
+                <div className={'notif-item' + (n.urgent ? ' urgent' : '')} key={i} style={{ cursor: 'pointer' }} onClick={() => { setActiveMenu(n.page); setOpen(false); }}>
                   <i className={'fas ' + n.icon}></i>
                   <div className="ni-body">
                     <div className="ni-act">{n.text}</div>

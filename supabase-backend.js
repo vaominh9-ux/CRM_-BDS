@@ -1119,6 +1119,23 @@ async function getNotifications(jwt) {
   const todayStart=new Date(`${today}T00:00:00+07:00`),items=[];
   const add=(count,icon,text,page)=>{if(count>0)items.push({icon,text:`${count} ${text}`,page,count});};
 
+  // 0. Khẩn cấp nhất: Lịch hẹn sắp diễn ra trong vòng 60 phút tới
+  const upcomingSoon = appointments.filter(x => {
+    if (!['Scheduled', 'Confirmed'].includes(x.status) || !x.scheduledAt) return false;
+    const apptTime = new Date(x.scheduledAt);
+    const diffMin = (apptTime - now) / 60000;
+    return diffMin >= 0 && diffMin <= 60;
+  });
+  if (upcomingSoon.length > 0) {
+    items.push({
+      icon: 'fa-stopwatch-20',
+      text: `⏰ Có ${upcomingSoon.length} lịch xem sắp diễn ra trong 60 phút tới!`,
+      page: 'appointments',
+      count: upcomingSoon.length,
+      urgent: true
+    });
+  }
+
   // 1. Nổi bật hàng đầu: Khách hàng mới để lại thông tin từ Website / Cổng thông tin
   const webLeads = leads.filter(x => x.source === 'Website' && x.status === 'New');
   if (webLeads.length > 0) {
