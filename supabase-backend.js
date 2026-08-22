@@ -281,6 +281,9 @@ async function publicSubmitEnquiry(args) {
     status: 'New'
   });
   await insertRow('leads', leadData, null, true);
+  try {
+    await audit(null, 'Web Enquiry', `Khách để lại thông tin: ${leadData.full_name} (${leadData.phone}) - Nhu cầu: ${leadData.interest_type}`);
+  } catch (_) {}
   return ok({message:'Chúng tôi đã nhận được yêu cầu và sẽ liên hệ với bạn sớm.'});
 }
 
@@ -299,15 +302,22 @@ async function profileId(username,jwt,fallback) {
   return rows[0]?.id || fallback || null;
 }
 async function audit(jwt, action, details) {
-  const p = await currentProfile(jwt);
-  const body={actor_id:p.id,actor_username:p.username,action,details:details||''};
+  let actorId = null, actorUsername = 'Khách truy cập';
+  if (jwt) {
+    try {
+      const p = await currentProfile(jwt);
+      actorId = p.id;
+      actorUsername = p.username;
+    } catch (_) {}
+  }
+  const body = { actor_id: actorId, actor_username: actorUsername, action, details: details || '' };
   try {
-    await request('/rest/v1/activity_logs',{method:'POST',jwt,body});
+    await request('/rest/v1/activity_logs', { method: 'POST', jwt, admin: !jwt, body });
   } catch (error) {
     // Dữ liệu nhập từ hệ thống cũ có ID tường minh nên sequence có thể chưa bắt kịp.
-    if (!/activity_logs_pkey|duplicate key/i.test(String(error.message||''))) throw error;
-    const latest=await adminSelect('activity_logs','id','&order=id.desc&limit=1');
-    await request('/rest/v1/activity_logs',{method:'POST',admin:true,body:{...body,id:Number(latest[0]?.id||0)+1}});
+    if (!/activity_logs_pkey|duplicate key/i.test(String(error.message || ''))) throw error;
+    const latest = await adminSelect('activity_logs', 'id', '&order=id.desc&limit=1');
+    await request('/rest/v1/activity_logs', { method: 'POST', admin: true, body: { ...body, id: Number(latest[0]?.id || 0) + 1 } });
   }
 }
 
@@ -888,7 +898,23 @@ async function getNotifications(jwt) {
   const todayStart=new Date(`${today}T00:00:00+07:00`),items=[];
   const add=(count,icon,text,page)=>{if(count>0)items.push({icon,text:`${count} ${text}`,page,count});};
 
-  if(agency)add(leads.filter(x=>!x.assignedAgent&&!['Won','Lost'].includes(x.status)).length,'fa-user-plus','khách hàng chưa được phân công','leads');
+  // 1. Nổi bật hàng đầu: Khách hàng mới để lại thông tin từ Website / Cổng thông tin
+  const webLeads = leads.filter(x => x.source === 'Website' && x.status === 'New');
+  if (webLeads.length > 0) {
+    items.push({
+      icon: 'fa-globe',
+      text: `${webLeads.length} yêu cầu tư vấn mới từ Cổng thông tin`,
+      page: 'leads',
+      count: webLeads.length
+    });
+  }
+
+  // 2. Khách hàng chưa được phân công khác (ngoài Website)
+  const otherUnassigned = leads.filter(x => !x.assignedAgent && !['Won','Lost'].includes(x.status) && x.source !== 'Website');
+  if (agency && otherUnassigned.length > 0) {
+    add(otherUnassigned.length, 'fa-user-plus', 'khách hàng chưa được phân công', 'leads');
+  }
+
   add(followUps.filter(x=>x.status==='Pending'&&x.dueAt&&new Date(x.dueAt)<now).length,'fa-triangle-exclamation','lịch chăm sóc đã quá hạn','followups');
   add(appointments.filter(x=>['Scheduled','Confirmed'].includes(x.status)&&String(x.scheduledAt||'').slice(0,10)===today).length,'fa-calendar-check','lịch xem trong hôm nay','appointments');
   add(deals.filter(x=>['Token','Agreement'].includes(x.status)).length,'fa-handshake','giao dịch đang xử lý','deals');
