@@ -2695,29 +2695,35 @@
             </div>
 
             {/* Thanh công cụ phụ di động (Mobile Sub-Toolbar) */}
-            <div className="mob-sub-toolbar">
-              <div className="mob-sub-toolbar-title">
-                <strong>{visible.length}</strong> Bản ghi đã xóa {filterType ? `· ${TRASH_TYPES.find((x) => x.key === filterType)?.label || filterType}` : ''}
+            <div className="mob-sub-toolbar mob-trash-sub-toolbar">
+              <div className="mob-sub-toolbar-left">
+                <span className="mob-sub-count">
+                  <strong>{visible.length}</strong> Bản ghi đã xóa {filterType ? `· ${TRASH_TYPES.find((x) => x.key === filterType)?.label || filterType}` : ''}
+                </span>
               </div>
-              <div className="mob-sub-toolbar-actions">
-                <span style={{ fontSize: 11.5, color: '#64748b' }}>
+              <div className="mob-sub-toolbar-right">
+                <span className="mob-admin-tag">
                   <i className="fas fa-shield-halved"></i> Quản trị viên
                 </span>
               </div>
             </div>
 
             {/* Thanh tìm kiếm nhanh */}
-            <div className="filters-section" style={{ marginBottom: 14 }}>
-              <div className="filters-grid" style={{ gridTemplateColumns: '1fr' }}>
-                <div className="filter-group">
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Tìm theo tên bản ghi, mã ID, phân hệ..."
-                    className="filter-input"
-                  />
-                </div>
+            <div className="mob-search-bar-wrap">
+              <div className="mob-search-input-box">
+                <i className="fas fa-magnifying-glass"></i>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Tìm theo tên bản ghi, mã ID, phân hệ..."
+                  className="mob-search-input"
+                />
+                {searchTerm && (
+                  <button className="mob-search-clear-btn" onClick={() => setSearchTerm('')} title="Xóa tìm kiếm">
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
               </div>
             </div>
 

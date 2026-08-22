@@ -129,7 +129,21 @@ async function runLocalApi(req, res, method) {
   if (method === 'getDefaultTheme') return jsonResponse(res, 200, { success:true, id:'', vars:'' });
   if (method === 'getAiConfig') return jsonResponse(res, 200, { success:true, configured:false });
   if (method === 'getAppConfig') return jsonResponse(res, 200, { success:true, config:{} });
-  if (method === 'getTrash') return jsonResponse(res, 200, { success:true, data:[] });
+  if (method === 'getTrash') {
+    const data = [];
+    Object.entries(crm.sheets || {}).forEach(([sheet, items]) => {
+      (items || []).filter(x => x.deleted).forEach(x => {
+        data.push({
+          id: x.id,
+          type: sheet === 'Properties' ? 'Property' : sheet === 'Leads' ? 'Lead' : sheet === 'Appointments' ? 'Appointment' : sheet === 'FollowUps' ? 'FollowUp' : sheet === 'Deals' ? 'Deal' : sheet === 'Tenancies' ? 'Tenancy' : sheet === 'Owners' ? 'Owner' : sheet === 'Locations' ? 'Location' : sheet === 'Amenities' ? 'Amenity' : sheet,
+          title: x.title || x.fullName || x.name || x.leadName || (sheet + ' #' + x.id),
+          sheet: sheet,
+          updated: x.deletedAt || x.updatedAt || x.updated || new Date().toISOString()
+        });
+      });
+    });
+    return jsonResponse(res, 200, { success: true, data });
+  }
   if (sheetMap[method]) {
     let data = crm.sheets[sheetMap[method]] || [];
     if (method === 'getProperties') data = data.map(item => ({ ...item, locationPath:locationPath(crm.sheets.Locations, item.locationId) }));

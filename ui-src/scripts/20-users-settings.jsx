@@ -977,14 +977,14 @@
               ========================================================= */}
           <div className="mob-account-view mobile-only-section">
             {/* HERO CARD: Avatar, Tên đăng nhập & Vai trò */}
-            <div className="account-hero-card">
-              <div className="account-avatar-wrapper">
-                <div className="account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
+            <div className="mob-account-hero-card">
+              <div className="mob-account-avatar-wrapper">
+                <div className="mob-account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
                   {getLeadInitials(currentUser)}
                 </div>
                 <button
                   type="button"
-                  className="account-avatar-cam-btn"
+                  className="mob-account-avatar-cam-btn"
                   onClick={() => fileInputRef.current && fileInputRef.current.click()}
                   disabled={uploading}
                   title="Thay đổi ảnh đại diện"
@@ -992,23 +992,23 @@
                   <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-camera')}></i>
                 </button>
               </div>
-              <div className="account-hero-info">
-                <h2 className="account-hero-title">{currentUser}</h2>
-                <div className="account-hero-meta">
-                  <span className={'user-role-badge role-' + String(role || 'agent').toLowerCase()}>
-                    {viEnum(role) || role}
+              <div className="mob-account-hero-info">
+                <h2 className="mob-account-hero-title">{currentUser}</h2>
+                <div className="mob-account-hero-meta">
+                  <span className={'mob-user-role-badge ' + String(role || 'agent').toLowerCase()}>
+                    <i className={'fas ' + (role === 'admin' ? 'fa-shield-halved' : role === 'manager' ? 'fa-user-tie' : 'fa-user')}></i> {viEnum(role) || role}
                   </span>
-                  <span className="account-email-pill">
+                  <span className="mob-account-email-pill">
                     <i className="fas fa-envelope"></i> {formData.Email || 'Chưa có email'}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="account-grid">
+            <div className="mob-account-grid">
               {/* THẺ 1: THÔNG TIN CÁ NHÂN */}
-              <div className="account-card">
-                <div className="account-card-header">
+              <div className="mob-account-card">
+                <div className="mob-account-card-header">
                   <div className="account-header-icon info">
                     <i className="fas fa-id-card"></i>
                   </div>
@@ -1056,8 +1056,8 @@
               </div>
 
               {/* THẺ 2: ĐỔI MẬT KHẨU */}
-              <div className="account-card">
-                <div className="account-card-header">
+              <div className="mob-account-card">
+                <div className="mob-account-card-header">
                   <div className="account-header-icon security">
                     <i className="fas fa-shield-halved"></i>
                   </div>
