@@ -2202,7 +2202,7 @@
       });
 
       return (
-        <div className="data-section" style={{ padding: '20px 24px' }}>
+        <div className="data-section rbac-container">
           {/* 1. Header Hero */}
           <div className="rbac-hero">
             <div>
@@ -2511,7 +2511,7 @@
           )}
 
           {/* 6. Footer Guide & Best Practices */}
-          <div style={{ marginTop: 24, padding: '14px 18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div className="rbac-footer-guide" style={{ marginTop: 24, padding: '14px 18px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12.5, color: '#475569' }}>
               <span><strong>Chú thích:</strong></span>
               <span><span style={{ color: '#0284c7', fontWeight: 800 }}>V</span> = Xem (View)</span>

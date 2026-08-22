@@ -956,6 +956,49 @@
     body.dark-mode .rbac-switch-chip { background: #0f172a; border-color: #334155; color: #94a3b8; }
     body.dark-mode .rbac-admin-lock { background: #451a03; border-color: #78350f; color: #fde68a; }
 
+    /* ===== RBAC Mobile Optimization (≤ 768px & ≤ 480px) — Desktop untouched ===== */
+    .rbac-container { padding: 20px 24px; }
+    
+    @media (max-width: 768px) {
+      .rbac-container { padding: 12px 10px; }
+      .rbac-hero { margin-bottom: 12px; gap: 10px; }
+      .rbac-hero-title { font-size: 17px; }
+      .rbac-hero-subtitle { font-size: 12px; line-height: 1.4; }
+      
+      /* Horizontally scrollable power cards on mobile */
+      .rbac-power-grid { display: flex; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; gap: 10px; padding-bottom: 6px; margin-bottom: 14px; }
+      .rbac-power-grid::-webkit-scrollbar { display: none; }
+      .rbac-power-card { min-width: 215px; flex: 0 0 auto; padding: 12px 14px; }
+      
+      /* Vertical stacked toolbar */
+      .rbac-toolbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px 12px; }
+      .rbac-view-tabs { width: 100%; }
+      .rbac-view-btn { flex: 1; justify-content: center; font-size: 12px; padding: 7px 6px; }
+      .rbac-search-box { max-width: 100%; min-width: 0; width: 100%; }
+      .rbac-bulk-actions { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .rbac-bulk-actions .btn { width: 100%; padding: 7px 4px; font-size: 11.5px; text-align: center; justify-content: center; }
+
+      /* Role-focus view mobile card layout */
+      .rbac-focus-groups { grid-template-columns: 1fr; gap: 12px; }
+      .rbac-module-item { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px; }
+      .rbac-module-info { width: 100%; }
+      .rbac-switch-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; width: 100%; }
+      .rbac-switch-chip { justify-content: center; padding: 7px 4px; font-size: 11px; }
+
+      /* Footer guide responsive */
+      .rbac-footer-guide { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+
+    @media (max-width: 480px) {
+      .rbac-hero-title { font-size: 16px; }
+      .rbac-power-card { min-width: 195px; padding: 10px 12px; }
+      .rbac-table th.rbac-pagecol, .rbac-table td.rbac-pagecol { width: 140px; font-size: 11.5px; padding: 6px 8px; }
+      .rbac-page-item { gap: 6px; }
+      .rbac-page-icon { width: 20px; height: 20px; font-size: 10px; }
+      .rbac-pill-btn { width: 23px; height: 23px; font-size: 9.5px; }
+      .rbac-switch-chip { font-size: 10px; padding: 6px 2px; }
+    }
+
     /* ===== Pipeline Chevron Tabs (status filter — status NEVER sits in .filters-grid) ===== */
     .pipeline-stages { display: flex; width: 100%; margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .pipeline-stages::-webkit-scrollbar { display: none; }
