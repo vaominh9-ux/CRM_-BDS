@@ -3060,16 +3060,52 @@
       .pd-facts { grid-template-columns: repeat(2, 1fr); }
     }
 
-    /* Mobile-specific components (STRICTLY HIDDEN BY DEFAULT ON DESKTOP) */
-    .mob-pipeline-bar,
-    .mob-filter-btn,
-    .mob-leads-sub-toolbar,
-    .mob-sub-toolbar,
-    .mob-leads-cards-container,
+    /* =========================================================================
+       DESKTOP DEFAULT RULES (MẶC ĐỊNH TRÊN MÁY TÍNH: ẨN TOÀN BỘ MOBILE)
+       ========================================================================= */
+    [class^="mob-"],
+    [class*=" mob-"],
     .mobile-only-cards,
-    .mob-filter-sheet-overlay,
-    .mob-filter-drawer-overlay,
-    .mob-filter-drawer,
+    .mobile-only-section,
+    .mobile-only-table,
+    .mobile-only-view,
+    .mob-props-cards-container,
+    .mob-props-sub-toolbar,
+    .mob-props-skeleton-list,
+    .mob-props-empty-state,
+    .mob-prop-card,
+    .mob-leads-cards-container,
+    .mob-leads-sub-toolbar,
+    .mob-leads-skeleton-list,
+    .mob-leads-empty-state,
+    .mob-lead-card,
+    .mob-appts-cards-container,
+    .mob-appts-sub-toolbar,
+    .mob-appts-skeleton-list,
+    .mob-appts-empty-state,
+    .mob-appt-card,
+    .mob-deals-cards-container,
+    .mob-deals-sub-toolbar,
+    .mob-deals-skeleton-list,
+    .mob-deals-empty-state,
+    .mob-deal-card,
+    .mob-tenancies-cards-container,
+    .mob-tenancies-sub-toolbar,
+    .mob-tenancies-skeleton-list,
+    .mob-tenancies-empty-state,
+    .mob-tenancy-card,
+    .mob-owners-cards-container,
+    .mob-owners-sub-toolbar,
+    .mob-owners-skeleton-list,
+    .mob-owners-empty-state,
+    .mob-owner-card,
+    .mob-users-cards-container,
+    .mob-users-sub-toolbar,
+    .mob-users-skeleton-list,
+    .mob-users-empty-state,
+    .mob-user-card,
+    .mob-locations-cards-container,
+    .mob-amenities-cards-container,
     .mob-followups-list,
     .mob-followup-card,
     .mob-trash-page,
@@ -3084,15 +3120,32 @@
     .mob-about-formulas-list,
     .mob-doc-type-pills,
     .mob-doc-records-list,
-    .mob-doc-record-card {
+    .mob-doc-record-card,
+    .mob-pipeline-bar,
+    .mob-sub-toolbar,
+    .mob-filter-drawer-overlay,
+    .mob-filter-drawer,
+    .mob-filter-sheet-overlay,
+    .mob-filter-sheet,
+    .mob-account-hero-card,
+    .mob-account-grid,
+    .mob-account-card,
+    .mob-hub-overlay,
+    .mob-nav-bar {
       display: none !important;
     }
 
-    /* Desktop-specific components (VISIBLE ON DESKTOP) */
+    /* Hiển thị chuẩn xác các thành phần máy tính */
     .desk-pipeline-block,
     .desk-filters-section,
     .desk-filters-grid,
     .desk-leads-table-wrap,
+    .desk-props-table-wrap,
+    .desk-appts-table-wrap,
+    .desk-deals-table-wrap,
+    .desk-tenancies-table-wrap,
+    .desk-owners-table-wrap,
+    .desk-users-table-wrap,
     .desk-trash-view,
     .desk-about-view,
     .desktop-only-table,
@@ -4539,6 +4592,12 @@
       .desk-filters-section,
       .desk-filters-grid,
       .desk-leads-table-wrap,
+      .desk-props-table-wrap,
+      .desk-appts-table-wrap,
+      .desk-deals-table-wrap,
+      .desk-tenancies-table-wrap,
+      .desk-owners-table-wrap,
+      .desk-users-table-wrap,
       .desk-trash-view,
       .desk-about-view,
       .desktop-only-table,
@@ -4547,20 +4606,46 @@
       }
 
       .mob-pipeline-bar { display: block !important; }
-      .mob-sub-toolbar { display: flex !important; }
-      .mob-leads-cards-container { display: block !important; }
+      .mob-sub-toolbar,
+      .mob-props-sub-toolbar,
+      .mob-leads-sub-toolbar,
+      .mob-appts-sub-toolbar,
+      .mob-deals-sub-toolbar,
+      .mob-tenancies-sub-toolbar,
+      .mob-owners-sub-toolbar,
+      .mob-users-sub-toolbar { display: flex !important; }
+
+      .mob-props-cards-container,
+      .mob-leads-cards-container,
+      .mob-appts-cards-container,
+      .mob-deals-cards-container,
+      .mob-tenancies-cards-container,
+      .mob-owners-cards-container,
+      .mob-users-cards-container,
+      .mob-locations-cards-container,
+      .mob-amenities-cards-container,
       .mobile-only-cards { display: block !important; }
-      .mob-followups-list { display: flex !important; }
-      .mob-followup-card { display: block !important; }
-      .mob-trash-page { display: block !important; }
-      .mob-trash-list { display: flex !important; }
-      .mob-trash-card { display: block !important; }
+
+      .mob-followups-list,
+      .mob-trash-list,
+      .mob-doc-records-list { display: flex !important; }
+
+      .mob-prop-card,
+      .mob-lead-card,
+      .mob-appt-card,
+      .mob-deal-card,
+      .mob-tenancy-card,
+      .mob-owner-card,
+      .mob-user-card,
+      .mob-followup-card,
+      .mob-trash-card,
+      .mob-doc-record-card { display: block !important; }
+
+      .mob-trash-page,
       .mob-about-page { display: block !important; }
       .mob-about-hero-card { display: flex !important; }
       .mob-about-card { display: block !important; }
       .mob-doc-type-pills { display: block !important; }
-      .mob-doc-records-list { display: flex !important; }
-      .mob-doc-record-card { display: block !important; }
 
       /* ===== TỐI ƯU KHUNG KPI PHÂN TAB CAO CẤP TRÊN ĐIỆN THOẠI (MOBILE PERFORMANCE HUB) ===== */
       .dash-desktop-kpis { display: none !important; }

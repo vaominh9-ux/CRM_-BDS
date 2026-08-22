@@ -330,6 +330,12 @@
       .desk-filters-section,
       .desk-filters-grid,
       .desk-leads-table-wrap,
+      .desk-props-table-wrap,
+      .desk-appts-table-wrap,
+      .desk-deals-table-wrap,
+      .desk-tenancies-table-wrap,
+      .desk-owners-table-wrap,
+      .desk-users-table-wrap,
       .desk-trash-view,
       .desk-about-view,
       .desktop-only-table,
@@ -338,20 +344,46 @@
       }
 
       .mob-pipeline-bar { display: block !important; }
-      .mob-sub-toolbar { display: flex !important; }
-      .mob-leads-cards-container { display: block !important; }
+      .mob-sub-toolbar,
+      .mob-props-sub-toolbar,
+      .mob-leads-sub-toolbar,
+      .mob-appts-sub-toolbar,
+      .mob-deals-sub-toolbar,
+      .mob-tenancies-sub-toolbar,
+      .mob-owners-sub-toolbar,
+      .mob-users-sub-toolbar { display: flex !important; }
+
+      .mob-props-cards-container,
+      .mob-leads-cards-container,
+      .mob-appts-cards-container,
+      .mob-deals-cards-container,
+      .mob-tenancies-cards-container,
+      .mob-owners-cards-container,
+      .mob-users-cards-container,
+      .mob-locations-cards-container,
+      .mob-amenities-cards-container,
       .mobile-only-cards { display: block !important; }
-      .mob-followups-list { display: flex !important; }
-      .mob-followup-card { display: block !important; }
-      .mob-trash-page { display: block !important; }
-      .mob-trash-list { display: flex !important; }
-      .mob-trash-card { display: block !important; }
+
+      .mob-followups-list,
+      .mob-trash-list,
+      .mob-doc-records-list { display: flex !important; }
+
+      .mob-prop-card,
+      .mob-lead-card,
+      .mob-appt-card,
+      .mob-deal-card,
+      .mob-tenancy-card,
+      .mob-owner-card,
+      .mob-user-card,
+      .mob-followup-card,
+      .mob-trash-card,
+      .mob-doc-record-card { display: block !important; }
+
+      .mob-trash-page,
       .mob-about-page { display: block !important; }
       .mob-about-hero-card { display: flex !important; }
       .mob-about-card { display: block !important; }
       .mob-doc-type-pills { display: block !important; }
-      .mob-doc-records-list { display: flex !important; }
-      .mob-doc-record-card { display: block !important; }
 
       /* ===== TỐI ƯU KHUNG KPI PHÂN TAB CAO CẤP TRÊN ĐIỆN THOẠI (MOBILE PERFORMANCE HUB) ===== */
       .dash-desktop-kpis { display: none !important; }
