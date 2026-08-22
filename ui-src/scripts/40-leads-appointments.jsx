@@ -118,6 +118,29 @@
       );
     }
 
+    const getLeadInitial = (name) => {
+      const parts = String(name || '').trim().split(/\s+/);
+      if (!parts.length || !parts[0]) return 'K';
+      if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    };
+
+    const getLeadAvatarColor = (name) => {
+      const colors = [
+        'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+        'linear-gradient(135deg, #065f46, #10b981)',
+        'linear-gradient(135deg, #581c87, #8b5cf6)',
+        'linear-gradient(135deg, #7c2d12, #f97316)',
+        'linear-gradient(135deg, #075985, #0ea5e9)',
+        'linear-gradient(135deg, #831843, #ec4899)',
+        'linear-gradient(135deg, #134e4a, #14b8a6)'
+      ];
+      let hash = 0;
+      const str = String(name || '');
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      return colors[Math.abs(hash) % colors.length];
+    };
+
     function LeadsView({ currentUser, role, perms, initialSearch }) {
       const { data: res, error, mutate } = useSWR('leads:all', () => gsRun('getLeads', currentUser), SWR_LIVE);
       const rows = res ? (res.success ? res.data : []) : undefined;
@@ -134,6 +157,7 @@
       const [propPrefill, setPropPrefill] = useState(null); // acquisition: seller lead -> PropertyModal prefill
       const [stage, setStage] = useState('');
       const [board, setBoard] = useState(false);            // list <-> kanban board toggle
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '', source: '', interest: '', agent: '' });
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
       useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
@@ -162,11 +186,13 @@
       }, [base, filters.search]);
 
       const kpi = useMemo(() => { const r = rows || []; return [
-        [r.filter((l) => ['Won', 'Lost'].indexOf(l.status) === -1).length, 'Open Leads', 'fa-user-tag', 'bg-navy'],
-        [r.filter((l) => l.status === 'New').length, 'New', 'fa-user-plus', 'bg-info'],
-        [r.filter((l) => l.status === 'Won').length, 'Won', 'fa-trophy', 'bg-success'],
-        [r.filter((l) => l.status === 'Lost').length, 'Lost', 'fa-user-xmark', 'bg-danger']
+        [r.filter((l) => ['Won', 'Lost'].indexOf(l.status) === -1).length, 'Khách hàng đang xử lý', 'fa-user-tag', 'bg-navy'],
+        [r.filter((l) => l.status === 'New').length, 'Mới', 'fa-user-plus', 'bg-info'],
+        [r.filter((l) => l.status === 'Won').length, 'Thành công', 'fa-trophy', 'bg-success'],
+        [r.filter((l) => l.status === 'Lost').length, 'Thất bại', 'fa-user-xmark', 'bg-danger']
       ]; }, [rows]);
+
+      const activeFiltersCount = (filters.source ? 1 : 0) + (filters.interest ? 1 : 0) + (filters.agent ? 1 : 0) + (filters.search ? 1 : 0);
 
       const downloadTemplate = () => downloadCSV('leads_template.csv',
         'FullName,Phone,Email,Source,InterestType,Status,AssignedAgent,BudgetMin,BudgetMax,Message,LostReason\n' +
@@ -198,7 +224,7 @@
         else if (action === 'edit') { setEditing(l); setShowModal(true); }
         else if (action === 'assign') setAssigning(l);
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Delete lead "' + l.fullName + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+          Swal.fire({ icon: 'warning', title: 'Xóa khách hàng "' + l.fullName + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteLead', l.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
               else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
@@ -208,37 +234,37 @@
       // board drag/menu -> status-only patch; server re-checks own-scope + Lost reason
       const moveLead = (l, to) => {
         const send = (lostReason) => gsRun('updateLead', { id: l.id, status: to, lostReason: lostReason || '' }, currentUser).then((r) => {
-          if (r && r.success) { mutate(); swrMutate('dash:stats'); Swal.fire({ icon: 'success', title: l.fullName + ' → ' + to, timer: 1400, showConfirmButton: false }); }
-          else Swal.fire({ icon: 'error', title: 'Move failed', text: (r && r.message) || 'Failed' });
+          if (r && r.success) { mutate(); swrMutate('dash:stats'); Swal.fire({ icon: 'success', title: l.fullName + ' → ' + viEnum(to), timer: 1400, showConfirmButton: false }); }
+          else Swal.fire({ icon: 'error', title: 'Cập nhật thất bại', text: (r && r.message) || 'Lỗi hệ thống' });
         });
         if (to !== 'Lost') return send();
-        Swal.fire({ icon: 'warning', title: 'Mark "' + l.fullName + '" as Lost?', input: 'text', inputLabel: 'Reason (required)',
-          inputPlaceholder: 'Why was this lead lost?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Mark Lost',
-          inputValidator: (v) => (!String(v || '').trim() ? 'Reason is required' : undefined)
+        Swal.fire({ icon: 'warning', title: 'Đánh dấu "' + l.fullName + '" là Thất bại?', input: 'text', inputLabel: 'Lý do thất bại (bắt buộc)',
+          inputPlaceholder: 'Nhập lý do khách từ chối / mua chỗ khác...', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xác nhận',
+          inputValidator: (v) => (!String(v || '').trim() ? 'Vui lòng nhập lý do thất bại' : undefined)
         }).then((r) => { if (r.isConfirmed) send(r.value); });
       };
 
       const tableRef = useDataTable('leadsTable', rows === undefined ? null : visible, () => ({
         search: { search: filters.search },
         columns: [
-          { data: 'fullName', title: 'Lead', render: (d, t, l) => '<strong>' + esc(d) + '</strong><br><small style="color:#789"><i class="fas fa-phone" style="font-size:10px"></i> ' + esc(l.phone) + '</small>' },
-          { data: 'interestType', title: 'Interest' },
-          { data: 'source', title: 'Source' },
-          { data: null, title: 'Property / Preference', orderable: false, render: (d, t, l) =>
+          { data: 'fullName', title: 'Khách hàng', render: (d, t, l) => '<strong>' + esc(d) + '</strong><br><small style="color:#789"><i class="fas fa-phone" style="font-size:10px"></i> ' + esc(l.phone) + '</small>' },
+          { data: 'interestType', title: 'Nhu cầu' },
+          { data: 'source', title: 'Nguồn' },
+          { data: null, title: 'BĐS / Vị trí quan tâm', orderable: false, render: (d, t, l) =>
               l.propertyRef ? '<span class="prop-ref">' + esc(l.propertyRef) + '</span><br><small style="color:#789">' + esc(l.propertyTitle || '') + '</small>'
               : (l.preferredLocationPath ? '<small style="color:#789"><i class="fas fa-location-dot"></i> ' + esc(l.preferredLocationPath) + '</small>' : '—') },
-          { data: null, title: 'Budget', render: (d, t, l) => (l.budgetMin || l.budgetMax) ? esc(pkrShort(l.budgetMin || 0)) + ' – ' + esc(pkrShort(l.budgetMax || 0)) : '—' },
-          { data: 'status', title: 'Status', render: (d, t, l) => t === 'display'
+          { data: null, title: 'Ngân sách', render: (d, t, l) => (l.budgetMin || l.budgetMax) ? esc(pkrShort(l.budgetMin || 0)) + ' – ' + esc(pkrShort(l.budgetMax || 0)) : '—' },
+          { data: 'status', title: 'Trạng thái', render: (d, t, l) => t === 'display'
               ? badge(d) + (d === 'Lost' && l.lostReason ? '<br><small style="color:#c62828" title="' + esc(l.lostReason) + '">' + esc(String(l.lostReason).substr(0, 34)) + (l.lostReason.length > 34 ? '…' : '') + '</small>' : '') : d },
-          { data: 'assignedAgent', title: 'Agent', render: (d) => d ? esc(d) : '<span class="status-badge st-purple">Unassigned</span>' },
-          { data: 'created', title: 'Created', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
-          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-6', width: '208px', render: (d, t, l) => `<div class="table-actions slots-6 lead-actions">
+          { data: 'assignedAgent', title: 'Phụ trách', render: (d) => d ? esc(d) : '<span class="status-badge st-purple">Chưa gán</span>' },
+          { data: 'created', title: 'Ngày tạo', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-6', width: '208px', render: (d, t, l) => `<div class="table-actions slots-6 lead-actions">
             <button class="action-icon view-icon" data-action="view" title="Lead 360"><i class="fas fa-id-card-clip"></i></button>
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
-            ${canEdit && ['Negotiating','Won'].indexOf(l.status) !== -1 ? '<button class="action-icon assign-icon" data-action="deal" title="Convert to Deal"><i class="fas fa-handshake"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            ${all && !l.assignedAgent ? '<button class="action-icon assign-icon" data-action="assign" title="Assign agent"><i class="fas fa-user-plus"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${canEdit && ['Negotiating','Won'].indexOf(l.status) !== -1 ? '<button class="action-icon assign-icon" data-action="deal" title="Chuyển thành giao dịch"><i class="fas fa-handshake"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${all && !l.assignedAgent ? '<button class="action-icon assign-icon" data-action="assign" title="Gán nhân viên"><i class="fas fa-user-plus"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Sửa"><i class="fas fa-edit"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
           </div>` }
         ],
         createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ khách hàng 360'); },
@@ -247,37 +273,253 @@
       useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
 
       return (
-        <>
-          <KpiRow items={kpi} />
-          {!board && <Pipeline stages={stages} counts={counts} active={stage} onPick={setStage} total={base.length} />}
-          <div className="filters-section">
+        <div className="leads-module-view">
+          {/* 1. Desktop KPI Grid & Pipeline */}
+          <div className="desk-pipeline-block">
+            <KpiRow items={kpi} />
+            {!board && <Pipeline stages={stages} counts={counts} active={stage} onPick={setStage} total={base.length} />}
+          </div>
+
+          {/* 2. Mobile Horizontal Pill Bar */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button className={'mob-pill' + (!stage ? ' active' : '')} onClick={() => setStage('')}>
+                <span>Tất cả</span>
+                <span className="mob-pill-badge">{base.length}</span>
+              </button>
+              {stages.map((s) => {
+                const c = counts[s] || 0;
+                return (
+                  <button
+                    key={s}
+                    className={'mob-pill' + (stage === s ? ' active' : '') + (c === 0 ? ' empty' : '')}
+                    onClick={() => setStage(s)}
+                  >
+                    <span className="mob-pill-dot" style={{ background: STAGE_COLORS[s] || '#6c757d' }}></span>
+                    <span>{viEnum(s)}</span>
+                    <span className="mob-pill-badge">{c}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Filters Toolbar */}
+          <div className="filters-section leads-filters-section">
             <div className="filters-header">
-              <h3><i className="fas fa-filter"></i> Filters</h3>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button className={'btn btn-sm ' + (board ? 'btn-secondary' : 'btn-primary')} onClick={() => setBoard(false)}><i className="fas fa-list"></i> List</button>
-                <button className={'btn btn-sm ' + (board ? 'btn-primary' : 'btn-secondary')} onClick={() => setBoard(true)}><i className="fas fa-table-columns"></i> Board</button>
-                <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); }}>
-                  <i className="fas fa-rotate-left"></i> Clear
+              <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <button className={'btn btn-sm ' + (board ? 'btn-secondary' : 'btn-primary')} onClick={() => setBoard(false)}>
+                  <i className="fas fa-list"></i> <span className="hide-on-mobile-xs">Danh sách</span>
+                </button>
+                <button className={'btn btn-sm ' + (board ? 'btn-primary' : 'btn-secondary')} onClick={() => setBoard(true)}>
+                  <i className="fas fa-table-columns"></i> <span className="hide-on-mobile-xs">Bảng</span>
+                </button>
+                <button className={'btn btn-sm mob-filter-btn ' + (activeFiltersCount > 0 ? 'btn-primary' : 'btn-secondary')} onClick={() => setShowFilterDrawer(true)}>
+                  <i className="fas fa-sliders"></i> Lọc {activeFiltersCount > 0 && <span className="mob-filter-count">({activeFiltersCount})</span>}
+                </button>
+                <button className="btn btn-secondary btn-sm desk-clear-btn" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); }} title="Xóa bộ lọc">
+                  <i className="fas fa-rotate-left"></i> <span className="hide-on-mobile-xs">Xóa</span>
                 </button>
               </div>
             </div>
-            <div className="filters-grid">
+
+            {/* Desktop Filters Grid */}
+            <div className="filters-grid desk-filters-grid">
               <div className="filter-group">
-                <label><i className="fas fa-magnifying-glass"></i> Search</label>
-                <input className="filter-input" value={filters.search} placeholder="Name, phone, status…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
+                <input className="filter-input" value={filters.search} placeholder="Tên, SĐT, trạng thái…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
               </div>
-              <SearchableDropdown label="Source" icon="fas fa-bullhorn" options={opts(ENUMS.leadSource)} value={filters.source} onChange={(v) => setFilters({ ...filters, source: v })} placeholder="All Sources" />
-              <SearchableDropdown label="Interest" icon="fas fa-hand-holding-dollar" options={opts(ENUMS.interestType)} value={filters.interest} onChange={(v) => setFilters({ ...filters, interest: v })} placeholder="All Interests" />
-              {all && <SearchableDropdown label="Agent" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="All Agents" />}
+              <SearchableDropdown label="Nguồn" icon="fas fa-bullhorn" options={opts(ENUMS.leadSource)} value={filters.source} onChange={(v) => setFilters({ ...filters, source: v })} placeholder="Tất cả nguồn" />
+              <SearchableDropdown label="Nhu cầu" icon="fas fa-hand-holding-dollar" options={opts(ENUMS.interestType)} value={filters.interest} onChange={(v) => setFilters({ ...filters, interest: v })} placeholder="Tất cả nhu cầu" />
+              {all && <SearchableDropdown label="Nhân viên" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
             </div>
           </div>
+
+          {/* 4. Data Content: Desktop DataTable / Kanban / Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="leadsCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'FullName', 'bulkImportLeads', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
+
+            {/* Kanban view (desktop & mobile) */}
             {board && <LeadKanban leads={boardRows} stages={ENUMS.leadStatus} canEdit={canEdit} onMove={moveLead} onAction={onAction} />}
-            {loading ? (!board && <TableSkeleton rows={8} columns={8} />)
-              : <div style={{ overflowX: 'auto', display: board ? 'none' : 'block' }}><table id="leadsTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table View */}
+            {!board && (
+              <div className="desk-leads-table-wrap">
+                {loading ? <TableSkeleton rows={8} columns={8} /> : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table id="leadsTable" className="display" style={{ width: '100%' }}></table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mobile Cards List View */}
+            {!board && (
+              <div className="mob-leads-cards-container">
+                {loading ? (
+                  <div className="mob-leads-skeleton-list">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="mob-lead-card-skeleton">
+                        <div className="sk-head"><div className="sk-avatar"></div><div className="sk-lines"><div className="sk-line w60"></div><div className="sk-line w40"></div></div></div>
+                        <div className="sk-body"><div className="sk-line w80"></div></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : visible.length === 0 ? (
+                  <div className="mob-leads-empty-state">
+                    <div className="empty-circle"><i className="fas fa-user-tag"></i></div>
+                    <h4>Chưa có khách hàng phù hợp</h4>
+                    <p>Thử đổi bộ lọc hoặc thêm khách hàng tiềm năng mới vào hệ thống</p>
+                    {canAdd && (
+                      <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditing(null); setShowModal(true); }}>
+                        <i className="fas fa-plus"></i> Thêm khách hàng mới
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  visible.map((l) => (
+                    <div key={l.id} className="mob-lead-card" onClick={() => onAction('view', l)}>
+                      {/* Top Row: Avatar + Name + Status Dropdown */}
+                      <div className="mob-lead-top-row">
+                        <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(l.fullName) }}>
+                          {getLeadInitial(l.fullName)}
+                        </div>
+                        <div className="mob-lead-identity">
+                          <div className="mob-lead-name-wrap">
+                            <span className="mob-lead-name">{l.fullName}</span>
+                          </div>
+                          <div className="mob-lead-sub">
+                            <span className="mob-lead-phone"><i className="fas fa-phone-volume"></i> {l.phone}</span>
+                            {l.source && <span className="mob-lead-src"> · {viEnum(l.source)}</span>}
+                          </div>
+                        </div>
+                        <div className="mob-lead-stage-badge-wrap" onClick={(e) => e.stopPropagation()}>
+                          <select
+                            className="mob-lead-stage-select"
+                            value={l.status}
+                            style={{
+                              background: (STAGE_COLORS[l.status] || '#475569') + '18',
+                              color: STAGE_COLORS[l.status] || '#475569',
+                              borderColor: (STAGE_COLORS[l.status] || '#475569') + '45'
+                            }}
+                            onChange={(e) => moveLead(l, e.target.value)}
+                            disabled={!canEdit}
+                            title="Chạm để chuyển giai đoạn"
+                          >
+                            {ENUMS.leadStatus.map((st) => (
+                              <option key={st} value={st}>{viEnum(st)}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Middle Body: Chips, Property, Note */}
+                      <div className="mob-lead-card-body">
+                        <div className="mob-lead-chips">
+                          {l.interestType && (
+                            <span className="mob-chip chip-interest">
+                              <i className="fas fa-tag"></i> {viEnum(l.interestType)}
+                            </span>
+                          )}
+                          {(l.budgetMin || l.budgetMax) && (
+                            <span className="mob-chip chip-budget">
+                              <i className="fas fa-wallet"></i> {pkrShort(l.budgetMin || 0)} – {pkrShort(l.budgetMax || 0)}
+                            </span>
+                          )}
+                          {l.preferredLocationPath && (
+                            <span className="mob-chip chip-loc">
+                              <i className="fas fa-location-dot"></i> {l.preferredLocationPath}
+                            </span>
+                          )}
+                        </div>
+
+                        {l.propertyRef && (
+                          <div className="mob-lead-prop-box">
+                            <i className="fas fa-building"></i>
+                            <span className="prop-code">{l.propertyRef}</span>
+                            <span className="prop-title">{l.propertyTitle || ''}</span>
+                          </div>
+                        )}
+
+                        {l.message && (
+                          <div className="mob-lead-note-box">
+                            <i className="fas fa-comment-dots"></i>
+                            <span>{l.message}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Meta Row: Agent & Date */}
+                      <div className="mob-lead-meta-row">
+                        <span className="mob-meta-agent">
+                          <i className="fas fa-user-tie"></i> {l.assignedAgent || 'Chưa phân công'}
+                        </span>
+                        <span className="mob-meta-date">
+                          <i className="fas fa-clock"></i> {fmtDate(l.created)}
+                        </span>
+                      </div>
+
+                      {/* 1-Tap Quick Action Bar */}
+                      <div className="mob-lead-action-bar" onClick={(e) => e.stopPropagation()}>
+                        <a href={'tel:' + String(l.phone || '').replace(/\D/g, '')} className="mob-btn mob-btn-call" title="Gọi điện">
+                          <i className="fas fa-phone"></i> Gọi điện
+                        </a>
+                        <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', l)} title="Nhắn Zalo">
+                          <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
+                            <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
+                            <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
+                            <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+                          </svg>
+                          Zalo
+                        </button>
+                        <button className="mob-btn mob-btn-360" onClick={() => onAction('view', l)} title="Hồ sơ 360">
+                          <i className="fas fa-id-card-clip"></i> Hồ sơ 360
+                        </button>
+                        {canEdit && (
+                          <button className="mob-btn mob-btn-edit" onClick={() => onAction('edit', l)} title="Sửa thông tin">
+                            <i className="fas fa-pen-to-square"></i>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
+
+          {/* 5. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc khách hàng</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Từ khóa tìm kiếm</label>
+                    <input className="filter-input" value={filters.search} placeholder="Tên, SĐT, ghi chú..." onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                  <SearchableDropdown label="Nguồn khách hàng" icon="fas fa-bullhorn" options={opts(ENUMS.leadSource)} value={filters.source} onChange={(v) => setFilters({ ...filters, source: v })} placeholder="Tất cả nguồn" />
+                  <SearchableDropdown label="Nhu cầu" icon="fas fa-hand-holding-dollar" options={opts(ENUMS.interestType)} value={filters.interest} onChange={(v) => setFilters({ ...filters, interest: v })} placeholder="Tất cả nhu cầu" />
+                  {all && <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} khách)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showModal && (
             <LeadModal lead={editing} currentUser={currentUser} role={role} lookups={lookups}
                        onClose={() => { setShowModal(false); setEditing(null); }}
@@ -313,7 +555,7 @@
                            onClose={() => setPropPrefill(null)}
                            onSaved={() => { setPropPrefill(null); ['props:all', 'owners:all', 'dash:stats'].forEach((k) => swrMutate(k)); }} />
           )}
-        </>
+        </div>
       );
     }
 

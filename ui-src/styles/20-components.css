@@ -1441,5 +1441,14 @@
       .pd-facts { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* Mobile-specific Leads components (hidden by default on desktop) */
+    .mob-pipeline-bar { display: none; }
+    .mob-filter-btn { display: none; }
+    .mob-leads-cards-container { display: none; }
+    .mob-filter-sheet-overlay { display: none; }
+    .desk-pipeline-block { display: block; }
+    .desk-filters-grid { display: grid; }
+    .desk-leads-table-wrap { display: block; }
+
 
     
