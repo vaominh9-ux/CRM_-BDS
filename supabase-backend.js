@@ -85,14 +85,21 @@ async function authenticateUser(args) {
   const [login,password] = args;
   let email = String(login || '').trim().toLowerCase();
   if (!email.includes('@')) {
-    const rows = await adminSelect('profiles','email',`&username=eq.${enc(email)}&limit=1`);
+    const rows = await adminSelect('profiles','email,status',`&username=eq.${enc(email)}&limit=1`);
     if (!rows.length) return fail('Không tìm thấy tên đăng nhập');
+    if (rows[0].status !== 'Active') return fail('Tài khoản này đã bị ngừng hoạt động. Vui lòng liên hệ Quản trị viên.');
     email = rows[0].email;
   }
   let auth;
   try { auth = await request('/auth/v1/token?grant_type=password',{method:'POST',body:{email,password}}); }
   catch (error) { return fail(error.status === 400 ? 'Tên đăng nhập hoặc mật khẩu không đúng' : error.message); }
-  const p = await currentProfile(auth.access_token), perms = await permissionsFor(p.role_key,auth.access_token);
+  let p, perms;
+  try {
+    p = await currentProfile(auth.access_token);
+    perms = await permissionsFor(p.role_key,auth.access_token);
+  } catch (err) {
+    return fail(err.message === 'Tài khoản không hoạt động' ? 'Tài khoản này đã bị ngừng hoạt động. Vui lòng liên hệ Quản trị viên.' : err.message);
+  }
   return ok({username:p.username,email:p.email,role:p.role_key,profileImage:p.profile_image||'',themeMode:p.theme_mode||'light',
     customColors:JSON.stringify(p.custom_colors||{}),permissions:perms,canEditRbac:p.role_key==='Admin',
     authSession:{accessToken:auth.access_token,refreshToken:auth.refresh_token,expiresAt:Date.now()+Number(auth.expires_in||3600)*1000}});
