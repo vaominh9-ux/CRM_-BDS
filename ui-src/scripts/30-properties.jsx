@@ -11,6 +11,7 @@
       const [viewing, setViewing] = useState(null);
       const [dealFor, setDealFor] = useState(null); // property -> new deal prefill
       const [stage, setStage] = useState('');
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '', type: '', listing: '', city: '', agent: '', mineOnly: !all }); // agents land on My Listings
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
       useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
@@ -27,6 +28,7 @@
       ), [rows, filters.mineOnly, filters.type, filters.listing, filters.city, filters.agent, cityOf, currentUser]);
       const counts = useMemo(() => { const o = {}; base.forEach((p) => { o[p.status] = (o[p.status] || 0) + 1; }); return o; }, [base]);
       const visible = useMemo(() => (stage ? base.filter((p) => p.status === stage) : base), [base, stage]);
+      const activeFiltersCount = (filters.search ? 1 : 0) + (filters.type ? 1 : 0) + (filters.listing ? 1 : 0) + (filters.city ? 1 : 0) + (filters.agent ? 1 : 0) + (filters.mineOnly ? 1 : 0);
 
       const kpi = useMemo(() => { const r = rows || []; return [
         [r.length, 'Total Listings', 'fa-building', 'bg-navy'],
@@ -57,7 +59,7 @@
         if (action === 'view') setViewing(p);
         else if (action === 'edit') { setEditing(p); setShowModal(true); }
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Delete ' + (p.referenceCode || 'listing') + '?', text: 'It disappears from the portal and all CRM lists.', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+          Swal.fire({ icon: 'warning', title: 'Xóa ' + (p.referenceCode || 'bất động sản') + '?', text: 'BĐS sẽ bị xóa khỏi cổng thông tin và CRM.', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteProperty', p.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
               else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
@@ -92,8 +94,62 @@
       return (
         <>
           <KpiRow items={kpi} />
-          <Pipeline stages={ENUMS.propertyStatus} counts={counts} active={stage} onPick={setStage} total={base.length} />
-          <div className="filters-section">
+
+          {/* 1. Desktop Pipeline */}
+          <div className="desk-pipeline-block">
+            <Pipeline stages={ENUMS.propertyStatus} counts={counts} active={stage} onPick={setStage} total={base.length} />
+          </div>
+
+          {/* 2. Mobile Horizontally Scrollable Pipeline Pills */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (!stage ? 'active' : '')}
+                onClick={() => setStage('')}
+              >
+                <span>Tất cả</span>
+                <span className="mob-pill-badge">{base.length}</span>
+              </button>
+              {ENUMS.propertyStatus.map((st) => {
+                const count = counts[st] || 0;
+                const col = STAGE_COLORS[st] || '#64748b';
+                return (
+                  <button
+                    key={st}
+                    className={'mob-pill ' + (stage === st ? 'active' : '') + (count === 0 ? ' empty' : '')}
+                    onClick={() => setStage(stage === st ? '' : st)}
+                  >
+                    <span className="mob-pill-dot" style={{ background: col }}></span>
+                    <span>{viEnum(st)}</span>
+                    <span className="mob-pill-badge">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Mobile Sub-Toolbar */}
+          <div className="mob-props-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> BĐS {stage ? `· ${viEnum(stage)}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              {canAdd && (
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditing(null); setShowModal(true); }} title="Thêm BĐS mới">
+                  <i className="fas fa-plus"></i>
+                </button>
+              )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc BĐS">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Filters</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', type: '', listing: '', city: '', agent: '', mineOnly: false }); setStage(''); }}>
@@ -119,11 +175,160 @@
               </div>
             </div>
           </div>
+
+          {/* 5. Data Section: Desktop Table & Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="propsCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'Title', 'bulkImportProperties', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
-            {loading ? <TableSkeleton rows={8} columns={9} /> : <div style={{ overflowX: 'auto' }}><table id="propsTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table View */}
+            <div className="desk-props-table-wrap">
+              {loading ? <TableSkeleton rows={8} columns={9} /> : <div style={{ overflowX: 'auto' }}><table id="propsTable" className="display" style={{ width: '100%' }}></table></div>}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-props-cards-container">
+              {loading ? (
+                <div className="mob-props-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-prop-card-skeleton">
+                      <div className="sk-thumb"></div>
+                      <div className="sk-lines"><div className="sk-line w70"></div><div className="sk-line w40"></div><div className="sk-line w90"></div></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-props-empty-state">
+                  <div className="empty-circle"><i className="fas fa-building"></i></div>
+                  <h4>Chưa có bất động sản phù hợp</h4>
+                  <p>Thử đổi bộ lọc hoặc thêm tin đăng bất động sản mới</p>
+                  {canAdd && (
+                    <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditing(null); setShowModal(true); }}>
+                      <i className="fas fa-plus"></i> Thêm BĐS mới
+                    </button>
+                  )}
+                </div>
+              ) : (
+                visible.map((p) => {
+                  const im = (p.images || []).find((i) => i.isPrimary) || (p.images || [])[0];
+                  const priceDisplay = pkrShort(p.price) + (p.listingType === 'Rent' ? '/' + viEnum(p.rentFrequency || 'Monthly') : '');
+                  return (
+                    <div key={p.id} className="mob-prop-card" onClick={() => onAction('view', p)}>
+                      {/* HÀNG 1: Thumbnail ảnh (Trái) + Thông tin tóm tắt & Giá (Phải) */}
+                      <div className="mob-prop-header-row">
+                        <div className="mob-prop-thumb-box">
+                          {im ? (
+                            <img src={im.url} alt="" className="mob-prop-thumb" loading="lazy" />
+                          ) : (
+                            <div className="mob-prop-thumb-placeholder">
+                              <i className="fas fa-building"></i>
+                            </div>
+                          )}
+                          <span className={'mob-prop-listing-badge ' + (p.listingType === 'Rent' ? 'rent' : 'sale')}>
+                            {p.listingType === 'Rent' ? 'Thuê' : 'Bán'}
+                          </span>
+                          {p.isFeatured ? <span className="mob-prop-featured-star" title="Nổi bật"><i className="fas fa-star"></i></span> : null}
+                        </div>
+                        <div className="mob-prop-main-info">
+                          <div className="mob-prop-ref-row">
+                            <span className="mob-prop-ref">{p.referenceCode || '#' + p.id}</span>
+                            <Badge s={p.status} />
+                          </div>
+                          <div className="mob-prop-price">{priceDisplay}</div>
+                          <h4 className="mob-prop-title">{p.title}</h4>
+                          <div className="mob-prop-specs">
+                            {p.bedrooms != null && p.bedrooms !== '' ? <span><i className="fas fa-bed"></i> {p.bedrooms} PN</span> : null}
+                            {p.bathrooms != null && p.bathrooms !== '' ? <span><i className="fas fa-bath"></i> {p.bathrooms} WC</span> : null}
+                            {p.areaSize ? <span><i className="fas fa-ruler-combined"></i> {fmtArea(p.areaSize, p.areaUnit)}</span> : null}
+                            {p.propertyType ? <span className="mob-prop-type-tag">{viEnum(p.propertyType)}</span> : null}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 2: Địa chỉ, Nhân viên phụ trách, Lượt xem */}
+                      <div className="mob-prop-sub-info">
+                        <span className="mob-prop-loc">
+                          <i className="fas fa-location-dot"></i> {p.locationPath || p.address || 'Chưa có địa chỉ'}
+                        </span>
+                        <div className="mob-prop-meta-mini">
+                          <span><i className="fas fa-user-tie"></i> {p.assignedAgent || 'Chưa phân công'}</span>
+                          <span><i className="fas fa-eye"></i> {Number(p.viewsCount || 0).toLocaleString('vi-VN')}</span>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 3: 4 Nút hành động 1-chạm */}
+                      <div className="mob-prop-actions" onClick={(e) => e.stopPropagation()}>
+                        <button className="mob-btn mob-btn-detail" onClick={() => onAction('view', p)} title="Xem chi tiết">
+                          <i className="fas fa-eye"></i> Chi tiết
+                        </button>
+                        <button className="mob-btn mob-btn-zalo" onClick={() => {
+                          const link = (window.__APP_URL__ || '') + '?p=' + (p.slug || p.id);
+                          waOpen('', 'Xin gửi thông tin bất động sản: ' + p.title + ' (' + (p.referenceCode || '') + ') — Giá: ' + fmtPKR(p.price) + '\n' + link);
+                        }} title="Chia sẻ Zalo">
+                          <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
+                            <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
+                            <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
+                            <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+                          </svg>
+                          Zalo
+                        </button>
+                        {can(perms || {}, 'deals', 'a') && ['Available', 'Reserved'].indexOf(p.status) !== -1 && (
+                          <button className="mob-btn mob-btn-deal" onClick={() => setDealFor(p)} title="Tạo giao dịch">
+                            <i className="fas fa-handshake"></i> Giao dịch
+                          </button>
+                        )}
+                        {canEdit && (
+                          <button className="mob-btn mob-btn-edit" onClick={() => onAction('edit', p)} title="Sửa bất động sản">
+                            <i className="fas fa-pen-to-square"></i>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
+
+          {/* 6. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc bất động sản</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Từ khóa tìm kiếm</label>
+                    <input className="filter-input" value={filters.search} placeholder="Mã BĐS, tiêu đề, địa chỉ..." onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                  <SearchableDropdown label="Loại hình BĐS" icon="fas fa-house" options={opts(ENUMS.propertyType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Tất cả loại hình" />
+                  <SearchableDropdown label="Hình thức tin đăng" icon="fas fa-tags" options={opts(ENUMS.listingType)} value={filters.listing} onChange={(v) => setFilters({ ...filters, listing: v })} placeholder="Bán & Cho thuê" />
+                  <SearchableDropdown label="Tỉnh / Thành phố" icon="fas fa-city" options={(lookups.locations || []).filter((l) => l.level === 'City').map((c) => ({ value: c.name, label: c.name }))} value={filters.city} onChange={(v) => setFilters({ ...filters, city: v })} placeholder="Tất cả tỉnh thành" />
+                  {all && <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
+                  <div className="form-group" style={{ marginTop: 8 }}>
+                    <label><i className="fas fa-user-check"></i> Phạm vi xem</label>
+                    <div className="filter-toggle">
+                      <input type="checkbox" className="toggle" id="mobPropMineOnly" checked={filters.mineOnly}
+                             onChange={(e) => setFilters({ ...filters, mineOnly: e.target.checked })} />
+                      <label className="ft-txt" htmlFor="mobPropMineOnly">{filters.mineOnly ? 'Chỉ BĐS của tôi' : 'Toàn bộ công ty'}</label>
+                    </div>
+                  </div>
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '', type: '', listing: '', city: '', agent: '', mineOnly: false }); setStage(''); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} BĐS)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showModal && (
             <PropertyModal prop={editing} currentUser={currentUser} role={role} lookups={lookups}
                            onClose={() => { setShowModal(false); setEditing(null); }}
@@ -282,42 +487,42 @@
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving || uploading} />
-          <div className="modal">
+          <div className="modal modal-prop-form">
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-plus')}></i> {editing ? 'Edit ' + (prop.referenceCode || 'Property') : 'Add Property'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-plus')}></i> {editing ? 'Chỉnh sửa ' + (prop.referenceCode || 'Bất động sản') : 'Thêm bất động sản mới'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 <div className="form-group">
-                  <label>Title *</label>
+                  <label><i className="fas fa-heading"></i> Tiêu đề bất động sản *</label>
                   <input value={form.title} onChange={setEv('title')} required placeholder="Ví dụ: Nhà phố hiện đại 100 m²" />
                 </div>
                 <div className="form-grid">
-                  <SearchableDropdown label="Property Type" icon="fas fa-house" options={opts(ENUMS.propertyType)} value={form.propertyType} onChange={set('propertyType')} placeholder="Select type…" required={true} />
-                  <SearchableDropdown label="Listing Type" icon="fas fa-tags" options={opts(ENUMS.listingType)} value={form.listingType} onChange={set('listingType')} placeholder="Sale / Rent" required={true} />
+                  <SearchableDropdown label="Loại hình BĐS" icon="fas fa-house" options={opts(ENUMS.propertyType)} value={form.propertyType} onChange={set('propertyType')} placeholder="Chọn loại hình…" required={true} />
+                  <SearchableDropdown label="Hình thức tin đăng" icon="fas fa-tags" options={opts(ENUMS.listingType)} value={form.listingType} onChange={set('listingType')} placeholder="Bán / Cho thuê" required={true} />
                   <div className="form-group">
-                    <label><i className="fas fa-money-bill-wave"></i> Price (VNĐ) *</label>
-                    <input type="number" min="1" step="any" value={form.price} onChange={setEv('price')} required />
+                    <label><i className="fas fa-money-bill-wave"></i> Giá niêm yết (VNĐ) *</label>
+                    <input type="number" min="1" step="any" value={form.price} onChange={setEv('price')} required placeholder="Ví dụ: 2500000000" />
                   </div>
                   {form.listingType === 'Rent' && (
-                    <SearchableDropdown label="Rent Frequency" icon="fas fa-calendar" options={opts(ENUMS.rentFrequency)} value={form.rentFrequency} onChange={set('rentFrequency')} placeholder="Monthly / Yearly" />
+                    <SearchableDropdown label="Kỳ thanh toán tiền thuê" icon="fas fa-calendar" options={opts(ENUMS.rentFrequency)} value={form.rentFrequency} onChange={set('rentFrequency')} placeholder="Theo tháng / Năm" />
                   )}
                   <div className="form-group">
-                    <label><i className="fas fa-ruler-combined"></i> Area Size *</label>
-                    <input type="number" min="0.1" step="any" value={form.areaSize} onChange={setEv('areaSize')} required />
+                    <label><i className="fas fa-ruler-combined"></i> Diện tích *</label>
+                    <input type="number" min="0.1" step="any" value={form.areaSize} onChange={setEv('areaSize')} required placeholder="100" />
                   </div>
-                  <SearchableDropdown label="Area Unit" icon="fas fa-ruler" options={opts(ENUMS.areaUnit)} value={form.areaUnit} onChange={set('areaUnit')} placeholder="Unit…" required={true} />
+                  <SearchableDropdown label="Đơn vị diện tích" icon="fas fa-ruler" options={opts(ENUMS.areaUnit)} value={form.areaUnit} onChange={set('areaUnit')} placeholder="Đơn vị…" required={true} />
                   {!noBeds && (
                     <div className="form-group">
-                      <label><i className="fas fa-bed"></i> Bedrooms</label>
-                      <input type="number" min="0" value={form.bedrooms} onChange={setEv('bedrooms')} />
+                      <label><i className="fas fa-bed"></i> Số phòng ngủ</label>
+                      <input type="number" min="0" value={form.bedrooms} onChange={setEv('bedrooms')} placeholder="3" />
                     </div>
                   )}
                   {!noBeds && (
                     <div className="form-group">
-                      <label><i className="fas fa-bath"></i> Bathrooms</label>
-                      <input type="number" min="0" value={form.bathrooms} onChange={setEv('bathrooms')} />
+                      <label><i className="fas fa-bath"></i> Số phòng tắm / WC</label>
+                      <input type="number" min="0" value={form.bathrooms} onChange={setEv('bathrooms')} placeholder="2" />
                     </div>
                   )}
                   <SearchableDropdown label="Tỉnh / Thành phố" icon="fas fa-city" options={cities.map((c) => ({ value: String(c.id), label: c.name }))} value={cityId} onChange={(v) => { setCityId(v); setAreaId(''); setSocId(''); }} placeholder="Chọn tỉnh hoặc thành phố…" required={true} />
@@ -328,16 +533,16 @@
                     <input value={form.address} onChange={setEv('address')} placeholder={isVietnamAddress ? 'Ví dụ: 25 Nguyễn Huệ' : 'Nhập địa chỉ chi tiết'} />
                   </div>
                   <div className="form-group">
-                    <label><i className="fas fa-globe"></i> Latitude</label>
-                    <input type="number" step="any" value={form.latitude} onChange={setEv('latitude')} placeholder="31.4676" />
+                    <label><i className="fas fa-globe"></i> Vĩ độ (Latitude)</label>
+                    <input type="number" step="any" value={form.latitude} onChange={setEv('latitude')} placeholder="10.7769" />
                   </div>
                   <div className="form-group">
-                    <label><i className="fas fa-globe"></i> Longitude</label>
-                    <input type="number" step="any" value={form.longitude} onChange={setEv('longitude')} placeholder="74.4107" />
+                    <label><i className="fas fa-globe"></i> Kinh độ (Longitude)</label>
+                    <input type="number" step="any" value={form.longitude} onChange={setEv('longitude')} placeholder="106.7009" />
                   </div>
                   {owners.length > 0 && (
                     <div className="form-group">
-                      <label><i className="fas fa-address-book"></i> Owner Registry <small style={{ color: '#999', textTransform: 'none' }}>(auto-fills name & phone)</small></label>
+                      <label><i className="fas fa-address-book"></i> Danh bạ chủ nhà <small style={{ color: '#94a3b8', textTransform: 'none' }}>(tự điền tên & SĐT)</small></label>
                       <div className="owner-picker-row">
                         <div className="owner-picker-field">
                           <SearchableDropdown label="" icon="fas fa-user-tie"
@@ -345,37 +550,37 @@
                             value={form.ownerId}
                             onChange={(v) => { const o = owners.find((x) => String(x.id) === v);
                               setForm((f) => ({ ...f, ownerId: v, ownerName: o ? o.name : f.ownerName, ownerPhone: o ? o.phone : f.ownerPhone })); }}
-                            placeholder="Pick from registry…" />
+                            placeholder="Chọn từ danh bạ…" />
                         </div>
-                        <button type="button" className="btn btn-secondary btn-sm owner-picker-add" title="New owner" onClick={() => setShowOwnerModal(true)}><i className="fas fa-plus"></i></button>
+                        <button type="button" className="btn btn-secondary btn-sm owner-picker-add" title="Thêm chủ nhà mới" onClick={() => setShowOwnerModal(true)}><i className="fas fa-plus"></i></button>
                       </div>
                     </div>
                   )}
                   <div className="form-group">
-                    <label><i className="fas fa-user-lock"></i> Tên chủ sở hữu * <small style={{ color: '#999', textTransform: 'none' }}>(không công khai)</small></label>
-                    <input value={form.ownerName} onChange={setEv('ownerName')} required />
+                    <label><i className="fas fa-user-lock"></i> Tên chủ sở hữu * <small style={{ color: '#94a3b8', textTransform: 'none' }}>(không công khai)</small></label>
+                    <input value={form.ownerName} onChange={setEv('ownerName')} required placeholder="Nguyễn Văn A" />
                   </div>
                   <div className="form-group">
-                    <label><i className="fas fa-phone-lock"></i> Điện thoại chủ sở hữu * <small style={{ color: '#999', textTransform: 'none' }}>(không công khai)</small></label>
-                    <input value={form.ownerPhone} onChange={setEv('ownerPhone')} required placeholder="+92300…" />
+                    <label><i className="fas fa-phone-lock"></i> Điện thoại chủ sở hữu * <small style={{ color: '#94a3b8', textTransform: 'none' }}>(không công khai)</small></label>
+                    <input value={form.ownerPhone} onChange={setEv('ownerPhone')} required placeholder="0901234567" />
                   </div>
                   {all && (
                     <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={form.assignedAgent} onChange={set('assignedAgent')} placeholder="Chọn nhân viên…" />
                   )}
                   {editing && (
-                    <SearchableDropdown label="Status" icon="fas fa-flag" options={opts(statusOptions)} value={form.status} onChange={set('status')} placeholder="Status…" />
+                    <SearchableDropdown label="Trạng thái" icon="fas fa-flag" options={opts(statusOptions)} value={form.status} onChange={set('status')} placeholder="Trạng thái…" />
                   )}
                   <div className="form-group">
-                    <label><i className="fas fa-star"></i> Featured on Portal</label>
+                    <label><i className="fas fa-star"></i> Nổi bật trên cổng thông tin</label>
                     <input type="checkbox" className="toggle" checked={form.isFeatured} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} />
                   </div>
                 </div>
-                <SearchableMultiSelect label="Amenities" icon="fas fa-list-check"
+                <SearchableMultiSelect label="Tiện ích" icon="fas fa-list-check"
                   options={(lookups.amenities || []).map((a) => ({ value: String(a.id), label: a.name }))}
-                  values={form.amenityIds} onChange={set('amenityIds')} placeholder="Tag amenities…" />
+                  values={form.amenityIds} onChange={set('amenityIds')} placeholder="Gắn thẻ tiện ích…" />
                 <div className="form-group">
-                  <label><i className="fas fa-align-left"></i> Description</label>
-                  <textarea rows="4" value={form.description} onChange={setEv('description')} placeholder="Selling points, condition, nearby landmarks…"></textarea>
+                  <label><i className="fas fa-align-left"></i> Mô tả chi tiết</label>
+                  <textarea rows="4" value={form.description} onChange={setEv('description')} placeholder="Ưu điểm nổi bật, tình trạng nhà, tiện ích xung quanh…"></textarea>
                 </div>
                 <div className="form-group">
                   <label><i className="fas fa-images"></i> Hình ảnh ({form.images.length}/15)</label>
@@ -386,8 +591,8 @@
                         <div key={i} className={'img-cell' + (im.isPrimary ? ' primary' : '')}>
                           <img src={im.url} alt="" loading="lazy" />
                           <div className="img-acts">
-                            <button type="button" title="Set as cover" onClick={() => setPrimary(i)} className={im.isPrimary ? 'on' : ''}><i className="fas fa-star"></i></button>
-                            <button type="button" title="Remove" onClick={() => removeImg(i)}><i className="fas fa-trash"></i></button>
+                            <button type="button" title="Đặt làm ảnh đại diện" onClick={() => setPrimary(i)} className={im.isPrimary ? 'on' : ''}><i className="fas fa-star"></i></button>
+                            <button type="button" title="Xóa ảnh" onClick={() => removeImg(i)}><i className="fas fa-trash"></i></button>
                           </div>
                         </div>
                       ))}
@@ -395,7 +600,7 @@
                   )}
                 </div>
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving || uploading}>
                     {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật bất động sản' : 'Lưu bản nháp'}</>}
                   </button>
@@ -440,11 +645,11 @@
         }).catch(() => setBusy(false));
       };
       const doEmail = () => {
-        Swal.fire({ icon: 'question', title: 'Email this listing', input: 'email', inputPlaceholder: 'client@demo.com', showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Send' })
+        Swal.fire({ icon: 'question', title: 'Gửi tin đăng qua email', input: 'email', inputPlaceholder: 'client@domain.com', showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Gửi' })
           .then((r) => { if (r.isConfirmed && r.value) gsRun('emailPropertyPack', prop.id, r.value, currentUser).then((res) => {
             Swal.fire({ icon: res && res.success ? 'success' : 'error', title: (res && res.message) || 'Failed', timer: res && res.success ? 1800 : undefined, showConfirmButton: !(res && res.success) }); }); });
       };
-      const doCopy = () => { try { navigator.clipboard.writeText(portalLink); Swal.fire({ icon: 'success', title: 'Portal link copied!', timer: 1300, showConfirmButton: false }); } catch (e) { Swal.fire({ icon: 'info', title: 'Portal link', text: portalLink }); } };
+      const doCopy = () => { try { navigator.clipboard.writeText(portalLink); Swal.fire({ icon: 'success', title: 'Đã sao chép liên kết cổng!', timer: 1300, showConfirmButton: false }); } catch (e) { Swal.fire({ icon: 'info', title: 'Liên kết cổng thông tin', text: portalLink }); } };
       const waShare = () => window.open('https://zalo.me/?text=' + encodeURIComponent(prop.title + ' (' + (prop.referenceCode || '') + ') — ' + fmtPKR(prop.price) + '\n' + portalLink), '_blank');
 
       const addDoc = (e) => {
@@ -489,7 +694,7 @@
 
       return (
         <div className="modal-overlay" onClick={onClose}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal modal-prop-detail" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3><i className="fas fa-building"></i> {prop.title}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
