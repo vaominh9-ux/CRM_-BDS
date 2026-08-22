@@ -1588,16 +1588,23 @@
       const canAdd = can(perms, 'amenities', 'a'), canEdit = can(perms, 'amenities', 'e'), canDel = can(perms, 'amenities', 'd');
       const [showModal, setShowModal] = useState(false);
       const [editing, setEditing] = useState(null);
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [search, setSearch] = useState(initialSearch || '');
-      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
+
+      const visible = useMemo(() => {
+        const q = String(search || '').trim().toLowerCase();
+        return (rows || []).filter((a) => !q || [a.name, a.icon].some((val) => String(val || '').toLowerCase().includes(q)));
+      }, [rows, search]);
+      const activeFiltersCount = search ? 1 : 0;
 
       const kpi = useMemo(() => { const r = rows || []; const used = r.filter((a) => a.propertyCount > 0);
         const top = used.slice().sort((a, b) => b.propertyCount - a.propertyCount)[0];
         return [
-          [r.length, 'Amenities', 'fa-list-check', 'bg-navy'],
-          [used.length, 'In Use', 'fa-circle-check', 'bg-success'],
-          [r.length - used.length, 'Unused', 'fa-circle-minus', 'bg-warning'],
-          [top ? top.name : '—', 'Most Tagged', 'fa-star', 'bg-info']
+          [r.length, 'Tổng tiện ích', 'fa-list-check', 'bg-navy'],
+          [used.length, 'Đang sử dụng', 'fa-circle-check', 'bg-success'],
+          [r.length - used.length, 'Chưa gắn tin', 'fa-circle-minus', 'bg-warning'],
+          [top ? top.name : '—', 'Gắn nhiều nhất', 'fa-star', 'bg-info']
         ]; }, [rows]);
 
       const downloadTemplate = () => downloadCSV('amenities_template.csv', 'Name,Icon\nSolar Panels,fa-solar-panel\n');
@@ -1618,32 +1625,54 @@
       const onAction = (action, a) => {
         if (action === 'edit') { setEditing(a); setShowModal(true); }
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Delete "' + a.name + '"?', text: a.propertyCount ? 'Tagged on ' + a.propertyCount + ' listings — the tag will drop off them.' : undefined, showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+          Swal.fire({ icon: 'warning', title: 'Xóa tiện ích "' + a.name + '"?', text: a.propertyCount ? 'Đang được gắn trên ' + a.propertyCount + ' bất động sản — thẻ sẽ bị gỡ khỏi các tin đăng này.' : undefined, showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteAmenity', a.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('lookups'); }
-              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+              else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' }); }); });
         }
       };
 
-      const tableRef = useDataTable('amenTable', rows === undefined ? null : (rows || []), () => ({
+      const tableRef = useDataTable('amenTable', rows === undefined ? null : visible, () => ({
         search: { search: search },
         columns: [
-          { data: 'icon', title: 'Icon', orderable: false, render: (d) => '<i class="fas ' + esc(d || 'fa-check') + '" style="color:var(--navy-accent);font-size:18px"></i>' },
-          { data: 'name', title: 'Name', render: (d) => '<strong>' + esc(d) + '</strong>' },
-          { data: 'propertyCount', title: 'Tagged Listings' },
-          { data: 'created', title: 'Created', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
-          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-2', width: '72px', render: () => `<div class="table-actions slots-2">
-            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
-            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+          { data: 'icon', title: 'Biểu tượng', orderable: false, render: (d) => '<i class="fas ' + esc(d || 'fa-check') + '" style="color:var(--navy-accent);font-size:18px"></i>' },
+          { data: 'name', title: 'Tên tiện ích', render: (d) => '<strong>' + esc(d) + '</strong>' },
+          { data: 'propertyCount', title: 'Số BĐS gắn thẻ' },
+          { data: 'created', title: 'Ngày tạo', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-2', width: '72px', render: () => `<div class="table-actions slots-2">
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>' : ''}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
         order: [[1, 'asc']]
       }), onAction, [canEdit, canDel]);
-      useEffect(() => { const t = tableRef.current; if (t) t.search(search || '').draw(); }, [search, rows]);
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (search || '')) t.search(search || '').draw(); }, [search, visible]);
 
       return (
         <>
           <KpiRow items={kpi} />
-          <div className="filters-section">
+
+          {/* 1. Mobile Sub-Toolbar */}
+          <div className="mob-amens-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Tiện ích
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              {canAdd && (
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditing(null); setShowModal(true); }} title="Thêm tiện ích">
+                  <i className="fas fa-plus"></i>
+                </button>
+              )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc tiện ích">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Filters</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => setSearch('')}><i className="fas fa-rotate-left"></i> Clear</button>
@@ -1655,11 +1684,107 @@
               </div>
             </div>
           </div>
+
+          {/* 3. Data Section: Desktop Table & Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="amenCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'Name', 'bulkImportAmenities', currentUser, () => { mutate(); swrMutate('lookups'); }); e.target.value = ''; }} />
-            {loading ? <TableSkeleton rows={8} columns={5} /> : <div style={{ overflowX: 'auto' }}><table id="amenTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table View */}
+            <div className="desk-amens-table-wrap">
+              {loading ? <TableSkeleton rows={8} columns={5} /> : <div style={{ overflowX: 'auto' }}><table id="amenTable" className="display" style={{ width: '100%' }}></table></div>}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-amens-cards-container">
+              {loading ? (
+                <div className="mob-amens-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-amen-card-skeleton">
+                      <div className="sk-line w50"></div>
+                      <div className="sk-line w80"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-amens-empty-state">
+                  <div className="empty-circle"><i className="fas fa-list-check"></i></div>
+                  <h4>Chưa có tiện ích phù hợp</h4>
+                  <p>Thử tìm kiếm từ khóa khác hoặc thêm tiện ích mới</p>
+                  {canAdd && (
+                    <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditing(null); setShowModal(true); }}>
+                      <i className="fas fa-plus"></i> Thêm tiện ích
+                    </button>
+                  )}
+                </div>
+              ) : (
+                visible.map((a) => (
+                  <div key={a.id} className="mob-amen-card">
+                    {/* HÀNG 1: Icon & Tên tiện ích & Số BĐS gắn thẻ */}
+                    <div className="mob-amen-header-row">
+                      <div className="mob-amen-icon-box">
+                        <i className={'fas ' + (a.icon || 'fa-check')}></i>
+                      </div>
+                      <div className="mob-amen-info">
+                        <div className="mob-amen-name">
+                          <strong>{a.name}</strong>
+                          <span className={'mob-amen-count-badge ' + (a.propertyCount > 0 ? 'active' : 'empty')}>
+                            {a.propertyCount > 0 ? `${a.propertyCount} BĐS` : 'Chưa gắn'}
+                          </span>
+                        </div>
+                        <div className="mob-amen-sub">
+                          <span className="mob-amen-icon-code"><i className="fas fa-code"></i> {a.icon || 'fa-check'}</span>
+                          <span className="mob-amen-date"><i className="fas fa-calendar"></i> {fmtDate(a.created)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* HÀNG 2: Các nút hành động 1-chạm */}
+                    <div className="mob-amen-actions">
+                      {canEdit && (
+                        <button className="mob-btn mob-btn-edit" onClick={() => onAction('edit', a)} title="Chỉnh sửa tiện ích">
+                          <i className="fas fa-pen-to-square"></i> Sửa
+                        </button>
+                      )}
+                      {canDel && (
+                        <button className="mob-btn mob-btn-del" onClick={() => onAction('delete', a)} title="Xóa tiện ích">
+                          <i className="fas fa-trash"></i> Xóa
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
+
+          {/* 4. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc tiện ích</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm tiện ích</label>
+                    <input className="filter-input" value={search} placeholder="Tên tiện ích, biểu tượng..." onChange={(e) => setSearch(e.target.value)} />
+                  </div>
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setSearch(''); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Tiện ích)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showModal && (
             <AmenityModal amenity={editing} currentUser={currentUser}
                           onClose={() => { setShowModal(false); setEditing(null); }}
@@ -1680,31 +1805,37 @@
         gsRun(editing ? 'updateAmenity' : 'addAmenity', { ...form, id: amenity ? amenity.id : undefined }, currentUser).then((r) => {
           setSaving(false);
           if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2000, showConfirmButton: false }); onSaved(); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
-        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Lỗi', text: String((err && err.message) || err) }); });
       };
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving} />
-          <div className="modal" style={{ maxWidth: 440 }}>
+          <div className="modal modal-amen-form" style={{ maxWidth: 460 }}>
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-list-check')}></i> {editing ? 'Edit Amenity' : 'Add Amenity'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-list-check')}></i> {editing ? 'Chỉnh sửa tiện ích' : 'Thêm tiện ích mới'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 <div className="form-group">
-                  <label><i className="fas fa-signature"></i> Name *</label>
-                  <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required placeholder="Ví dụ: Điện mặt trời" />
+                  <label><i className="fas fa-signature"></i> Tên tiện ích *</label>
+                  <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required placeholder="Ví dụ: Điện mặt trời, Hồ bơi vô cực..." />
                 </div>
-                <SearchableDropdown label="Icon" icon="fas fa-icons"
+                <SearchableDropdown label="Biểu tượng Icon (FontAwesome)" icon="fas fa-icons"
                   options={AMEN_ICONS.map((ic) => ({ value: ic, label: ic.replace('fa-', '').replace(/-/g, ' ') }))}
-                  value={form.icon} onChange={(v) => setForm((f) => ({ ...f, icon: v }))} placeholder="Pick an icon…" />
-                {form.icon && <p style={{ margin: '4px 0 10px', color: '#789' }}>Preview: <i className={'fas ' + form.icon} style={{ color: 'var(--navy-accent)', fontSize: 18 }}></i></p>}
+                  value={form.icon} onChange={(v) => setForm((f) => ({ ...f, icon: v }))} placeholder="Chọn biểu tượng…" />
+                {form.icon && (
+                  <div className="amen-icon-preview-box">
+                    <span>Xem trước:</span>
+                    <i className={'fas ' + form.icon}></i>
+                    <code>{form.icon}</code>
+                  </div>
+                )}
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update' : 'Add'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật tiện ích' : 'Lưu tiện ích'}</>}
                   </button>
                 </div>
               </form>
