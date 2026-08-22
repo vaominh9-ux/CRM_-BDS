@@ -324,8 +324,35 @@
         color: #f87171 !important;
       }
     }
-    /* ===== CỔNG THÔNG TIN BĐS - TOÀN BỘ GIAO DIỆN MOBILE CHUẨN 100% TRÀN VIỀN KHÔNG THỪA KHOẢNG TRỐNG ===== */
     @media (max-width: 768px) {
+      /* ===== RESPONSIVE SWITCHERS: ẨN GIAO DIỆN DESKTOP, KÍCH HOẠT GIAO DIỆN MOBILE ===== */
+      .desk-pipeline-block,
+      .desk-filters-section,
+      .desk-filters-grid,
+      .desk-leads-table-wrap,
+      .desk-trash-view,
+      .desk-about-view,
+      .desktop-only-table,
+      .desktop-only-filters {
+        display: none !important;
+      }
+
+      .mob-pipeline-bar { display: block !important; }
+      .mob-sub-toolbar { display: flex !important; }
+      .mob-leads-cards-container { display: block !important; }
+      .mobile-only-cards { display: block !important; }
+      .mob-followups-list { display: flex !important; }
+      .mob-followup-card { display: block !important; }
+      .mob-trash-page { display: block !important; }
+      .mob-trash-list { display: flex !important; }
+      .mob-trash-card { display: block !important; }
+      .mob-about-page { display: block !important; }
+      .mob-about-hero-card { display: flex !important; }
+      .mob-about-card { display: block !important; }
+      .mob-doc-type-pills { display: block !important; }
+      .mob-doc-records-list { display: flex !important; }
+      .mob-doc-record-card { display: block !important; }
+
       /* ===== TỐI ƯU KHUNG KPI PHÂN TAB CAO CẤP TRÊN ĐIỆN THOẠI (MOBILE PERFORMANCE HUB) ===== */
       .dash-desktop-kpis { display: none !important; }
       .dash-mobile-kpis { display: block !important; }

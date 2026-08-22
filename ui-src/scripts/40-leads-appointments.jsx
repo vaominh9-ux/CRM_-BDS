@@ -830,9 +830,19 @@
 
       return (
         <div className="followups-page-wrapper">
-          <KpiRow items={kpi} />
+          {/* 1. Desktop KPI & Pipeline Block */}
+          <div className="desk-pipeline-block">
+            <KpiRow items={kpi} />
+            <Pipeline
+              stages={['Due Now', 'Upcoming', 'Completed', 'Cancelled']}
+              counts={counts}
+              active={stage}
+              onPick={setStage}
+              total={base.length}
+            />
+          </div>
 
-          {/* Dải viên thuốc phân nhóm lướt ngang */}
+          {/* 2. Mobile Horizontal Pill Bar */}
           <div className="mob-pipeline-bar" style={{ marginBottom: 10 }}>
             <div className="mob-pills-scroll">
               {FU_STAGES.map((s) => (
@@ -848,7 +858,7 @@
             </div>
           </div>
 
-          {/* Thanh công cụ phụ di động (Mobile Sub-Toolbar) */}
+          {/* 3. Mobile Sub-Toolbar */}
           <div className="mob-sub-toolbar">
             <div className="mob-sub-toolbar-title">
               <strong>{visible.length}</strong> Lịch chăm sóc {stage ? '· ' + (FU_STAGES.find((x) => x.key === stage)?.label || stage) : ''}
@@ -868,8 +878,8 @@
             </div>
           </div>
 
-          {/* Desktop Filters Section */}
-          <div className="filters-section desktop-only-filters">
+          {/* 4. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Bộ lọc lịch chăm sóc</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); }}>
@@ -886,7 +896,7 @@
             </div>
           </div>
 
-          {/* Mobile Filter Drawer (Bottom Sheet) */}
+          {/* 5. Mobile Filter Drawer (Bottom Sheet) */}
           {showFilterDrawer && (
             <div className="modal-overlay mob-filter-drawer-overlay" onClick={() => setShowFilterDrawer(false)}>
               <div className="mob-filter-drawer" onClick={(e) => e.stopPropagation()}>
@@ -928,18 +938,18 @@
             </div>
           )}
 
-          {/* Data Section (Desktop DataTable + Mobile Luxury Cards) */}
+          {/* 6. Data Section */}
           <div className="data-section">
             <input type="file" id="fuCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'LeadPhone', 'bulkImportFollowUps', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
 
-            {/* Desktop Table View */}
-            <div className="desktop-only-table">
+            {/* Desktop Table View (Chỉ hiện trên máy tính) */}
+            <div className="desk-leads-table-wrap">
               {loading ? <TableSkeleton rows={8} columns={7} /> : <div style={{ overflowX: 'auto' }}><table id="fuTable" className="display" style={{ width: '100%' }}></table></div>}
             </div>
 
-            {/* Mobile Luxury Cards View */}
-            <div className="mobile-only-cards">
+            {/* Mobile Cards View (Chỉ hiện trên điện thoại) */}
+            <div className="mob-leads-cards-container mobile-only-cards">
               {loading ? (
                 <div className="mob-cards-skeleton">
                   {[1, 2, 3, 4].map((i) => <div key={i} className="mob-card-skeleton"></div>)}

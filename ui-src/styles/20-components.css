@@ -1441,16 +1441,45 @@
       .pd-facts { grid-template-columns: repeat(2, 1fr); }
     }
 
-    /* Mobile-specific Leads components (hidden by default on desktop) */
-    .mob-pipeline-bar { display: none; }
-    .mob-filter-btn { display: none; }
-    .mob-leads-sub-toolbar { display: none; }
-    .mob-leads-cards-container { display: none; }
-    .mob-filter-sheet-overlay { display: none; }
-    .desk-pipeline-block { display: block; }
-    .desk-filters-section { display: block; }
-    .desk-filters-grid { display: grid; }
-    .desk-leads-table-wrap { display: block; }
+    /* Mobile-specific components (STRICTLY HIDDEN BY DEFAULT ON DESKTOP) */
+    .mob-pipeline-bar,
+    .mob-filter-btn,
+    .mob-leads-sub-toolbar,
+    .mob-sub-toolbar,
+    .mob-leads-cards-container,
+    .mobile-only-cards,
+    .mob-filter-sheet-overlay,
+    .mob-filter-drawer-overlay,
+    .mob-filter-drawer,
+    .mob-followups-list,
+    .mob-followup-card,
+    .mob-trash-page,
+    .mob-trash-list,
+    .mob-trash-card,
+    .mob-trash-empty,
+    .mob-about-page,
+    .mob-about-hero-card,
+    .mob-about-card,
+    .mob-about-features-grid,
+    .mob-about-rbac-list,
+    .mob-about-formulas-list,
+    .mob-doc-type-pills,
+    .mob-doc-records-list,
+    .mob-doc-record-card {
+      display: none !important;
+    }
+
+    /* Desktop-specific components (VISIBLE ON DESKTOP) */
+    .desk-pipeline-block,
+    .desk-filters-section,
+    .desk-filters-grid,
+    .desk-leads-table-wrap,
+    .desk-trash-view,
+    .desk-about-view,
+    .desktop-only-table,
+    .desktop-only-filters {
+      display: block !important;
+    }
 
 
     
