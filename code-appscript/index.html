@@ -5442,12 +5442,12 @@
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
       }
 
-      /* Hàng 1: Avatar + Tên + Dropdown Trạng Thái */
-      .mob-lead-header-row {
+      /* Header Thẻ: Avatar (Trái) | Cột Tên & SĐT/Nguồn (Giữa) | Nút Trạng Thái Gọn (Phải) */
+      .mob-lead-header-block {
         display: flex !important;
         align-items: center !important;
         gap: 10px !important;
-        margin-bottom: 6px !important;
+        margin-bottom: 10px !important;
       }
       .mob-lead-avatar {
         width: 38px !important;
@@ -5462,12 +5462,20 @@
         flex-shrink: 0 !important;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
       }
-      .mob-lead-name-box {
+      .mob-lead-info-col {
         flex: 1 !important;
         min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 2px !important;
+      }
+      .mob-lead-name-row {
+        display: flex !important;
+        align-items: center !important;
       }
       .mob-lead-name {
-        font-size: 15px !important;
+        font-size: 14.5px !important;
         font-weight: 700 !important;
         color: var(--navy-primary, #001f3f) !important;
         white-space: nowrap !important;
@@ -5478,64 +5486,77 @@
       body.dark-mode .mob-lead-name {
         color: #ffffff !important;
       }
+      .mob-lead-sub-row {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .mob-lead-phone-text {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #0284c7 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      body.dark-mode .mob-lead-phone-text {
+        color: #38bdf8 !important;
+      }
+      .mob-lead-no-phone {
+        font-size: 11.5px !important;
+        color: #94a3b8 !important;
+        font-style: italic !important;
+      }
+      .mob-lead-source-tag {
+        font-size: 10.5px !important;
+        font-weight: 600 !important;
+        color: #64748b !important;
+        background: #f1f5f9 !important;
+        padding: 1px 6px !important;
+        border-radius: 5px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+      }
+      body.dark-mode .mob-lead-source-tag {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #cbd5e1 !important;
+      }
+
+      /* Nút Chọn Trạng Thái Thu Gọn & Caret Ôm Sát Cạnh Phải */
       .mob-lead-stage-wrap {
         flex-shrink: 0 !important;
+        position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
       }
       .mob-lead-stage-select {
-        font-size: 11.5px !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        font-size: 11px !important;
         font-weight: 700 !important;
-        padding: 4px 8px !important;
+        padding: 4px 18px 4px 8px !important;
         border-radius: 12px !important;
         border-width: 1px !important;
         border-style: solid !important;
         outline: none !important;
         cursor: pointer !important;
-        appearance: auto !important;
+        max-width: 105px !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        background: transparent !important;
+        box-sizing: border-box !important;
       }
-
-      /* Hàng 2: SĐT + Nguồn Khách Hàng Độc Lập */
-      .mob-lead-contact-strip {
-        display: flex !important;
-        align-items: center !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-        margin-bottom: 8px !important;
-        padding-left: 48px !important;
-        margin-top: -4px !important;
-      }
-      .mob-contact-phone {
-        font-size: 12.5px !important;
-        font-weight: 600 !important;
-        color: #0284c7 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 5px !important;
-      }
-      body.dark-mode .mob-contact-phone {
-        color: #38bdf8 !important;
-      }
-      .mob-contact-no-phone {
-        font-size: 11.5px !important;
-        color: #94a3b8 !important;
-        font-style: italic !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 4px !important;
-      }
-      .mob-contact-source-pill {
-        font-size: 11px !important;
-        font-weight: 600 !important;
-        color: #64748b !important;
-        background: #f1f5f9 !important;
-        padding: 2px 7px !important;
-        border-radius: 6px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 4px !important;
-      }
-      body.dark-mode .mob-contact-source-pill {
-        background: rgba(255, 255, 255, 0.08) !important;
-        color: #cbd5e1 !important;
+      .mob-stage-caret {
+        position: absolute !important;
+        right: 6px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-size: 8.5px !important;
+        pointer-events: none !important;
+        opacity: 0.85 !important;
       }
 
       /* Hàng 3: Chips Nhu cầu, Ngân sách, BĐS */
@@ -10087,22 +10108,38 @@
                 ) : (
                   visible.map((l) => (
                     <div key={l.id} className="mob-lead-card" onClick={() => onAction('view', l)}>
-                      {/* Row 1: Avatar + Tên + Dropdown Trạng Thái (Căn chỉnh cân đối) */}
-                      <div className="mob-lead-header-row">
+                      {/* Header Block: Avatar (Trái) | Cột Tên & SĐT/Nguồn (Giữa) | Dropdown Trạng Thái (Phải) */}
+                      <div className="mob-lead-header-block">
                         <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(l.fullName) }}>
                           {getLeadInitial(l.fullName)}
                         </div>
-                        <div className="mob-lead-name-box">
-                          <span className="mob-lead-name">{l.fullName}</span>
+                        <div className="mob-lead-info-col">
+                          <div className="mob-lead-name-row">
+                            <span className="mob-lead-name">{l.fullName}</span>
+                          </div>
+                          <div className="mob-lead-sub-row">
+                            {l.phone ? (
+                              <span className="mob-lead-phone-text">
+                                <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
+                              </span>
+                            ) : (
+                              <span className="mob-lead-no-phone">Chưa có SĐT</span>
+                            )}
+                            {l.source && (
+                              <span className="mob-lead-source-tag">
+                                <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="mob-lead-stage-wrap" onClick={(e) => e.stopPropagation()}>
                           <select
                             className="mob-lead-stage-select"
                             value={l.status}
                             style={{
-                              background: (STAGE_COLORS[l.status] || '#475569') + '18',
+                              background: (STAGE_COLORS[l.status] || '#475569') + '15',
                               color: STAGE_COLORS[l.status] || '#475569',
-                              borderColor: (STAGE_COLORS[l.status] || '#475569') + '45'
+                              borderColor: (STAGE_COLORS[l.status] || '#475569') + '40'
                             }}
                             onChange={(e) => moveLead(l, e.target.value)}
                             disabled={!canEdit}
@@ -10112,28 +10149,11 @@
                               <option key={st} value={st}>{viEnum(st)}</option>
                             ))}
                           </select>
+                          <i className="fas fa-chevron-down mob-stage-caret" style={{ color: STAGE_COLORS[l.status] || '#475569' }}></i>
                         </div>
                       </div>
 
-                      {/* Row 2: SĐT (Đã định dạng) + Nguồn Khách Hàng (Độc lập, không bị ép dòng) */}
-                      <div className="mob-lead-contact-strip">
-                        {l.phone ? (
-                          <span className="mob-contact-phone">
-                            <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
-                          </span>
-                        ) : (
-                          <span className="mob-contact-no-phone">
-                            <i className="fas fa-phone-slash"></i> Chưa có SĐT
-                          </span>
-                        )}
-                        {l.source && (
-                          <span className="mob-contact-source-pill">
-                            <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Row 3: Chips Nhu cầu, Ngân sách, Vị trí */}
+                      {/* Middle Body: Chips Nhu cầu, Ngân sách, Vị trí */}
                       <div className="mob-lead-card-body">
                         <div className="mob-lead-chips">
                           {l.interestType && (

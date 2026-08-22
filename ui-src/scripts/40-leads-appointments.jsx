@@ -423,22 +423,38 @@
                 ) : (
                   visible.map((l) => (
                     <div key={l.id} className="mob-lead-card" onClick={() => onAction('view', l)}>
-                      {/* Row 1: Avatar + Tên + Dropdown Trạng Thái (Căn chỉnh cân đối) */}
-                      <div className="mob-lead-header-row">
+                      {/* Header Block: Avatar (Trái) | Cột Tên & SĐT/Nguồn (Giữa) | Dropdown Trạng Thái (Phải) */}
+                      <div className="mob-lead-header-block">
                         <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(l.fullName) }}>
                           {getLeadInitial(l.fullName)}
                         </div>
-                        <div className="mob-lead-name-box">
-                          <span className="mob-lead-name">{l.fullName}</span>
+                        <div className="mob-lead-info-col">
+                          <div className="mob-lead-name-row">
+                            <span className="mob-lead-name">{l.fullName}</span>
+                          </div>
+                          <div className="mob-lead-sub-row">
+                            {l.phone ? (
+                              <span className="mob-lead-phone-text">
+                                <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
+                              </span>
+                            ) : (
+                              <span className="mob-lead-no-phone">Chưa có SĐT</span>
+                            )}
+                            {l.source && (
+                              <span className="mob-lead-source-tag">
+                                <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="mob-lead-stage-wrap" onClick={(e) => e.stopPropagation()}>
                           <select
                             className="mob-lead-stage-select"
                             value={l.status}
                             style={{
-                              background: (STAGE_COLORS[l.status] || '#475569') + '18',
+                              background: (STAGE_COLORS[l.status] || '#475569') + '15',
                               color: STAGE_COLORS[l.status] || '#475569',
-                              borderColor: (STAGE_COLORS[l.status] || '#475569') + '45'
+                              borderColor: (STAGE_COLORS[l.status] || '#475569') + '40'
                             }}
                             onChange={(e) => moveLead(l, e.target.value)}
                             disabled={!canEdit}
@@ -448,28 +464,11 @@
                               <option key={st} value={st}>{viEnum(st)}</option>
                             ))}
                           </select>
+                          <i className="fas fa-chevron-down mob-stage-caret" style={{ color: STAGE_COLORS[l.status] || '#475569' }}></i>
                         </div>
                       </div>
 
-                      {/* Row 2: SĐT (Đã định dạng) + Nguồn Khách Hàng (Độc lập, không bị ép dòng) */}
-                      <div className="mob-lead-contact-strip">
-                        {l.phone ? (
-                          <span className="mob-contact-phone">
-                            <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
-                          </span>
-                        ) : (
-                          <span className="mob-contact-no-phone">
-                            <i className="fas fa-phone-slash"></i> Chưa có SĐT
-                          </span>
-                        )}
-                        {l.source && (
-                          <span className="mob-contact-source-pill">
-                            <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Row 3: Chips Nhu cầu, Ngân sách, Vị trí */}
+                      {/* Middle Body: Chips Nhu cầu, Ngân sách, Vị trí */}
                       <div className="mob-lead-card-body">
                         <div className="mob-lead-chips">
                           {l.interestType && (
