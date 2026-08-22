@@ -624,7 +624,9 @@
     function GlobalSearch({ currentUser, perms, canEditRbac, jump }) {
       const [q, setQ] = useState('');
       const [open, setOpen] = useState(false);
+      const [mobSearchOpen, setMobSearchOpen] = useState(false);
       const ref = useRef(null);
+      const inputRef = useRef(null);
       const term = q.trim().toLowerCase();
       const canU = can(perms, 'users', 'v'), canL = can(perms, 'logs', 'v');
       const canP = can(perms, 'properties', 'v'), canLd = can(perms, 'leads', 'v');
@@ -636,65 +638,113 @@
       const { data: dRes } = useSWR(term && canLd ? 'leads:all' : null, () => gsRun('getLeads', currentUser), SWR_LIVE);
 
       useEffect(() => {
-        const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        const close = (e) => {
+          if (ref.current && !ref.current.contains(e.target)) {
+            setOpen(false);
+            if (!q) setMobSearchOpen(false);
+          }
+        };
         document.addEventListener('mousedown', close);
         return () => document.removeEventListener('mousedown', close);
-      }, []);
+      }, [q]);
+
+      const openMobile = () => {
+        setMobSearchOpen(true);
+        setOpen(true);
+        setTimeout(() => inputRef.current && inputRef.current.focus(), 60);
+      };
+
+      const closeMobile = () => {
+        setMobSearchOpen(false);
+        setOpen(false);
+        setQ('');
+      };
 
       const hit = (s) => String(s == null ? '' : s).toLowerCase().includes(term);
       const groups = [];
       if (term) {
         const pages = Object.keys(PAGE_META)
           .filter((k) => (ALWAYS_PAGES.indexOf(k) !== -1 || (k === 'permissions' ? canEditRbac : can(perms, k, 'v'))) && (hit(PAGE_META[k].label) || hit(k)))
-          .map((k) => ({ icon: PAGE_META[k].icon, title: PAGE_META[k].label, sub: 'Open page', page: k, term: '' }));
-        if (pages.length) groups.push(['Pages', pages]);
+          .map((k) => ({ icon: PAGE_META[k].icon, title: PAGE_META[k].label, sub: 'Mở trang', page: k, term: '' }));
+        if (pages.length) groups.push(['Phân hệ', pages]);
         if (canP && pRes && pRes.success) {
           const ps = pRes.data.filter((p) => hit(p.title) || hit(p.referenceCode) || hit(p.locationPath) || hit(p.propertyType)).slice(0, 8)
             .map((p) => ({ icon: 'fa-building', title: p.title, sub: (p.referenceCode || '') + ' · ' + pkrShort(p.price) + ' · ' + (p.locationPath || ''), page: 'properties', term: p.referenceCode || p.title }));
-          if (ps.length) groups.push(['Properties', ps]);
+          if (ps.length) groups.push(['Bất động sản', ps]);
         }
         if (canLd && dRes && dRes.success) {
           const ds = dRes.data.filter((l) => hit(l.fullName) || hit(l.phone) || hit(l.status) || hit(l.source)).slice(0, 8)
             .map((l) => ({ icon: 'fa-user-tag', title: l.fullName, sub: l.phone + ' · ' + l.status + (l.assignedAgent ? ' · ' + l.assignedAgent : ''), page: 'leads', term: l.phone }));
-          if (ds.length) groups.push(['Leads', ds]);
+          if (ds.length) groups.push(['Khách hàng', ds]);
         }
         if (canU && uRes && uRes.success) {
           const us = uRes.data.filter((u) => hit(u.Username) || hit(u.Email) || hit(u.Role) || hit(u.Status)).slice(0, 8)
             .map((u) => ({ icon: 'fa-user', title: u.Username, sub: u.Email + ' · ' + u.Role, page: 'users', term: u.Username }));
-          if (us.length) groups.push(['Users', us]);
+          if (us.length) groups.push(['Người dùng', us]);
         }
         if (canL && lRes && lRes.success) {
           const ls = lRes.data.filter((g) => hit(g.Action) || hit(g.User) || hit(g.Details)).slice(0, 8)
             .map((g) => ({ icon: 'fa-clock-rotate-left', title: g.Action, sub: g.User + (g.Details ? ' · ' + g.Details : ''), page: 'logs', term: g.Action }));
-          if (ls.length) groups.push(['Activity', ls]);
+          if (ls.length) groups.push(['Nhật ký', ls]);
         }
       }
       const count = groups.reduce((n, g) => n + g[1].length, 0);
-      const pick = (r) => { setOpen(false); setQ(''); jump(r.page, r.term); };
+      const pick = (r) => { setOpen(false); setMobSearchOpen(false); setQ(''); jump(r.page, r.term); };
 
       return (
-        <div className="gsearch" ref={ref}>
-          <i className="fas fa-magnifying-glass gs-lead"></i>
-          <input className="gs-input" value={q} placeholder="Search everything…"
-                 onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => term && setOpen(true)} />
-          {q && <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Clear"><i className="fas fa-xmark"></i></button>}
+        <div className={'gsearch' + (mobSearchOpen ? ' mob-active' : '')} ref={ref}>
+          {/* Nút kính lúp tròn trên Mobile */}
+          <button className="gsearch-mob-trigger" onClick={openMobile} title="Tìm kiếm">
+            <i className="fas fa-magnifying-glass"></i>
+          </button>
+
+          {/* Thanh tìm kiếm desktop / overlay mobile */}
+          <div className={'gs-bar-wrap' + (mobSearchOpen ? ' open' : '')}>
+            {mobSearchOpen && (
+              <button className="gs-mob-back" onClick={closeMobile} title="Quay lại">
+                <i className="fas fa-arrow-left"></i>
+              </button>
+            )}
+            <i className="fas fa-magnifying-glass gs-lead"></i>
+            <input
+              ref={inputRef}
+              className="gs-input"
+              value={q}
+              placeholder="Tìm kiếm BĐS, khách hàng, giao dịch…"
+              onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+              onFocus={() => term && setOpen(true)}
+            />
+            {q && (
+              <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Xóa">
+                <i className="fas fa-xmark"></i>
+              </button>
+            )}
+          </div>
+
           {open && term && (
             <div className="gs-menu">
               <div className="gs-scroll">
-                {count === 0
-                  ? <div className="gs-empty"><i className="fas fa-magnifying-glass"></i>No matches for "{q}"</div>
-                  : groups.map(([name, items]) => (
-                      <div className="gs-group" key={name}>
-                        <div className="gs-group-h">{name}<span>{items.length}</span></div>
-                        {items.map((r, i) => (
-                          <div className="gs-item" key={i} onClick={() => pick(r)}>
-                            <i className={'fas ' + r.icon + ' gs-ic'}></i>
-                            <div className="gs-txt"><div className="gs-t">{r.title}</div><div className="gs-s">{r.sub}</div></div>
-                            <i className="fas fa-arrow-right-long gs-go"></i>
+                {count === 0 ? (
+                  <div className="gs-empty">
+                    <i className="fas fa-magnifying-glass"></i>Không tìm thấy kết quả phù hợp cho "{q}"
+                  </div>
+                ) : (
+                  groups.map(([name, items]) => (
+                    <div className="gs-group" key={name}>
+                      <div className="gs-group-h">{name}<span>{items.length}</span></div>
+                      {items.map((r, i) => (
+                        <div className="gs-item" key={i} onClick={() => pick(r)}>
+                          <i className={'fas ' + r.icon + ' gs-ic'}></i>
+                          <div className="gs-txt">
+                            <div className="gs-t">{r.title}</div>
+                            <div className="gs-s">{r.sub}</div>
                           </div>
-                        ))}
-                      </div>
-                    ))}
+                          <i className="fas fa-arrow-right-long gs-go"></i>
+                        </div>
+                      ))}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

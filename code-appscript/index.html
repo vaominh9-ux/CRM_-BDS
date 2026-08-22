@@ -800,6 +800,9 @@
 
     /* 360 global search */
     .gsearch { position: relative; display: flex; align-items: center; }
+    .gsearch-mob-trigger { display: none; }
+    .gs-mob-back { display: none; }
+    .gs-bar-wrap { display: flex; align-items: center; position: relative; }
     .gs-lead { position: absolute; left: 11px; color: #9aa6b2; font-size: 13px; pointer-events: none; }
     .gs-input { width: 230px; max-width: 40vw; padding: 9px 30px 9px 32px; border: 1px solid #e2e8f1; background: #f6f8fb; font-size: 13.5px; color: var(--text-primary); border-radius: var(--r-sm); outline: none; transition: border-color .15s, background .15s, width .2s; }
     .gs-input:focus { border-color: var(--navy-accent); background: #fff; width: 280px; }
@@ -4638,28 +4641,8 @@
       .thm-dd {
         display: none !important;
       }
-      /* Ô tìm kiếm nhanh dạng viên thuốc nhỏ gọn */
-      .global-search {
-        position: relative !important;
-        flex: 1 !important;
-        max-width: 130px !important;
-        min-width: 60px !important;
-      }
-      .global-search input {
-        height: 32px !important;
-        font-size: 11px !important;
-        padding: 4px 6px 4px 24px !important;
-        border-radius: 18px !important;
-        background: #f1f5f9 !important;
-        border: 1px solid #cbd5e1 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-      }
-      .global-search i {
-        font-size: 10.5px !important;
-        left: 8px !important;
-      }
-      /* Nút icon tròn 32px tinh tế */
+      /* 2. Nút icon tròn 32px tinh tế trên điện thoại (Kính lúp, Thông báo, Xóa cache, Thêm mới) */
+      .gsearch-mob-trigger,
       .theme-menu-btn,
       .notif-btn,
       .clear-cache-btn,
@@ -4676,11 +4659,94 @@
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
+        cursor: pointer !important;
+      }
+      body.dark-mode .gsearch-mob-trigger,
+      body.dark-mode .theme-menu-btn,
+      body.dark-mode .notif-btn,
+      body.dark-mode .clear-cache-btn {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        color: #cbd5e1 !important;
       }
       .hdr-act-btn.primary {
         background: var(--navy-primary, #001f3f) !important;
         color: #ffffff !important;
         border: none !important;
+      }
+      /* Ẩn thanh tìm kiếm mở rộng mặc định trên mobile */
+      .gsearch .gs-bar-wrap:not(.open) {
+        display: none !important;
+      }
+      /* Khi bấm nút kính lúp: Mở thanh tìm kiếm tràn Header cực xịn */
+      .gsearch .gs-bar-wrap.open {
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 48px !important;
+        background: #ffffff !important;
+        padding: 6px 12px !important;
+        z-index: 9999 !important;
+        align-items: center !important;
+        gap: 8px !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+        box-sizing: border-box !important;
+      }
+      body.dark-mode .gsearch .gs-bar-wrap.open {
+        background: #0f2744 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      }
+      .gs-mob-back {
+        display: flex !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        border: none !important;
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        font-size: 14px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important;
+      }
+      body.dark-mode .gs-mob-back {
+        background: #1e293b !important;
+        color: #cbd5e1 !important;
+      }
+      .gsearch .gs-bar-wrap.open .gs-lead {
+        left: 54px !important;
+        font-size: 12px !important;
+        color: #94a3b8 !important;
+      }
+      .gsearch .gs-bar-wrap.open .gs-input {
+        flex: 1 !important;
+        width: 100% !important;
+        height: 36px !important;
+        font-size: 13px !important;
+        padding: 0 30px 0 32px !important;
+        border-radius: 18px !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #f8fafc !important;
+        box-sizing: border-box !important;
+      }
+      body.dark-mode .gsearch .gs-bar-wrap.open .gs-input {
+        background: #0a192f !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        color: #ffffff !important;
+      }
+      .gsearch.mob-active .gs-menu {
+        position: fixed !important;
+        top: 48px !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        border-radius: 0 0 16px 16px !important;
+        z-index: 9999 !important;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
       }
       /* Ẩn toàn bộ nút xuất file (CSV, PDF, Print, Nhập, Tải mẫu) và phân cách trên điện thoại */
       .hdr-act-btn:not(.primary),
@@ -6871,7 +6937,9 @@
     function GlobalSearch({ currentUser, perms, canEditRbac, jump }) {
       const [q, setQ] = useState('');
       const [open, setOpen] = useState(false);
+      const [mobSearchOpen, setMobSearchOpen] = useState(false);
       const ref = useRef(null);
+      const inputRef = useRef(null);
       const term = q.trim().toLowerCase();
       const canU = can(perms, 'users', 'v'), canL = can(perms, 'logs', 'v');
       const canP = can(perms, 'properties', 'v'), canLd = can(perms, 'leads', 'v');
@@ -6883,65 +6951,113 @@
       const { data: dRes } = useSWR(term && canLd ? 'leads:all' : null, () => gsRun('getLeads', currentUser), SWR_LIVE);
 
       useEffect(() => {
-        const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        const close = (e) => {
+          if (ref.current && !ref.current.contains(e.target)) {
+            setOpen(false);
+            if (!q) setMobSearchOpen(false);
+          }
+        };
         document.addEventListener('mousedown', close);
         return () => document.removeEventListener('mousedown', close);
-      }, []);
+      }, [q]);
+
+      const openMobile = () => {
+        setMobSearchOpen(true);
+        setOpen(true);
+        setTimeout(() => inputRef.current && inputRef.current.focus(), 60);
+      };
+
+      const closeMobile = () => {
+        setMobSearchOpen(false);
+        setOpen(false);
+        setQ('');
+      };
 
       const hit = (s) => String(s == null ? '' : s).toLowerCase().includes(term);
       const groups = [];
       if (term) {
         const pages = Object.keys(PAGE_META)
           .filter((k) => (ALWAYS_PAGES.indexOf(k) !== -1 || (k === 'permissions' ? canEditRbac : can(perms, k, 'v'))) && (hit(PAGE_META[k].label) || hit(k)))
-          .map((k) => ({ icon: PAGE_META[k].icon, title: PAGE_META[k].label, sub: 'Open page', page: k, term: '' }));
-        if (pages.length) groups.push(['Pages', pages]);
+          .map((k) => ({ icon: PAGE_META[k].icon, title: PAGE_META[k].label, sub: 'Mở trang', page: k, term: '' }));
+        if (pages.length) groups.push(['Phân hệ', pages]);
         if (canP && pRes && pRes.success) {
           const ps = pRes.data.filter((p) => hit(p.title) || hit(p.referenceCode) || hit(p.locationPath) || hit(p.propertyType)).slice(0, 8)
             .map((p) => ({ icon: 'fa-building', title: p.title, sub: (p.referenceCode || '') + ' · ' + pkrShort(p.price) + ' · ' + (p.locationPath || ''), page: 'properties', term: p.referenceCode || p.title }));
-          if (ps.length) groups.push(['Properties', ps]);
+          if (ps.length) groups.push(['Bất động sản', ps]);
         }
         if (canLd && dRes && dRes.success) {
           const ds = dRes.data.filter((l) => hit(l.fullName) || hit(l.phone) || hit(l.status) || hit(l.source)).slice(0, 8)
             .map((l) => ({ icon: 'fa-user-tag', title: l.fullName, sub: l.phone + ' · ' + l.status + (l.assignedAgent ? ' · ' + l.assignedAgent : ''), page: 'leads', term: l.phone }));
-          if (ds.length) groups.push(['Leads', ds]);
+          if (ds.length) groups.push(['Khách hàng', ds]);
         }
         if (canU && uRes && uRes.success) {
           const us = uRes.data.filter((u) => hit(u.Username) || hit(u.Email) || hit(u.Role) || hit(u.Status)).slice(0, 8)
             .map((u) => ({ icon: 'fa-user', title: u.Username, sub: u.Email + ' · ' + u.Role, page: 'users', term: u.Username }));
-          if (us.length) groups.push(['Users', us]);
+          if (us.length) groups.push(['Người dùng', us]);
         }
         if (canL && lRes && lRes.success) {
           const ls = lRes.data.filter((g) => hit(g.Action) || hit(g.User) || hit(g.Details)).slice(0, 8)
             .map((g) => ({ icon: 'fa-clock-rotate-left', title: g.Action, sub: g.User + (g.Details ? ' · ' + g.Details : ''), page: 'logs', term: g.Action }));
-          if (ls.length) groups.push(['Activity', ls]);
+          if (ls.length) groups.push(['Nhật ký', ls]);
         }
       }
       const count = groups.reduce((n, g) => n + g[1].length, 0);
-      const pick = (r) => { setOpen(false); setQ(''); jump(r.page, r.term); };
+      const pick = (r) => { setOpen(false); setMobSearchOpen(false); setQ(''); jump(r.page, r.term); };
 
       return (
-        <div className="gsearch" ref={ref}>
-          <i className="fas fa-magnifying-glass gs-lead"></i>
-          <input className="gs-input" value={q} placeholder="Search everything…"
-                 onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => term && setOpen(true)} />
-          {q && <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Clear"><i className="fas fa-xmark"></i></button>}
+        <div className={'gsearch' + (mobSearchOpen ? ' mob-active' : '')} ref={ref}>
+          {/* Nút kính lúp tròn trên Mobile */}
+          <button className="gsearch-mob-trigger" onClick={openMobile} title="Tìm kiếm">
+            <i className="fas fa-magnifying-glass"></i>
+          </button>
+
+          {/* Thanh tìm kiếm desktop / overlay mobile */}
+          <div className={'gs-bar-wrap' + (mobSearchOpen ? ' open' : '')}>
+            {mobSearchOpen && (
+              <button className="gs-mob-back" onClick={closeMobile} title="Quay lại">
+                <i className="fas fa-arrow-left"></i>
+              </button>
+            )}
+            <i className="fas fa-magnifying-glass gs-lead"></i>
+            <input
+              ref={inputRef}
+              className="gs-input"
+              value={q}
+              placeholder="Tìm kiếm BĐS, khách hàng, giao dịch…"
+              onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+              onFocus={() => term && setOpen(true)}
+            />
+            {q && (
+              <button className="gs-x" onClick={() => { setQ(''); setOpen(false); }} title="Xóa">
+                <i className="fas fa-xmark"></i>
+              </button>
+            )}
+          </div>
+
           {open && term && (
             <div className="gs-menu">
               <div className="gs-scroll">
-                {count === 0
-                  ? <div className="gs-empty"><i className="fas fa-magnifying-glass"></i>No matches for "{q}"</div>
-                  : groups.map(([name, items]) => (
-                      <div className="gs-group" key={name}>
-                        <div className="gs-group-h">{name}<span>{items.length}</span></div>
-                        {items.map((r, i) => (
-                          <div className="gs-item" key={i} onClick={() => pick(r)}>
-                            <i className={'fas ' + r.icon + ' gs-ic'}></i>
-                            <div className="gs-txt"><div className="gs-t">{r.title}</div><div className="gs-s">{r.sub}</div></div>
-                            <i className="fas fa-arrow-right-long gs-go"></i>
+                {count === 0 ? (
+                  <div className="gs-empty">
+                    <i className="fas fa-magnifying-glass"></i>Không tìm thấy kết quả phù hợp cho "{q}"
+                  </div>
+                ) : (
+                  groups.map(([name, items]) => (
+                    <div className="gs-group" key={name}>
+                      <div className="gs-group-h">{name}<span>{items.length}</span></div>
+                      {items.map((r, i) => (
+                        <div className="gs-item" key={i} onClick={() => pick(r)}>
+                          <i className={'fas ' + r.icon + ' gs-ic'}></i>
+                          <div className="gs-txt">
+                            <div className="gs-t">{r.title}</div>
+                            <div className="gs-s">{r.sub}</div>
                           </div>
-                        ))}
-                      </div>
-                    ))}
+                          <i className="fas fa-arrow-right-long gs-go"></i>
+                        </div>
+                      ))}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

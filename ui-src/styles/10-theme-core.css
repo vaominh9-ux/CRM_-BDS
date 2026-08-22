@@ -668,6 +668,9 @@
 
     /* 360 global search */
     .gsearch { position: relative; display: flex; align-items: center; }
+    .gsearch-mob-trigger { display: none; }
+    .gs-mob-back { display: none; }
+    .gs-bar-wrap { display: flex; align-items: center; position: relative; }
     .gs-lead { position: absolute; left: 11px; color: #9aa6b2; font-size: 13px; pointer-events: none; }
     .gs-input { width: 230px; max-width: 40vw; padding: 9px 30px 9px 32px; border: 1px solid #e2e8f1; background: #f6f8fb; font-size: 13.5px; color: var(--text-primary); border-radius: var(--r-sm); outline: none; transition: border-color .15s, background .15s, width .2s; }
     .gs-input:focus { border-color: var(--navy-accent); background: #fff; width: 280px; }
