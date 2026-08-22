@@ -1184,7 +1184,7 @@
       };
       return (
         <div className="modal-overlay">
-          <div className="modal modal-txn" style={{ maxWidth: 860 }}>
+          <div className="modal modal-txn" style={{ maxWidth: 880 }}>
             <div className="modal-header">
               <h3><i className="fas fa-door-open"></i> Kết thúc hợp đồng thuê — {ten.propertyRef} · {ten.tenantName}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
@@ -1208,10 +1208,10 @@
                     <div className={'txn-line total' + (refund < 0 ? ' bad' : '')}><span className="f">Hoàn trả người thuê</span><span className="v">{fmtPKR(refund)}</span></div>
                     <div className="txn-impact"><i className="fas fa-arrow-right-arrow-left"></i> Bất động sản → <b>Có sẵn</b> (mở lại cho thuê)</div>
                     {err && <div className="txn-err">{err}</div>}
-                    <div className="form-actions" style={{ marginTop: 14 }}>
+                    <div className="form-actions" style={{ marginTop: 16 }}>
                       <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                       <button type="submit" className="btn btn-danger" disabled={saving || !!err}>
-                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang kết thúc…</> : <><i className="fas fa-door-open"></i> Kết thúc hợp đồng thuê</>}
+                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang kết thúc…</> : <><i className="fas fa-door-open"></i> Kết thúc hợp đồng</>}
                       </button>
                     </div>
                   </div>
