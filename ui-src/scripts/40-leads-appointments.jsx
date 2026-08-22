@@ -146,6 +146,8 @@
       if (!p) return '';
       if (p.length === 10) return p.slice(0, 4) + '.' + p.slice(4, 7) + '.' + p.slice(7);
       if (p.length === 11) return p.slice(0, 4) + '.' + p.slice(4, 7) + '.' + p.slice(7);
+      if (p.length > 11) return p.slice(0, 4) + '.' + p.slice(4, 7) + '.' + p.slice(7, 10) + '.' + p.slice(10);
+      if (p.length === 9) return p.slice(0, 3) + '.' + p.slice(3, 6) + '.' + p.slice(6);
       return phone;
     };
 
