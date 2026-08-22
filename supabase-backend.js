@@ -270,7 +270,17 @@ async function publicSubmitEnquiry(args) {
   const data = args[0] || {};
   if (String(data.website || '').trim()) return ok({message:'Yêu cầu đã được ghi nhận.'});
   if (!String(data.fullName||'').trim() || !String(data.phone||'').trim()) return fail('Vui lòng nhập họ tên và số điện thoại');
-  await request('/rest/v1/leads',{method:'POST',admin:true,body:{full_name:String(data.fullName).trim(),phone:String(data.phone).trim(),email:String(data.email||'').trim()||null,source:'Website',interest_type:['Buy','Rent','Sell','Rent Out'].includes(data.interestType)?data.interestType:'Buy',property_id:Number(data.propertyId)||null,message:String(data.message||'').trim(),status:'New'}});
+  const leadData = clean({
+    full_name: String(data.fullName).trim(),
+    phone: String(data.phone).trim(),
+    email: String(data.email || '').trim() || null,
+    source: 'Website',
+    interest_type: ['Buy','Rent','Sell','Rent Out'].includes(data.interestType) ? data.interestType : 'Buy',
+    property_id: Number(data.propertyId) || null,
+    message: String(data.message || '').trim(),
+    status: 'New'
+  });
+  await insertRow('leads', leadData, null, true);
   return ok({message:'Chúng tôi đã nhận được yêu cầu và sẽ liên hệ với bạn sớm.'});
 }
 
@@ -363,24 +373,25 @@ async function brochurePdf(args, jwt) {
   await audit(jwt, 'Brochure Generated', property.referenceCode || `#${property.id}`);
   return ok({base64:pdf.toString('base64'),filename:`${property.referenceCode || 'bat-dong-san'}.pdf`});
 }
-async function insertRow(table,body,jwt) {
+async function insertRow(table,body,jwt,admin=false) {
   const payload=clean(body);
+  const useAdmin = Boolean(admin || !jwt);
   try {
-    const rows=await request(`/rest/v1/${table}`,{method:'POST',jwt,body:payload,headers:{Prefer:'return=representation'}});
+    const rows=await request(`/rest/v1/${table}`,{method:'POST',jwt,admin:useAdmin,body:payload,headers:{Prefer:'return=representation'}});
     return Array.isArray(rows)?rows[0]:null;
   } catch (error) {
     // Các bảng được nhập từ hệ thống cũ có ID tường minh; identity sequence trên
     // Supabase có thể thấp hơn ID hiện có. Cấp ID an toàn từ dữ liệu thực tế để
     // mọi phân hệ tạo mới tiếp tục hoạt động cho đến khi sequence tự bắt kịp.
     if (!new RegExp(`${table}_pkey|duplicate key`, 'i').test(String(error.message||''))) throw error;
-    for (let attempt=0;attempt<3;attempt++) {
+    for (let attempt=0;attempt<5;attempt++) {
       const latest=await adminSelect(table,'id','&order=id.desc&limit=1');
-      const explicitId=Number(latest[0]?.id||0)+1;
+      const explicitId=Number(latest[0]?.id||0)+1+attempt;
       try {
-        const rows=await request(`/rest/v1/${table}`,{method:'POST',jwt,body:{...payload,id:explicitId},headers:{Prefer:'return=representation'}});
+        const rows=await request(`/rest/v1/${table}`,{method:'POST',jwt,admin:useAdmin,body:{...payload,id:explicitId},headers:{Prefer:'return=representation'}});
         return Array.isArray(rows)?rows[0]:null;
       } catch (retryError) {
-        if (attempt===2 || !/duplicate key/i.test(String(retryError.message||''))) throw retryError;
+        if (attempt===4 || !/duplicate key/i.test(String(retryError.message||''))) throw retryError;
       }
     }
   }
