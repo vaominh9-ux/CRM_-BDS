@@ -2490,13 +2490,31 @@ function getContractTemplates(currentUser) {
       { key: 'dues', label: 'Thông Báo Công Nợ', shortLabel: 'Báo Công Nợ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật', isCustom: false },
       { key: 'invoice', label: 'Hóa Đơn Hoa Hồng', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất', isCustom: false }
     ];
-    return ok_({ templates: defaults });
+    var p = PropertiesService.getScriptProperties();
+    var raw = p.getProperty('CONTRACT_TEMPLATES');
+    var custom = {};
+    if (raw) {
+      try { custom = JSON.parse(raw) || {}; } catch(e) {}
+    }
+    var list = defaults.map(function(t) {
+      var c = custom[t.key] || {};
+      return Object.assign({}, t, c, { isCustom: Boolean(custom[t.key]) });
+    });
+    return ok_({ data: { templates: list } });
   } catch (e) { return err_('Error: ' + e); }
 }
 
 function saveContractTemplate(templateKey, templateData, currentUser) {
   try {
     if (userRole_(currentUser) !== 'Admin') return err_('Access denied');
+    var p = PropertiesService.getScriptProperties();
+    var raw = p.getProperty('CONTRACT_TEMPLATES');
+    var custom = {};
+    if (raw) {
+      try { custom = JSON.parse(raw) || {}; } catch(e) {}
+    }
+    custom[templateKey] = templateData;
+    p.setProperty('CONTRACT_TEMPLATES', JSON.stringify(custom));
     addLog_(currentUser, 'Contract Template Saved', 'Template: ' + templateKey);
     return ok_({ message: 'Đã lưu mẫu hợp đồng thành công!' });
   } catch (e) { return err_('Error: ' + e); }
@@ -2505,6 +2523,8 @@ function saveContractTemplate(templateKey, templateData, currentUser) {
 function resetContractTemplates(currentUser) {
   try {
     if (userRole_(currentUser) !== 'Admin') return err_('Access denied');
+    var p = PropertiesService.getScriptProperties();
+    p.deleteProperty('CONTRACT_TEMPLATES');
     addLog_(currentUser, 'Contract Templates Reset', 'All templates reset');
     return ok_({ message: 'Đã đặt lại tất cả mẫu hợp đồng về mặc định!' });
   } catch (e) { return err_('Error: ' + e); }

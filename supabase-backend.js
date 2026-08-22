@@ -1226,109 +1226,166 @@ const docNo = (prefix, id) => `${prefix}-${new Date().getFullYear()}-${padNo(id)
 const docEsc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' })[c]);
 
 // Memory store for custom templates fallback
+const DEFAULT_CONTRACT_TEMPLATES = [
+  {
+    key: 'rental',
+    label: 'HỢP ĐỒNG THUÊ BẤT ĐỘNG SẢN',
+    shortLabel: 'HĐ Thuê',
+    icon: 'fa-file-signature',
+    src: 'ten',
+    hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn',
+    isCustom: false
+  },
+  {
+    key: 'sale',
+    label: 'HỢP ĐỒNG ĐẶT CỌC CHUYỂN NHƯỢNG BẤT ĐỘNG SẢN',
+    shortLabel: 'Cọc Mua Bán',
+    icon: 'fa-file-contract',
+    src: 'deal',
+    hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc',
+    isCustom: false
+  },
+  {
+    key: 'handover',
+    label: 'BIÊN BẢN BÀN GIAO HIỆN TRẠNG VÀ CHỈ SỐ ĐIỆN NƯỚC',
+    shortLabel: 'Bàn Giao',
+    icon: 'fa-clipboard-check',
+    src: 'ten',
+    hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị',
+    isCustom: false
+  },
+  {
+    key: 'exclusive',
+    label: 'HỢP ĐỒNG DỊCH VỤ MÔI GIỚI BẤT ĐỘNG SẢN ĐỘC QUYỀN',
+    shortLabel: 'MG Độc Quyền',
+    icon: 'fa-handshake-angle',
+    src: 'deal',
+    hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông',
+    isCustom: false
+  },
+  {
+    key: 'receipt',
+    label: 'PHIẾU THU GIAO DỊCH BẤT ĐỘNG SẢN',
+    shortLabel: 'Phiếu Thu',
+    icon: 'fa-receipt',
+    src: 'deal',
+    hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại',
+    isCustom: false
+  },
+  {
+    key: 'rentreceipt',
+    label: 'BẢNG KÊ THANH TOÁN TIỀN THUÊ BẤT ĐỘNG SẢN',
+    shortLabel: 'Kê Tiền Thuê',
+    icon: 'fa-file-invoice',
+    src: 'ten',
+    hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và tổng công nợ còn thiếu',
+    isCustom: false
+  },
+  {
+    key: 'dues',
+    label: 'THÔNG BÁO CÔNG NỢ GIAO DỊCH',
+    shortLabel: 'Báo Công Nợ',
+    icon: 'fa-triangle-exclamation',
+    src: 'deal',
+    hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật',
+    isCustom: false
+  },
+  {
+    key: 'invoice',
+    label: 'HÓA ĐƠN DỊCH VỤ MÔI GIỚI HOA HỒNG',
+    shortLabel: 'HĐ Hoa Hồng',
+    icon: 'fa-file-invoice-dollar',
+    src: 'deal',
+    hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất',
+    isCustom: false
+  }
+];
+
 let customContractTemplates = {};
 
-function getDefaultContractTemplates() {
-  return [
-    {
-      key: 'rental',
-      label: 'HĐ Thuê Bất Động Sản',
-      shortLabel: 'HĐ Thuê',
-      icon: 'fa-file-signature',
-      src: 'ten',
-      hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn',
-      isCustom: false
-    },
-    {
-      key: 'sale',
-      label: 'HĐ Cọc Mua Bán',
-      shortLabel: 'Cọc Mua Bán',
-      icon: 'fa-file-contract',
-      src: 'deal',
-      hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc',
-      isCustom: false
-    },
-    {
-      key: 'handover',
-      label: 'Biên Bản Bàn Giao Hiện Trạng',
-      shortLabel: 'Bàn Giao',
-      icon: 'fa-clipboard-check',
-      src: 'ten',
-      hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị',
-      isCustom: false
-    },
-    {
-      key: 'exclusive',
-      label: 'HĐ Dịch Vụ Môi Giới Độc Quyền',
-      shortLabel: 'MG Độc Quyền',
-      icon: 'fa-handshake-angle',
-      src: 'deal',
-      hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông',
-      isCustom: false
-    },
-    {
-      key: 'receipt',
-      label: 'Phiếu Thu Giao Dịch',
-      shortLabel: 'Phiếu Thu',
-      icon: 'fa-receipt',
-      src: 'deal',
-      hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại',
-      isCustom: false
-    },
-    {
-      key: 'rentreceipt',
-      label: 'Bảng Kê Tiền Thuê',
-      shortLabel: 'Kê Tiền Thuê',
-      icon: 'fa-file-invoice',
-      src: 'ten',
-      hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và tổng công nợ còn thiếu',
-      isCustom: false
-    },
-    {
-      key: 'dues',
-      label: 'Thông Báo Công Nợ',
-      shortLabel: 'Báo Công Nợ',
-      icon: 'fa-triangle-exclamation',
-      src: 'deal',
-      hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật',
-      isCustom: false
-    },
-    {
-      key: 'invoice',
-      label: 'Hóa Đơn Hoa Hồng',
-      shortLabel: 'HĐ Hoa Hồng',
-      icon: 'fa-file-invoice-dollar',
-      src: 'deal',
-      hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất',
-      isCustom: false
-    }
-  ];
+function replaceMergeTags(text, data = {}) {
+  if (!text) return '';
+  let result = String(text);
+  const map = {
+    '{{TEN_BEN_A}}': data.ownerName || 'Bên A',
+    '{{SDT_BEN_A}}': data.ownerPhone || '—',
+    '{{CCCD_BEN_A}}': data.ownerCnic || data.ownerCccd || '—',
+    '{{DIA_CHI_BEN_A}}': data.ownerAddress || '—',
+    '{{TEN_BEN_B}}': data.buyerOrTenantName || 'Bên B',
+    '{{SDT_BEN_B}}': data.buyerOrTenantPhone || '—',
+    '{{CCCD_BEN_B}}': data.buyerOrTenantCnic || data.buyerOrTenantCccd || '—',
+    '{{HO_KHAU_BEN_B}}': data.buyerOrTenantAddress || '—',
+    '{{MA_BDS}}': data.propertyRef || '—',
+    '{{TIEU_DE_BDS}}': data.propertyTitle || '—',
+    '{{DIA_CHI_BDS}}': data.propertyAddress || '—',
+    '{{DIEN_TICH}}': data.area ? `${data.area} m²` : '—',
+    '{{LOAI_BDS}}': data.propertyType || '—',
+    '{{GIA_GIAO_DICH}}': docMoney(data.dealAmount || data.price || 0),
+    '{{TIEN_BANG_CHU}}': numberToVietnameseWords(data.dealAmount || data.price || data.monthlyRent || 0),
+    '{{TIEN_THUE_THANG}}': docMoney(data.monthlyRent || 0),
+    '{{TIEN_COC}}': docMoney(data.securityDeposit || data.tokenAmount || 0),
+    '{{TIEN_CON_LAI}}': docMoney(data.balance || 0),
+    '{{NGAY_KY}}': docDate(data.contractDate || new Date().toISOString()),
+    '{{NGAY_BAT_DAU}}': docDate(data.startDate || new Date().toISOString()),
+    '{{NGAY_KET_THUC}}': data.endDate ? docDate(data.endDate) : 'Theo thỏa thuận',
+    '{{NGAY_DONG_TIEN}}': `Ngày ${data.rentDueDay || 5} hàng tháng`,
+    '{{TEN_CONG_TY}}': data.agencyName || 'BĐS MASTER CRM',
+    '{{HOTLINE_CONG_TY}}': data.agencyPhone || '1900 xxxx',
+    '{{NGAY_HIEN_TAI}}': docDate(new Date().toISOString())
+  };
+  for (const [tag, val] of Object.entries(map)) {
+    const regex = new RegExp(tag.replace(/([{}])/g, '\\$1'), 'gi');
+    result = result.replace(regex, val);
+  }
+  return result;
 }
 
 async function getContractTemplates(jwt) {
-  const defaults = getDefaultContractTemplates();
   try {
-    const res = await getAppSettings(jwt);
-    const saved = res.data && res.data.contract_templates;
-    if (saved && typeof saved === 'object') {
-      return ok({ templates: Object.values({ ...defaults.reduce((acc, x) => ({ ...acc, [x.key]: x }), {}), ...saved }) });
-    }
-  } catch (e) {}
-  return ok({ templates: defaults });
+    const cfgRes = await getAppConfig(jwt);
+    const cfg = (cfgRes && cfgRes.config) || {};
+    const custom = cfg.contract_templates || customContractTemplates || {};
+    const list = DEFAULT_CONTRACT_TEMPLATES.map(t => ({
+      ...t,
+      ...(custom[t.key] || {}),
+      isCustom: Boolean(custom[t.key])
+    }));
+    return ok({ data: { templates: list } });
+  } catch (e) {
+    const list = DEFAULT_CONTRACT_TEMPLATES.map(t => ({
+      ...t,
+      ...(customContractTemplates[t.key] || {}),
+      isCustom: Boolean(customContractTemplates[t.key])
+    }));
+    return ok({ data: { templates: list } });
+  }
 }
 
 async function saveContractTemplate(args, jwt) {
-  const [templateKey, templateData] = args;
-  if (!templateKey || !templateData) return fail('Thông tin mẫu hợp đồng không hợp lệ');
+  const [templateKey, templateData = {}] = args;
+  if (!templateKey) return fail('Mã mẫu hợp đồng không hợp lệ');
   customContractTemplates[templateKey] = { ...templateData, key: templateKey, isCustom: true, updatedAt: new Date().toISOString() };
-  await audit(jwt, 'Contract Template Saved', `Template: ${templateKey}`);
-  return ok({ message: 'Đã lưu mẫu hợp đồng thành công!', template: customContractTemplates[templateKey] });
+  try {
+    const cfgRes = await getAppConfig(jwt);
+    const cfg = (cfgRes && cfgRes.config) || {};
+    cfg.contract_templates = cfg.contract_templates || {};
+    cfg.contract_templates[templateKey] = customContractTemplates[templateKey];
+    await setAppConfig([cfg], jwt);
+  } catch (e) {}
+  await audit(jwt, 'Contract Template Saved', `Mẫu: ${templateData.label || templateKey}`);
+  return ok({ message: `Đã lưu mẫu "${templateData.label || templateKey}" thành công!`, template: customContractTemplates[templateKey] });
 }
 
 async function resetContractTemplates(jwt) {
   customContractTemplates = {};
-  await audit(jwt, 'Contract Templates Reset', 'All templates reset to defaults');
-  return ok({ message: 'Đã đặt lại tất cả mẫu hợp đồng về mặc định!' });
+  try {
+    const cfgRes = await getAppConfig(jwt);
+    const cfg = (cfgRes && cfgRes.config) || {};
+    delete cfg.contract_templates;
+    await setAppConfig([cfg], jwt);
+  } catch (e) {}
+  await audit(jwt, 'Contract Templates Reset', 'Khôi phục toàn bộ mẫu về mặc định');
+  return ok({ message: 'Đã khôi phục toàn bộ mẫu hợp đồng về mặc định thành công!' });
 }
 
 function docShell(title, refNo, body, branding) {
@@ -1416,15 +1473,17 @@ async function buildAgreement(args, jwt) {
   const id = Number(recordId);
   if (!docType || !id) return fail('Vui lòng chọn loại tài liệu và hồ sơ hợp lệ');
 
-  const [brandingRes, locationsRes, amenitiesRes] = await Promise.all([
-    getAgencyBranding(jwt), getLocations(jwt), getAmenities(jwt)
+  const [brandingRes, locationsRes, amenitiesRes, tplListRes] = await Promise.all([
+    getAgencyBranding(jwt), getLocations(jwt), getAmenities(jwt), getContractTemplates(jwt)
   ]);
-  const branding = brandingRes.data || {};
-  const locations = locationsRes.data || [];
+  const branding = (brandingRes && brandingRes.branding) || {};
+  const locations = (locationsRes && locationsRes.data) || [];
+  const templates = (tplListRes && tplListRes.data && tplListRes.data.templates) || DEFAULT_CONTRACT_TEMPLATES;
+  const curTpl = templates.find(x => x.key === docType) || {};
   const amens = {};
-  (amenitiesRes.data || []).forEach(a => { amens[a.id] = a.name; });
+  ((amenitiesRes && amenitiesRes.data) || []).forEach(a => { amens[a.id] = a.name; });
 
-  let html = '', title = '', refNo = '';
+  let html = '', title = curTpl.label || 'VĂN BẢN HỢP ĐỒNG', refNo = '';
 
   if (['rental', 'rentreceipt', 'handover'].includes(docType)) {
     const tensRes = await getTenancies(jwt);
@@ -1434,9 +1493,37 @@ async function buildAgreement(args, jwt) {
     const tp = (propsRes.data || []).find(p => Number(p.id) === Number(t.propertyId)) || {};
     const locPath = locationPath(locations.map(item => ({...item, parent_id:item.parentId})), tp.locationId);
 
-    if (docType === 'rental') {
-      title = 'HỢP ĐỒNG THUÊ BẤT ĐỘNG SẢN';
+    const templateData = {
+      ownerName: tp.ownerName,
+      ownerPhone: tp.ownerPhone,
+      ownerCnic: tp.ownerCnic,
+      ownerAddress: tp.ownerAddress,
+      buyerOrTenantName: t.tenantName,
+      buyerOrTenantPhone: t.tenantPhone,
+      buyerOrTenantCnic: t.tenantCnic,
+      buyerOrTenantAddress: t.tenantAddress,
+      propertyRef: tp.referenceCode || `#${tp.id}`,
+      propertyTitle: tp.title,
+      propertyAddress: tp.address,
+      area: tp.areaSize,
+      propertyType: tp.propertyType,
+      monthlyRent: t.monthlyRent,
+      securityDeposit: t.securityDeposit,
+      startDate: t.startDate,
+      endDate: t.endDate,
+      rentDueDay: t.rentDueDay,
+      agencyName: branding.name || 'BĐS MASTER CRM',
+      agencyPhone: branding.phone || '1900 xxxx'
+    };
+
+    if (curTpl.templateMode === 'full' && curTpl.fullTemplateHtml) {
+      title = curTpl.label || 'HỢP ĐỒNG THUÊ BẤT ĐỘNG SẢN';
+      refNo = docNo(docType.toUpperCase().slice(0, 4), t.id);
+      html = replaceMergeTags(curTpl.fullTemplateHtml, templateData);
+    } else if (docType === 'rental') {
+      title = curTpl.label || 'HỢP ĐỒNG THUÊ BẤT ĐỘNG SẢN';
       refNo = docNo('HDT', t.id);
+      const extraCustomTerms = curTpl.customTerms ? `<div class="custom-terms-box" style="margin-top:16px;"><h2>Điều Khoản Bổ Sung</h2><div style="font-size:12.5px;line-height:1.6;color:#333;">${replaceMergeTags(curTpl.customTerms, templateData)}</div></div>` : '';
       html = docParties('BÊN CHO THUÊ (BÊN A)', tp.ownerName || 'Chủ sở hữu', tp.ownerPhone || '', 'BÊN THUÊ (BÊN B)', t.tenantName, t.tenantPhone) +
         docProperty(tp, locPath, amens) +
         `<h2>Điều Khoản Thương Mại &amp; Thanh Toán</h2><table class="tb">
@@ -1454,11 +1541,13 @@ async function buildAgreement(args, jwt) {
 <li>Bên thuê không được tự ý sửa chữa kết cấu, cho thuê lại hoặc chuyển nhượng quyền thuê khi chưa có sự đồng ý bằng văn bản của Bên cho thuê.</li>
 <li>Hai bên cam kết thực hiện đúng các điều khoản đã thỏa thuận. Tranh chấp sẽ được ưu tiên giải quyết qua thương lượng.</li>
 </ol>
+${extraCustomTerms}
 <p style="margin-top:14px">Hợp đồng được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ 01 bản để thực hiện.</p>` +
         docSig('ĐẠI DIỆN BÊN CHO THUÊ', tp.ownerName || '', 'ĐẠI DIỆN BÊN THUÊ', t.tenantName);
     } else if (docType === 'handover') {
-      title = 'BIÊN BẢN BÀN GIAO NHÀ &amp; HIỆN TRẠNG TÀI SẢN';
+      title = curTpl.label || 'BIÊN BẢN BÀN GIAO NHÀ &amp; HIỆN TRẠNG TÀI SẢN';
       refNo = docNo('BBBG', t.id);
+      const extraCustomTerms = curTpl.customTerms ? `<div class="custom-terms-box" style="margin-top:16px;"><h2>Ghi Chú Bàn Giao Thêm</h2><div style="font-size:12.5px;line-height:1.6;color:#333;">${replaceMergeTags(curTpl.customTerms, templateData)}</div></div>` : '';
       html = docParties('BÊN BÀN GIAO (BÊN A)', tp.ownerName || 'Chủ sở hữu', tp.ownerPhone || '', 'BÊN TIẾP NHẬN (BÊN B)', t.tenantName, t.tenantPhone) +
         docProperty(tp, locPath, amens) +
         `<h2>Chỉ Số Đồng Hồ Điện - Nước &amp; Chìa Khóa</h2><table class="tb">
@@ -1472,10 +1561,11 @@ async function buildAgreement(args, jwt) {
 <tr><td>3</td><td>Thiết bị vệ sinh &amp; bình nóng lạnh</td><td>${tp.bathrooms || 1} bộ</td><td>Không rò rỉ, áp lực nước tốt</td><td>Đạt chuẩn</td></tr>
 <tr><td>4</td><td>Khóa cửa chính &amp; cửa phòng</td><td>Đầy đủ</td><td>Đóng mở trơn tru</td><td>Có chìa khóa phụ</td></tr>
 </table>
+${extraCustomTerms}
 <p style="margin-top:14px">Bên B xác nhận đã kiểm tra thực tế và tiếp nhận đầy đủ tài sản nêu trên. Hai bên cùng ký xác nhận.</p>` +
         docSig('ĐẠI DIỆN BÊN BÀN GIAO', tp.ownerName || '', 'ĐẠI DIỆN BÊN TIẾP NHẬN', t.tenantName);
     } else {
-      title = 'PHIẾU THU &amp; BẢNG KÊ TIỀN THUÊ NHÀ';
+      title = curTpl.label || 'PHIẾU THU &amp; BẢNG KÊ TIỀN THUÊ NHÀ';
       refNo = docNo('PTT', t.id);
       const rentLog = t.rentLog || [];
       const collected = Number(t.collected || 0);
@@ -1503,9 +1593,39 @@ ${arrears > 0 ? `CÔNG NỢ CẦN THU: ${docMoney(arrears)} (${numberToVietnames
     const paid = Number(d.paid || 0);
     const balance = Number(d.balance || 0);
 
-    if (docType === 'sale') {
-      title = 'HỢP ĐỒNG ĐẶT CỌC CHUYỂN NHƯỢNG BẤT ĐỘNG SẢN';
+    const templateData = {
+      ownerName: dp.ownerName,
+      ownerPhone: dp.ownerPhone,
+      ownerCnic: dp.ownerCnic,
+      ownerAddress: dp.ownerAddress,
+      buyerOrTenantName: d.buyerName,
+      buyerOrTenantPhone: d.buyerPhone,
+      buyerOrTenantCnic: d.buyerCnic,
+      buyerOrTenantAddress: d.buyerAddress,
+      propertyRef: dp.referenceCode || `#${dp.id}`,
+      propertyTitle: dp.title,
+      propertyAddress: dp.address,
+      area: dp.areaSize,
+      propertyType: dp.propertyType,
+      dealAmount: d.dealAmount,
+      price: dp.price,
+      paid: paid,
+      balance: balance,
+      tokenAmount: d.tokenAmount,
+      commissionPct: d.commissionPct,
+      commissionAmt: d.commissionAmt,
+      agencyName: branding.name || 'BĐS MASTER CRM',
+      agencyPhone: branding.phone || '1900 xxxx'
+    };
+
+    if (curTpl.templateMode === 'full' && curTpl.fullTemplateHtml) {
+      title = curTpl.label || 'HỢP ĐỒNG GIAO DỊCH BẤT ĐỘNG SẢN';
+      refNo = docNo(docType.toUpperCase().slice(0, 4), d.id);
+      html = replaceMergeTags(curTpl.fullTemplateHtml, templateData);
+    } else if (docType === 'sale') {
+      title = curTpl.label || 'HỢP ĐỒNG ĐẶT CỌC CHUYỂN NHƯỢNG BẤT ĐỘNG SẢN';
       refNo = docNo('HDC', d.id);
+      const extraCustomTerms = curTpl.customTerms ? `<div class="custom-terms-box" style="margin-top:16px;"><h2>Điều Khoản Thỏa Thuận Riêng</h2><div style="font-size:12.5px;line-height:1.6;color:#333;">${replaceMergeTags(curTpl.customTerms, templateData)}</div></div>` : '';
       html = docParties('BÊN BÁN / BÊN CHUYỂN NHƯỢNG', dp.ownerName || 'Chủ sở hữu', dp.ownerPhone || '', 'BÊN MUA / BÊN NHẬN CHUYỂN NHƯỢNG', d.buyerName, d.buyerPhone) +
         docProperty(dp, locPath, amens) +
         `<h2>Giá Trị Giao Dịch &amp; Tiến Độ Thanh Toán</h2><table class="tb">
@@ -1519,12 +1639,14 @@ ${(d.payments || []).length ? `<h2>Lịch Sử Đặt Cọc &amp; Thanh Toán</h
 <li>Nếu Bên mua từ chối mua mà không do lỗi Bên bán thì mất số tiền đặt cọc; nếu Bên bán từ chối bán thì phải hoàn trả số tiền đặt cọc và bồi thường số tiền tương đương.</li>
 <li>Hai bên có trách nhiệm phối hợp thực hiện thủ tục công chứng sang tên theo đúng tiến độ đã thỏa thuận.</li>
 </ol>
+${extraCustomTerms}
 <p style="margin-top:14px">Hợp đồng được lập thành 02 bản có giá trị như nhau, có hiệu lực kể từ ngày ký.</p>` +
         docSig('BÊN BÁN', dp.ownerName || '', 'BÊN MUA', d.buyerName);
     } else if (docType === 'exclusive') {
-      title = 'HỢP ĐỒNG DỊCH VỤ MÔI GIỚI BẤT ĐỘNG SẢN ĐỘC QUYỀN';
+      title = curTpl.label || 'HỢP ĐỒNG DỊCH VỤ MÔI GIỚI BẤT ĐỘNG SẢN ĐỘC QUYỀN';
       refNo = docNo('HDMG', d.id);
-      html = docParties('BÊN ỦY QUYỀN (CHỦ SỞ HỮU)', dp.ownerName || 'Chủ sở hữu', dp.ownerPhone || '', 'BÊN NHẬN ỦY QUYỀN (SÀN BĐS)', branding.agencyName || 'BĐS MASTER CRM', branding.phone || '') +
+      const extraCustomTerms = curTpl.customTerms ? `<div class="custom-terms-box" style="margin-top:16px;"><h2>Điều Khoản Môi Giới Bổ Sung</h2><div style="font-size:12.5px;line-height:1.6;color:#333;">${replaceMergeTags(curTpl.customTerms, templateData)}</div></div>` : '';
+      html = docParties('BÊN ỦY QUYỀN (CHỦ SỞ HỮU)', dp.ownerName || 'Chủ sở hữu', dp.ownerPhone || '', 'BÊN NHẬN ỦY QUYỀN (SÀN BĐS)', branding.name || 'BĐS MASTER CRM', branding.phone || '') +
         docProperty(dp, locPath, amens) +
         `<h2>Thời Hạn Ủy Quyền &amp; Phí Dịch Vụ Môi Giới</h2><table class="tb">
 <tr><th style="width:34%">Mức giá bán / cho thuê cam kết</th><td class="r"><b>${docMoney(dp.price || d.dealAmount)}</b><br/><small style="color:#555">Bằng chữ: <em>${numberToVietnameseWords(dp.price || d.dealAmount)}</em></small></td></tr>
@@ -1535,10 +1657,11 @@ ${(d.payments || []).length ? `<h2>Lịch Sử Đặt Cọc &amp; Thanh Toán</h
 <li>Sàn cam kết triển khai toàn diện các kênh truyền thông, quảng cáo, tiếp thị bất động sản đến mạng lưới khách hàng tiềm năng.</li>
 <li>Tư vấn chính xác thủ tục pháp lý, hỗ trợ hai bên thương lượng giá cả và tiến độ thanh toán an toàn, minh bạch.</li>
 <li>Bảo mật tuyệt đối thông tin cá nhân của Chủ sở hữu theo quy định pháp luật.</li>
-</ol>` +
-        docSig('ĐẠI DIỆN SÀN GIAO DỊCH', branding.agencyName || '', 'CHỦ SỞ HỮU BẤT ĐỘNG SẢN', dp.ownerName || '');
+</ol>
+${extraCustomTerms}` +
+        docSig('ĐẠI DIỆN SÀN GIAO DỊCH', branding.name || '', 'CHỦ SỞ HỮU BẤT ĐỘNG SẢN', dp.ownerName || '');
     } else if (docType === 'receipt') {
-      title = 'PHIẾU THU TIỀN GIAO DỊCH';
+      title = curTpl.label || 'PHIẾU THU TIỀN GIAO DỊCH';
       refNo = docNo('PTG', d.id);
       html = `<p>Xác nhận đã nhận từ Ông/Bà <b>${docEsc(d.buyerName)}</b> (SĐT/Zalo: <b>${docEsc(d.buyerPhone)}</b>) các khoản thanh toán cho giao dịch bất động sản <b>${docEsc(dp.referenceCode || '')}</b> — ${docEsc(dp.title || '')}:</p>` +
         docProperty(dp, locPath, amens) +
@@ -1549,11 +1672,11 @@ ${(d.payments || []).length ? `<h2>Lịch Sử Đặt Cọc &amp; Thanh Toán</h
 <div class="total-box">TỔNG ĐÃ THU: ${docMoney(paid)} (${numberToVietnameseWords(paid)})</div>` +
         docSig('ĐẠI DIỆN THU TIỀN', `Nhân viên: ${d.agent || ''}`, 'NGƯỜI NỘP TIỀN', d.buyerName);
     } else if (docType === 'dues') {
-      title = 'THÔNG BÁO SỐ DƯ &amp; CÔNG NỢ THANH TOÁN';
+      title = curTpl.label || 'THÔNG BÁO SỐ DƯ &amp; CÔNG NỢ THANH TOÁN';
       refNo = docNo('TBCN', d.id);
-      html = docParties('BÊN MUA / KHÁCH HÀNG', d.buyerName, d.buyerPhone, 'ĐƠN VỊ PHỤ TRÁCH', `${branding.agencyName || 'BĐS MASTER CRM'} — ${d.agent || 'Bộ phận giao dịch'}`, '') +
+      html = docParties('BÊN MUA / KHÁCH HÀNG', d.buyerName, d.buyerPhone, 'ĐƠN VỊ PHỤ TRÁCH', `${branding.name || 'BĐS MASTER CRM'} — ${d.agent || 'Bộ phận giao dịch'}`, '') +
         docProperty(dp, locPath, amens) +
-        `<h2>Bảng Tổng Hợp Công Nợ Giao Dịch</h2><table class="tb">
+        `<h2>Bảng Tổng Hợp Công NỢ Giao Dịch</h2><table class="tb">
 <tr><th style="width:34%">Tổng giá trị giao dịch</th><td class="r"><b>${docMoney(d.dealAmount)}</b></td></tr>
 <tr><th>Tổng số tiền đã nộp</th><td class="r"><b>${docMoney(paid)}</b></td></tr>
 <tr><th>Trạng thái giao dịch</th><td class="r">${docEsc(d.status)}</td></tr></table>
@@ -1562,7 +1685,7 @@ ${(d.payments || []).length ? `<h2>Lịch Sử Đã Thanh Toán</h2><table class
 <p style="font-size:11.5px;color:#555;margin-top:10px">Kính đề nghị Quý khách hoàn tất thanh toán số tiền còn lại đúng hạn. Chi tiết xin liên hệ chuyên viên phụ trách (${docEsc(d.agent || '')}).</p>` +
         docSig('ĐẠI DIỆN CÔNG TY', '', 'NGƯỜI NHẬN THÔNG BÁO', d.buyerName);
     } else if (docType === 'invoice') {
-      title = 'HÓA ĐƠN HOA HỒNG MÔI GIỚI';
+      title = curTpl.label || 'HÓA ĐƠN HOA HỒNG MÔI GIỚI';
       refNo = docNo('HDHH', d.id);
       html = `<h2>Thông Tin Hóa Đơn</h2><table class="tb">
 <tr><th style="width:24%">Khách hàng / Đối tác</th><td><b>${docEsc(dp.ownerName || d.buyerName)}</b></td></tr>
@@ -1584,6 +1707,7 @@ ${(d.payments || []).length ? `<h2>Lịch Sử Đã Thanh Toán</h2><table class
   await audit(jwt, 'Document Generated', `${title} ${refNo}`);
   return ok({ html: fullHtml, title: `${title} · ${refNo}`, filename: `${refNo}.html` });
 }
+
 
 async function agreementPdf(args, jwt) {
   return buildAgreement(args, jwt);
