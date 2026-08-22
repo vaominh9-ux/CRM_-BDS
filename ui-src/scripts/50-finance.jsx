@@ -84,10 +84,10 @@
         if (err) return;
         setSaving(true);
         const payload = editing
-          ? { id: deal.id, buyerName: form.buyerName, buyerPhone: form.buyerPhone, dealAmount: form.dealAmount,
+          ? { id: deal.id, dealType: dealType, buyerName: form.buyerName, buyerPhone: form.buyerPhone, dealAmount: form.dealAmount,
               commissionPct: cPct, agentSharePct: sPct, agent: form.agent, notes: form.notes, status: form.status,
               cancellationReason: form.cancellationReason, securityDeposit: form.securityDeposit, endDate: form.endDate, rentDueDay: form.rentDueDay }
-          : { propertyId: form.propertyId, leadId: prefill && prefill.leadId, buyerName: form.buyerName, buyerPhone: form.buyerPhone,
+          : { propertyId: form.propertyId, dealType: dealType, leadId: prefill && prefill.leadId, buyerName: form.buyerName, buyerPhone: form.buyerPhone,
               dealAmount: form.dealAmount, commissionPct: cPct, agentSharePct: sPct, tokenAmount: form.tokenAmount, tokenMethod: form.tokenMethod,
               agent: form.agent, notes: form.notes };
         gsRun(editing ? 'updateDeal' : 'addDeal', payload, currentUser).then((r) => {

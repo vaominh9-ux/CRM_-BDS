@@ -688,7 +688,38 @@ async function completeAppointment(args,jwt){
   return ok({message:'Đã hoàn thành lịch xem',suggestNegotiating,leadId:appointment.lead_id||null});
 }
 
-async function dealBody(data,jwt,isNew=false){const p=await currentProfile(jwt),agent=(isNew||has(data,'agent'))?await profileId(data.agent,jwt,p.id):undefined,status=data.status||(isNew?'Token':undefined);return clean({deal_type:data.dealType,property_id:data.propertyId===undefined?undefined:Number(data.propertyId),lead_id:nullableNumber(data.leadId),buyer_name:data.buyerName,buyer_phone:data.buyerPhone,agent_id:agent,deal_amount_vnd:data.dealAmount===undefined?undefined:Number(data.dealAmount),commission_pct:data.commissionPct===undefined?undefined:Number(data.commissionPct),agent_share_pct:data.agentSharePct===undefined?undefined:Number(data.agentSharePct),agent_paid_at:nullableText(data.agentPaidAt),token_amount_vnd:data.tokenAmount===undefined?undefined:Number(data.tokenAmount||0),status,closed_at:status==='Completed'?(data.closedAt||new Date().toISOString()):nullableText(data.closedAt),cancellation_reason:nullableText(data.cancellationReason),notes:data.notes,created_by:isNew?p.id:undefined,updated_at:new Date().toISOString(),updated_by:p.id});}
+async function dealBody(data,jwt,isNew=false){
+  const p=await currentProfile(jwt),agent=(isNew||has(data,'agent'))?await profileId(data.agent,jwt,p.id):undefined,status=data.status||(isNew?'Token':undefined);
+  let dealType = data.dealType || data.deal_type;
+  if (!dealType && (data.propertyId !== undefined || isNew)) {
+    const pid = Number(data.propertyId);
+    if (pid) {
+      const props = await select('properties', 'listing_type', jwt, `&id=eq.${pid}&limit=1`);
+      if (props.length && props[0].listing_type) dealType = props[0].listing_type;
+    }
+  }
+  if (!dealType && isNew) dealType = 'Sale';
+  return clean({
+    deal_type: dealType,
+    property_id: data.propertyId===undefined?undefined:Number(data.propertyId),
+    lead_id: nullableNumber(data.leadId),
+    buyer_name: data.buyerName,
+    buyer_phone: data.buyerPhone,
+    agent_id: agent,
+    deal_amount_vnd: data.dealAmount===undefined?undefined:Number(data.dealAmount),
+    commission_pct: data.commissionPct===undefined?undefined:Number(data.commissionPct),
+    agent_share_pct: data.agentSharePct===undefined?undefined:Number(data.agentSharePct),
+    agent_paid_at: nullableText(data.agentPaidAt),
+    token_amount_vnd: data.tokenAmount===undefined?undefined:Number(data.tokenAmount||0),
+    status,
+    closed_at: status==='Completed'?(data.closedAt||new Date().toISOString()):nullableText(data.closedAt),
+    cancellation_reason: nullableText(data.cancellationReason),
+    notes: data.notes,
+    created_by: isNew?p.id:undefined,
+    updated_at: new Date().toISOString(),
+    updated_by: p.id
+  });
+}
 async function syncTenancyOnRentDeal(dealRow, jwt) {
   if (!dealRow || dealRow.deal_type !== 'Rent' || dealRow.status !== 'Completed' || !dealRow.property_id) return;
   const p = await currentProfile(jwt);
@@ -712,7 +743,30 @@ async function syncTenancyOnRentDeal(dealRow, jwt) {
     await patchRow('properties', dealRow.property_id, { status: 'Rented', updated_at: new Date().toISOString(), updated_by: p.id }, jwt);
   }
 }
-async function addDeal(args,jwt){const row=await insertRow('deals',await dealBody(args[0]||{},jwt,true),jwt);if(row)await syncTenancyOnRentDeal(row,jwt);await audit(jwt,'Deal Added',row?`#${row.id}`:'');return ok({id:row?.id,message:'Đã thêm giao dịch'});}
+async function addDeal(args,jwt){
+  const data = args[0] || {};
+  const body = await dealBody(data, jwt, true);
+  const row = await insertRow('deals', body, jwt);
+  if (row) {
+    if (Number(data.tokenAmount) > 0) {
+      await request('/rest/v1/rpc/record_deal_payment', {
+        method: 'POST',
+        jwt,
+        body: {
+          target_deal_id: Number(row.id),
+          payment_amount_vnd: Number(data.tokenAmount),
+          payment_method: data.tokenMethod || 'Cash',
+          payment_reference: 'Tiền đặt cọc ban đầu',
+          payment_notes: 'Thanh toán đợt 1 (Đặt cọc giữ chỗ)',
+          payment_time: new Date().toISOString()
+        }
+      }).catch(() => {});
+    }
+    await syncTenancyOnRentDeal(row, jwt);
+  }
+  await audit(jwt, 'Deal Added', row ? `#${row.id}` : '');
+  return ok({ id: row?.id, message: 'Đã thêm giao dịch' });
+}
 async function updateDeal(args,jwt){const d=args[0]||{};const row=await patchRow('deals',d.id,await dealBody(d,jwt,false),jwt);if(row)await syncTenancyOnRentDeal(row,jwt);await audit(jwt,'Deal Updated',`#${d.id}`);return ok({message:'Đã cập nhật giao dịch'});}
 async function deleteDeal(args,jwt){return softDelete('deals',args[0],jwt,'Deal');}
 async function addDealPayment(args,jwt){const [dealId,data]=args;await request('/rest/v1/rpc/record_deal_payment',{method:'POST',jwt,body:{target_deal_id:Number(dealId),payment_amount_vnd:Number(data.amount),payment_method:data.method||'Cash',payment_reference:data.reference||'',payment_notes:data.notes||'',payment_time:data.date||data.paidAt||new Date().toISOString()}});await audit(jwt,'Deal Payment Added',`#${dealId}`);return ok({message:'Đã ghi nhận thanh toán'});}
