@@ -846,6 +846,12 @@ async function endTenancy(args,jwt){
   await audit(jwt,'Tenancy Ended',`#${tenancy.id} refund ${deposit-deductions}`);
   return ok({message:'Đã kết thúc hợp đồng và đưa bất động sản về trạng thái còn trống'});
 }
+async function deleteTenancy(args,jwt){
+  const [rawId] = args, tenancy = await tenancyContext(rawId, jwt), profile = await currentProfile(jwt);
+  if (!tenancy) return fail('Không tìm thấy hợp đồng thuê hoặc bạn không có quyền thao tác');
+  if (!['Admin', 'Manager'].includes(profile.role_key)) return fail('Chỉ Quản trị viên hoặc Quản lý mới có quyền xóa hợp đồng thuê');
+  return softDelete('tenancies', tenancy.id, jwt, 'Tenancy');
+}
 async function addMaintenance(args,jwt){
   const [rawId,data={}] = args, tenancy=await tenancyContext(rawId,jwt), profile=await currentProfile(jwt), issue=String(data.issue||'').trim();
   if(!tenancy)return fail('Không tìm thấy hợp đồng thuê hoặc bạn không có quyền cập nhật');
@@ -1461,7 +1467,7 @@ async function run(method,args=[],authorization=''){
     addProperty,updateProperty,deleteProperty,uploadPropertyImage,addLead,updateLead,deleteLead,assignLead,
     addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,completeAppointment,
     addDeal,updateDeal,deleteDeal,addDealPayment,markAgentPaid,
-    collectRent,renewTenancy,endTenancy,addMaintenance,updateMaintenance,
+    collectRent,renewTenancy,endTenancy,deleteTenancy,addMaintenance,updateMaintenance,
     addOwner,updateOwner,deleteOwner,addLocation,updateLocation,deleteLocation,addAmenity,updateAmenity,deleteAmenity,
     restoreRecord
   };
