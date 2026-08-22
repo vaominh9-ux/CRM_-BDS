@@ -5194,12 +5194,12 @@
 
     // ============== Notification bell (header) — LIVE computed alerts, each deep-links to its section ==============
     function NotificationBell({ currentUser, perms, setActiveMenu }) {
-      const { data } = useSWR('notif:live', () => gsRun('getNotifications', currentUser), { refreshInterval: 60000 });
+      const { data } = useSWR('notif:live', () => gsRun('getNotifications', currentUser), { refreshInterval: 30000 });
       const items = data && data.success ? (data.items || []) : [];
       const [open, setOpen] = useState(false);
       const [seen, setSeen] = useState(() => { try { return localStorage.getItem('notif_seen_' + currentUser) || ''; } catch (e) { return ''; } });
-      const sig = items.map((n) => n.text).join('|');
-      const unread = items.length && sig !== seen;
+      const sig = items.map((n) => `${n.page}:${n.count}:${n.text}`).join('|');
+      const unread = items.length > 0 && sig !== seen;
       const ref = useRef(null);
 
       useEffect(() => {
@@ -5207,22 +5207,40 @@
         document.addEventListener('mousedown', close);
         return () => document.removeEventListener('mousedown', close);
       }, []);
+      
       const openMenu = () => {
-        setOpen(!open);
-        if (!open) { setSeen(sig); try { localStorage.setItem('notif_seen_' + currentUser, sig); } catch (e) {} }
+        const nextOpen = !open;
+        setOpen(nextOpen);
+        if (nextOpen) { setSeen(sig); try { localStorage.setItem('notif_seen_' + currentUser, sig); } catch (e) {} }
+      };
+
+      const markAllRead = (e) => {
+        e.stopPropagation();
+        setSeen(sig);
+        try { localStorage.setItem('notif_seen_' + currentUser, sig); } catch (e) {} 
       };
 
       return (
         <div className={'notif-bell' + (open ? ' open' : '')} ref={ref}>
-          <button className="notif-btn" onClick={openMenu} title="Thông báo">
+          <button className="notif-btn" onClick={openMenu} title="Thông báo công việc cần xử lý">
             <i className="fas fa-bell"></i>
-            {items.length > 0 && <span className="notif-badge" style={{ opacity: unread ? 1 : .55 }}>{items.length}</span>}
+            {unread && <span className="notif-badge" title="Có thông báo mới chưa đọc">{items.length}</span>}
           </button>
           <div className="notif-menu">
-            <div className="notif-head">Cần xử lý {items.length > 0 && <span className="notif-count-pill">{items.length}</span>}</div>
+            <div className="notif-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Cần xử lý {items.length > 0 && <span className="notif-count-pill">{items.length} danh mục</span>}</span>
+              {unread && (
+                <button
+                  onClick={markAllRead}
+                  style={{ background: 'none', border: 'none', color: 'var(--blue-primary, #1877f2)', fontSize: '11.5px', cursor: 'pointer', fontWeight: 600, padding: '2px 6px' }}
+                >
+                  <i className="fas fa-check-double"></i> Đã xem
+                </button>
+              )}
+            </div>
             <div className="notif-list">
               {items.length === 0 ? (
-                <div className="notif-empty"><i className="fas fa-bell-slash" style={{fontSize: '22px', display: 'block', marginBottom: '8px', opacity: .5}}></i>Bạn đã xem hết thông báo</div>
+                <div className="notif-empty"><i className="fas fa-bell-slash" style={{fontSize: '22px', display: 'block', marginBottom: '8px', opacity: .5}}></i>Tuyệt vời! Không còn việc tồn đọng cần xử lý</div>
               ) : items.map((n, i) => (
                 <div className="notif-item" key={i} style={{ cursor: 'pointer' }} onClick={() => { setActiveMenu(n.page); setOpen(false); }}>
                   <i className={'fas ' + n.icon}></i>
