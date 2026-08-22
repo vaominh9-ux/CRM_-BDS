@@ -802,184 +802,351 @@
       };
 
       return (
-        <div className="profile-section account-page-wrapper">
-          {/* HERO CARD: Avatar, Tên đăng nhập & Vai trò */}
-          <div className="account-hero-card">
-            <div className="account-avatar-wrapper">
-              <div className="account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
-                {getLeadInitials(currentUser)}
+        <div className="account-page-wrapper">
+          {/* =========================================================
+              1. GIAO DIỆN MÁY TÍNH (DESKTOP ACCOUNT VIEW)
+              ========================================================= */}
+          <div className="desk-account-view profile-section">
+            <div className="profile-header">
+              <div className="profile-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
+                {currentUser.charAt(0).toUpperCase()}
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-              <button
-                type="button"
-                className="account-avatar-cam-btn"
-                onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                disabled={uploading}
-                title="Thay đổi ảnh đại diện"
-              >
-                <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-camera')}></i>
-              </button>
+              <div className="profile-info">
+                <h2>{currentUser}</h2>
+                <p><span className={'user-role-badge role-' + String(role || 'agent').toLowerCase()}>{viEnum(role) || role}</span> · {formData.Email || 'Chưa có email'}</p>
+              </div>
             </div>
-            <div className="account-hero-info">
-              <h2 className="account-hero-title">{currentUser}</h2>
-              <div className="account-hero-meta">
-                <span className={'user-role-badge role-' + String(role || 'agent').toLowerCase()}>
-                  {viEnum(role) || role}
-                </span>
-                <span className="account-email-pill">
-                  <i className="fas fa-envelope"></i> {formData.Email || 'Chưa có email'}
-                </span>
+
+            <div className="account-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+              {/* THẺ 1: THÔNG TIN TÀI KHOẢN & ẢNH ĐẠI DIỆN */}
+              <div className="account-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20 }}>
+                <div className="account-card-header" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid #f1f5f9' }}>
+                  <i className="fas fa-id-card" style={{ fontSize: 20, color: 'var(--navy-accent)' }}></i>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1e293b' }}>Thông tin tài khoản</h3>
+                    <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Cập nhật địa chỉ email và ảnh đại diện</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleUpdateInfo}>
+                  <div className="form-group" style={{ marginBottom: 14 }}>
+                    <label><i className="fas fa-user-lock"></i> Tên đăng nhập</label>
+                    <input
+                      type="text"
+                      value={currentUser}
+                      disabled
+                      className="filter-input"
+                      style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }}
+                    />
+                    <small style={{ color: '#94a3b8', fontSize: 11.5, marginTop: 4, display: 'block' }}>
+                      <i className="fas fa-lock"></i> Tên đăng nhập là định danh cố định không thể thay đổi.
+                    </small>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 16 }}>
+                    <label><i className="fas fa-envelope"></i> Địa chỉ Email *</label>
+                    <input
+                      type="email"
+                      value={formData.Email}
+                      onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
+                      required
+                      className="filter-input"
+                      placeholder="email@congty.com"
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 16 }}>
+                    <label><i className="fas fa-image"></i> Ảnh đại diện</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        style={{ display: 'none' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                        disabled={uploading}
+                      >
+                        <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-upload')}></i> {uploading ? 'Đang tải lên…' : 'Tải ảnh mới'}
+                      </button>
+                      <small style={{ color: '#64748b', fontSize: 12 }}>Đề xuất: 200×200 px</small>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-floppy-disk"></i> Lưu thay đổi</>}
+                  </button>
+                </form>
+              </div>
+
+              {/* THẺ 2: ĐỔI MẬT KHẨU */}
+              <div className="account-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20 }}>
+                <div className="account-card-header" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid #f1f5f9' }}>
+                  <i className="fas fa-shield-halved" style={{ fontSize: 20, color: '#dc2626' }}></i>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1e293b' }}>Bảo mật & Mật khẩu</h3>
+                    <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Thay đổi mật khẩu đăng nhập định kỳ</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleUpdatePassword}>
+                  <div className="form-group" style={{ marginBottom: 14 }}>
+                    <label><i className="fas fa-key"></i> Mật khẩu hiện tại *</label>
+                    <div className="password-input-wrap" style={{ position: 'relative' }}>
+                      <input
+                        type={showCurPass ? 'text' : 'password'}
+                        value={formData.CurrentPassword}
+                        onChange={(e) => setFormData({ ...formData, CurrentPassword: e.target.value })}
+                        required
+                        autoComplete="current-password"
+                        className="filter-input"
+                        placeholder="Nhập mật khẩu hiện tại..."
+                      />
+                      <button
+                        type="button"
+                        className="pwd-toggle-btn"
+                        onClick={() => setShowCurPass(!showCurPass)}
+                        tabIndex="-1"
+                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                      >
+                        <i className={'fas ' + (showCurPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 14 }}>
+                    <label><i className="fas fa-lock"></i> Mật khẩu mới</label>
+                    <div className="password-input-wrap" style={{ position: 'relative' }}>
+                      <input
+                        type={showNewPass ? 'text' : 'password'}
+                        value={formData.NewPassword}
+                        onChange={(e) => setFormData({ ...formData, NewPassword: e.target.value })}
+                        autoComplete="new-password"
+                        className="filter-input"
+                        placeholder="Nhập mật khẩu mới..."
+                      />
+                      <button
+                        type="button"
+                        className="pwd-toggle-btn"
+                        onClick={() => setShowNewPass(!showNewPass)}
+                        tabIndex="-1"
+                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                      >
+                        <i className={'fas ' + (showNewPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 16 }}>
+                    <label><i className="fas fa-check-double"></i> Xác nhận mật khẩu mới</label>
+                    <div className="password-input-wrap" style={{ position: 'relative' }}>
+                      <input
+                        type={showCfmPass ? 'text' : 'password'}
+                        value={formData.ConfirmPassword}
+                        onChange={(e) => setFormData({ ...formData, ConfirmPassword: e.target.value })}
+                        autoComplete="new-password"
+                        className="filter-input"
+                        placeholder="Nhập lại mật khẩu mới..."
+                      />
+                      <button
+                        type="button"
+                        className="pwd-toggle-btn"
+                        onClick={() => setShowCfmPass(!showCfmPass)}
+                        tabIndex="-1"
+                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                      >
+                        <i className={'fas ' + (showCfmPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn btn-secondary" disabled={savingPass || !formData.CurrentPassword || !formData.NewPassword}>
+                    {savingPass ? <><i className="fas fa-spinner fa-spin"></i> Đang đổi mật khẩu…</> : <><i className="fas fa-lock"></i> Đổi mật khẩu</>}
+                  </button>
+                </form>
               </div>
             </div>
           </div>
 
-          <div className="account-grid">
-            {/* THẺ 1: THÔNG TIN CÁ NHÂN */}
-            <div className="account-card">
-              <div className="account-card-header">
-                <div className="account-header-icon info">
-                  <i className="fas fa-id-card"></i>
+          {/* =========================================================
+              2. GIAO DIỆN ĐIỆN THOẠI (MOBILE ACCOUNT VIEW)
+              ========================================================= */}
+          <div className="mob-account-view mobile-only-section">
+            {/* HERO CARD: Avatar, Tên đăng nhập & Vai trò */}
+            <div className="account-hero-card">
+              <div className="account-avatar-wrapper">
+                <div className="account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
+                  {getLeadInitials(currentUser)}
                 </div>
-                <div>
-                  <h3 className="account-card-title">Thông tin tài khoản</h3>
-                  <p className="account-card-desc">Cập nhật địa chỉ email liên hệ nhận thông báo</p>
+                <button
+                  type="button"
+                  className="account-avatar-cam-btn"
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  disabled={uploading}
+                  title="Thay đổi ảnh đại diện"
+                >
+                  <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-camera')}></i>
+                </button>
+              </div>
+              <div className="account-hero-info">
+                <h2 className="account-hero-title">{currentUser}</h2>
+                <div className="account-hero-meta">
+                  <span className={'user-role-badge role-' + String(role || 'agent').toLowerCase()}>
+                    {viEnum(role) || role}
+                  </span>
+                  <span className="account-email-pill">
+                    <i className="fas fa-envelope"></i> {formData.Email || 'Chưa có email'}
+                  </span>
                 </div>
               </div>
-
-              <form onSubmit={handleUpdateInfo}>
-                <div className="form-group" style={{ marginBottom: 14 }}>
-                  <label><i className="fas fa-user-lock"></i> Tên đăng nhập</label>
-                  <input
-                    type="text"
-                    value={currentUser}
-                    disabled
-                    className="filter-input"
-                    style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }}
-                  />
-                  <small style={{ color: '#94a3b8', fontSize: 11.5, marginTop: 4, display: 'block' }}>
-                    <i className="fas fa-lock"></i> Tên đăng nhập là định danh cố định của hệ thống và không thể thay đổi.
-                  </small>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: 16 }}>
-                  <label><i className="fas fa-envelope"></i> Địa chỉ Email *</label>
-                  <input
-                    type="email"
-                    value={formData.Email}
-                    onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
-                    required
-                    className="filter-input"
-                    placeholder="email@congty.com"
-                  />
-                </div>
-
-                <button type="submit" className="btn btn-primary account-save-btn" disabled={saving}>
-                  {saving ? (
-                    <><i className="fas fa-spinner fa-spin"></i> Đang lưu...</>
-                  ) : (
-                    <><i className="fas fa-floppy-disk"></i> Cập nhật thông tin</>
-                  )}
-                </button>
-              </form>
             </div>
 
-            {/* THẺ 2: ĐỔI MẬT KHẨU */}
-            <div className="account-card">
-              <div className="account-card-header">
-                <div className="account-header-icon security">
-                  <i className="fas fa-shield-halved"></i>
+            <div className="account-grid">
+              {/* THẺ 1: THÔNG TIN CÁ NHÂN */}
+              <div className="account-card">
+                <div className="account-card-header">
+                  <div className="account-header-icon info">
+                    <i className="fas fa-id-card"></i>
+                  </div>
+                  <div>
+                    <h3 className="account-card-title">Thông tin tài khoản</h3>
+                    <p className="account-card-desc">Cập nhật địa chỉ email liên hệ nhận thông báo</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="account-card-title">Bảo mật & Mật khẩu</h3>
-                  <p className="account-card-desc">Thay đổi mật khẩu đăng nhập định kỳ để đảm bảo an toàn</p>
-                </div>
+
+                <form onSubmit={handleUpdateInfo}>
+                  <div className="form-group" style={{ marginBottom: 14 }}>
+                    <label><i className="fas fa-user-lock"></i> Tên đăng nhập</label>
+                    <input
+                      type="text"
+                      value={currentUser}
+                      disabled
+                      className="filter-input"
+                      style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }}
+                    />
+                    <small style={{ color: '#94a3b8', fontSize: 11.5, marginTop: 4, display: 'block' }}>
+                      <i className="fas fa-lock"></i> Tên đăng nhập là định danh cố định của hệ thống và không thể thay đổi.
+                    </small>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 16 }}>
+                    <label><i className="fas fa-envelope"></i> Địa chỉ Email *</label>
+                    <input
+                      type="email"
+                      value={formData.Email}
+                      onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
+                      required
+                      className="filter-input"
+                      placeholder="email@congty.com"
+                    />
+                  </div>
+
+                  <button type="submit" className="btn btn-primary account-save-btn" disabled={saving}>
+                    {saving ? (
+                      <><i className="fas fa-spinner fa-spin"></i> Đang lưu...</>
+                    ) : (
+                      <><i className="fas fa-floppy-disk"></i> Cập nhật thông tin</>
+                    )}
+                  </button>
+                </form>
               </div>
 
-              <form onSubmit={handleUpdatePassword}>
-                <div className="form-group" style={{ marginBottom: 14 }}>
-                  <label><i className="fas fa-key"></i> Mật khẩu hiện tại *</label>
-                  <div className="password-input-wrap" style={{ position: 'relative' }}>
-                    <input
-                      type={showCurPass ? 'text' : 'password'}
-                      value={formData.CurrentPassword}
-                      onChange={(e) => setFormData({ ...formData, CurrentPassword: e.target.value })}
-                      required
-                      autoComplete="current-password"
-                      className="filter-input"
-                      placeholder="Nhập mật khẩu hiện tại..."
-                    />
-                    <button
-                      type="button"
-                      className="pwd-toggle-btn"
-                      onClick={() => setShowCurPass(!showCurPass)}
-                      tabIndex="-1"
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                    >
-                      <i className={'fas ' + (showCurPass ? 'fa-eye-slash' : 'fa-eye')}></i>
-                    </button>
+              {/* THẺ 2: ĐỔI MẬT KHẨU */}
+              <div className="account-card">
+                <div className="account-card-header">
+                  <div className="account-header-icon security">
+                    <i className="fas fa-shield-halved"></i>
+                  </div>
+                  <div>
+                    <h3 className="account-card-title">Bảo mật & Mật khẩu</h3>
+                    <p className="account-card-desc">Thay đổi mật khẩu đăng nhập định kỳ để đảm bảo an toàn</p>
                   </div>
                 </div>
 
-                <div className="form-group" style={{ marginBottom: 14 }}>
-                  <label><i className="fas fa-lock"></i> Mật khẩu mới</label>
-                  <div className="password-input-wrap" style={{ position: 'relative' }}>
-                    <input
-                      type={showNewPass ? 'text' : 'password'}
-                      value={formData.NewPassword}
-                      onChange={(e) => setFormData({ ...formData, NewPassword: e.target.value })}
-                      autoComplete="new-password"
-                      className="filter-input"
-                      placeholder="Nhập mật khẩu mới..."
-                    />
-                    <button
-                      type="button"
-                      className="pwd-toggle-btn"
-                      onClick={() => setShowNewPass(!showNewPass)}
-                      tabIndex="-1"
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                    >
-                      <i className={'fas ' + (showNewPass ? 'fa-eye-slash' : 'fa-eye')}></i>
-                    </button>
+                <form onSubmit={handleUpdatePassword}>
+                  <div className="form-group" style={{ marginBottom: 14 }}>
+                    <label><i className="fas fa-key"></i> Mật khẩu hiện tại *</label>
+                    <div className="password-input-wrap" style={{ position: 'relative' }}>
+                      <input
+                        type={showCurPass ? 'text' : 'password'}
+                        value={formData.CurrentPassword}
+                        onChange={(e) => setFormData({ ...formData, CurrentPassword: e.target.value })}
+                        required
+                        autoComplete="current-password"
+                        className="filter-input"
+                        placeholder="Nhập mật khẩu hiện tại..."
+                      />
+                      <button
+                        type="button"
+                        className="pwd-toggle-btn"
+                        onClick={() => setShowCurPass(!showCurPass)}
+                        tabIndex="-1"
+                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                      >
+                        <i className={'fas ' + (showCurPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="form-group" style={{ marginBottom: 16 }}>
-                  <label><i className="fas fa-check-double"></i> Xác nhận mật khẩu mới</label>
-                  <div className="password-input-wrap" style={{ position: 'relative' }}>
-                    <input
-                      type={showCfmPass ? 'text' : 'password'}
-                      value={formData.ConfirmPassword}
-                      onChange={(e) => setFormData({ ...formData, ConfirmPassword: e.target.value })}
-                      autoComplete="new-password"
-                      className="filter-input"
-                      placeholder="Nhập lại mật khẩu mới..."
-                    />
-                    <button
-                      type="button"
-                      className="pwd-toggle-btn"
-                      onClick={() => setShowCfmPass(!showCfmPass)}
-                      tabIndex="-1"
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                    >
-                      <i className={'fas ' + (showCfmPass ? 'fa-eye-slash' : 'fa-eye')}></i>
-                    </button>
+                  <div className="form-group" style={{ marginBottom: 14 }}>
+                    <label><i className="fas fa-lock"></i> Mật khẩu mới</label>
+                    <div className="password-input-wrap" style={{ position: 'relative' }}>
+                      <input
+                        type={showNewPass ? 'text' : 'password'}
+                        value={formData.NewPassword}
+                        onChange={(e) => setFormData({ ...formData, NewPassword: e.target.value })}
+                        autoComplete="new-password"
+                        className="filter-input"
+                        placeholder="Nhập mật khẩu mới..."
+                      />
+                      <button
+                        type="button"
+                        className="pwd-toggle-btn"
+                        onClick={() => setShowNewPass(!showNewPass)}
+                        tabIndex="-1"
+                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                      >
+                        <i className={'fas ' + (showNewPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <button type="submit" className="btn btn-secondary mob-account-save-btn" disabled={savingPass || !formData.CurrentPassword || !formData.NewPassword}>
-                  {savingPass ? (
-                    <><i className="fas fa-spinner fa-spin"></i> Đang đổi mật khẩu...</>
-                  ) : (
-                    <><i className="fas fa-lock"></i> Đổi mật khẩu</>
-                  )}
-                </button>
-              </form>
+                  <div className="form-group" style={{ marginBottom: 16 }}>
+                    <label><i className="fas fa-check-double"></i> Xác nhận mật khẩu mới</label>
+                    <div className="password-input-wrap" style={{ position: 'relative' }}>
+                      <input
+                        type={showCfmPass ? 'text' : 'password'}
+                        value={formData.ConfirmPassword}
+                        onChange={(e) => setFormData({ ...formData, ConfirmPassword: e.target.value })}
+                        autoComplete="new-password"
+                        className="filter-input"
+                        placeholder="Nhập lại mật khẩu mới..."
+                      />
+                      <button
+                        type="button"
+                        className="pwd-toggle-btn"
+                        onClick={() => setShowCfmPass(!showCfmPass)}
+                        tabIndex="-1"
+                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                      >
+                        <i className={'fas ' + (showCfmPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn btn-secondary account-save-btn" disabled={savingPass || !formData.CurrentPassword || !formData.NewPassword}>
+                    {savingPass ? (
+                      <><i className="fas fa-spinner fa-spin"></i> Đang đổi mật khẩu...</>
+                    ) : (
+                      <><i className="fas fa-lock"></i> Đổi mật khẩu</>
+                    )}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>

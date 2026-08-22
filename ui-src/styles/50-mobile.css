@@ -343,6 +343,7 @@
       .desk-about-view,
       .desk-agreements-view,
       .desk-agreements-catalog,
+      .desk-account-view,
       .desktop-only-table,
       .desktop-only-filters {
         display: none !important;
@@ -377,6 +378,7 @@
       .mob-agreements-view,
       .mob-agreement-creator-card,
       .mob-agreement-catalog,
+      .mob-account-view,
       .mobile-only-cards,
       .mobile-only-section { display: block !important; }
 
