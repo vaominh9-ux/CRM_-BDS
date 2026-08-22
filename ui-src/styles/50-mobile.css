@@ -4321,6 +4321,203 @@
         justify-content: center !important;
         gap: 6px !important;
       }
+
+      /* ===== PHÂN HỆ NHẬT KÝ HOẠT ĐỘNG TRÊN ĐIỆN THOẠI (LUXURY LOGS UI) ===== */
+      .desk-logs-table-wrap {
+        display: none !important;
+      }
+      .mob-logs-sub-toolbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 2px 0 10px 0 !important;
+        padding: 0 2px !important;
+      }
+      .mob-logs-cards-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .mob-log-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+      }
+      .mob-log-card:active {
+        transform: scale(0.99) !important;
+      }
+      body.dark-mode .mob-log-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      /* Hàng 1: Icon Hành động, Người dùng, Thời gian & Badge */
+      .mob-log-header-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+      }
+      .mob-log-icon-box {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 15px !important;
+        flex-shrink: 0 !important;
+        border: 1px solid !important;
+      }
+      .mob-log-header-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+      }
+      .mob-log-user-line {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+      }
+      .mob-log-username {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      body.dark-mode .mob-log-username {
+        color: #f1f5f9 !important;
+      }
+      .mob-log-action-badge {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        padding: 2px 6px !important;
+        border-radius: 5px !important;
+        border: 1px solid !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+      }
+      .mob-log-time {
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      body.dark-mode .mob-log-time {
+        color: #94a3b8 !important;
+      }
+
+      /* Hàng 2: Chi tiết hoạt động */
+      .mob-log-details-row {
+        font-size: 12.5px !important;
+        color: #334155 !important;
+        margin-top: 8px !important;
+        padding-top: 8px !important;
+        border-top: 1px dashed #e2e8f0 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+        line-height: 1.4 !important;
+      }
+      .mob-log-details-row i {
+        color: #94a3b8 !important;
+        font-size: 12px !important;
+        margin-top: 2px !important;
+        flex-shrink: 0 !important;
+      }
+      body.dark-mode .mob-log-details-row {
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+
+      /* Hàng 3: Khối chi tiết thay đổi (Diff Changes) */
+      .mob-log-changes-box {
+        margin-top: 8px !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+      }
+      body.dark-mode .mob-log-changes-box {
+        background: rgba(0, 0, 0, 0.25) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .mob-log-changes-title {
+        font-weight: 700 !important;
+        font-size: 11px !important;
+        color: #64748b !important;
+        text-transform: uppercase !important;
+        margin-bottom: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      .mob-log-changes-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+      }
+      .mob-log-chg-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 3px 0 !important;
+        border-bottom: 1px dotted #e2e8f0 !important;
+        font-size: 11.5px !important;
+      }
+      .mob-log-chg-item:last-child {
+        border-bottom: none !important;
+      }
+      body.dark-mode .mob-log-chg-item {
+        border-color: rgba(255, 255, 255, 0.06) !important;
+      }
+      .mob-log-chg-field {
+        font-weight: 600 !important;
+        color: #475569 !important;
+        min-width: 65px !important;
+      }
+      body.dark-mode .mob-log-chg-field {
+        color: #94a3b8 !important;
+      }
+      .mob-log-chg-old {
+        color: #ef4444 !important;
+        background: #fef2f2 !important;
+        padding: 1px 4px !important;
+        border-radius: 4px !important;
+        text-decoration: line-through !important;
+        font-size: 11px !important;
+      }
+      body.dark-mode .mob-log-chg-old {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+      }
+      .mob-log-chg-arrow {
+        color: #94a3b8 !important;
+        font-size: 10px !important;
+      }
+      .mob-log-chg-new {
+        color: #16a34a !important;
+        background: #f0fdf4 !important;
+        padding: 1px 4px !important;
+        border-radius: 4px !important;
+        font-weight: 600 !important;
+        font-size: 11px !important;
+      }
+      body.dark-mode .mob-log-chg-new {
+        background: rgba(22, 163, 74, 0.15) !important;
+        color: #86efac !important;
+      }
     }
   
   

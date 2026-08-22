@@ -1405,17 +1405,60 @@
       const { data, error } = useSWR('logs:all', () => gsRun('getLogs', currentUser), SWR_LIVE);
       const rows = data ? (data.success ? data.data : []) : undefined;
       const loading = rows === undefined && !error;
+      const [filterCategory, setFilterCategory] = useState('');
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+      const [filters, setFilters] = useState({ search: initialSearch || '', user: '', action: '' });
+      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
+
+      const usersList = useMemo(() => {
+        return Array.from(new Set((rows || []).map((l) => l.User).filter(Boolean))).sort();
+      }, [rows]);
+
+      const isToday = (t) => {
+        try { const d = new Date(t); return !isNaN(d.getTime()) && d.toDateString() === new Date().toDateString(); } catch (e) { return false; }
+      };
+
+      const counts = useMemo(() => {
+        const list = rows || [];
+        return {
+          all: list.length,
+          today: list.filter((l) => isToday(l.Timestamp)).length,
+          login: list.filter((l) => /login/i.test(l.Action || '')).length,
+          add: list.filter((l) => /add|create|tạo|thêm/i.test(l.Action || '')).length,
+          update: list.filter((l) => /update|edit|sửa|đổi|chuyển/i.test(l.Action || '')).length,
+          delete: list.filter((l) => /delete|remove|xóa|khóa/i.test(l.Action || '')).length
+        };
+      }, [rows]);
+
+      const visible = useMemo(() => {
+        const q = String(filters.search || '').trim().toLowerCase();
+        return (rows || []).filter((l) => {
+          if (filters.user && l.User !== filters.user) return false;
+          if (filters.action && l.Action !== filters.action) return false;
+          if (filterCategory === 'today' && !isToday(l.Timestamp)) return false;
+          if (filterCategory === 'login' && !/login/i.test(l.Action || '')) return false;
+          if (filterCategory === 'add' && !/add|create|tạo|thêm/i.test(l.Action || '')) return false;
+          if (filterCategory === 'update' && !/update|edit|sửa|đổi|chuyển/i.test(l.Action || '')) return false;
+          if (filterCategory === 'delete' && !/delete|remove|xóa|khóa/i.test(l.Action || '')) return false;
+          if (q) {
+            const chgText = (l.Changes || []).map((c) => (c.f || '') + ' ' + (c.a || '') + ' ' + (c.b || '')).join(' ');
+            if (![l.User, l.Action, l.Details, chgText].some((val) => String(val || '').toLowerCase().includes(q))) return false;
+          }
+          return true;
+        });
+      }, [rows, filterCategory, filters.user, filters.action, filters.search]);
+      const activeFiltersCount = (filters.search ? 1 : 0) + (filters.user ? 1 : 0) + (filters.action ? 1 : 0) + (filterCategory ? 1 : 0);
+
       // kpi from cached rows — [value, label, icon, color]
       const kpi = useMemo(() => {
-        const list = rows || [], today = new Date().toDateString();
-        const isToday = (t) => { try { const d = new Date(t); return !isNaN(d.getTime()) && d.toDateString() === today; } catch (e) { return false; } };
+        const list = rows || [];
         return [
           [list.length, 'Tổng số hoạt động', 'fa-list-check', 'bg-navy'],
-          [list.filter((l) => isToday(l.Timestamp)).length, 'Hoạt động hôm nay', 'fa-calendar-day', 'bg-success'],
+          [counts.today, 'Hoạt động hôm nay', 'fa-calendar-day', 'bg-success'],
           [new Set(list.map((l) => l.User).filter(Boolean)).size, 'Người dùng phát sinh', 'fa-user-group', 'bg-info'],
-          [list.filter((l) => /login/i.test(l.Action || '')).length, 'Lượt đăng nhập', 'fa-right-to-bracket', 'bg-warning'],
+          [counts.login, 'Lượt đăng nhập', 'fa-right-to-bracket', 'bg-warning'],
         ];
-      }, [rows]);
+      }, [rows, counts]);
       const tableRef = useRef(null);
 
       // rows change: same data -> untouched · changed -> in-place swap (keeps page/search) · first load -> full build
@@ -1457,7 +1500,7 @@
                       return dt.toLocaleString('vi-VN', { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' }); }
                     catch (e) { return d; }
                   } },
-                { data: 'User', title: 'Người dùng' },
+                { data: 'User', title: 'Người dùng', render: (d) => '<strong>' + esc(d) + '</strong>' },
                 { data: 'Action', title: 'Hành động', render: (d) => `<span class="status-badge status-active">${esc(d)}</span>` },
                 { data: 'Details', title: 'Chi tiết', render: (d, t) => (t === 'display' ? esc(d) : d) },
                 { data: 'Changes', title: 'Nội dung thay đổi', orderable: false, render: (d, t) => {
@@ -1469,7 +1512,7 @@
                       + '<span class="chg-b">' + esc(c.b) + '</span></div>').join('');
                   } }
               ],
-              pageLength: 10, lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+              pageLength: 10, lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Tất cả']],
               responsive: true, order: [], dom: 'lfrtip', // no B — buttons live in the page header
               columnDefs: [{ targets: '_all', defaultContent: '' }], // missing keys render blank, never warn
               buttons: [
@@ -1478,23 +1521,220 @@
                 { extend: 'print', text: 'In' }
               ]
             });
-            if (initialSearch) tableRef.current.search(initialSearch).draw(); // seed from 360 search after (re)build
+            if (initialSearch) tableRef.current.search(initialSearch).draw();
           } catch (e) { console.error('Logs table error:', e); }
         }, 150);
       };
 
+      const getLogIcon = (act) => {
+        const a = String(act || '').toLowerCase();
+        if (a.includes('login')) return { icon: 'fa-right-to-bracket', col: '#0284c7', bg: '#f0f9ff' };
+        if (a.includes('add') || a.includes('create') || a.includes('tạo') || a.includes('thêm')) return { icon: 'fa-plus-circle', col: '#16a34a', bg: '#f0fdf4' };
+        if (a.includes('update') || a.includes('edit') || a.includes('sửa') || a.includes('đổi') || a.includes('chuyển')) return { icon: 'fa-pen-to-square', col: '#d97706', bg: '#fffbeb' };
+        if (a.includes('delete') || a.includes('remove') || a.includes('xóa') || a.includes('khóa')) return { icon: 'fa-trash-can', col: '#dc2626', bg: '#fef2f2' };
+        return { icon: 'fa-bolt', col: '#7c3aed', bg: '#f5f3ff' };
+      };
+
+      const formatLogTime = (ts) => {
+        if (!ts) return 'N/A';
+        try {
+          const d = new Date(ts);
+          if (isNaN(d.getTime())) return String(ts);
+          return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch (e) { return String(ts); }
+      };
+
       return (
-        <div className="data-section">
-          {loading ? <KpiSkeleton /> : (
-            <div className="lte-kpi-grid">
-              {kpi.map(([v, l, ic, c], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} />)}
+        <>
+          <KpiRow items={kpi} />
+
+          {/* 1. Mobile Horizontally Scrollable Action Category Pills */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (!filterCategory ? 'active' : '')}
+                onClick={() => setFilterCategory('')}
+              >
+                <span>Tất cả</span>
+                <span className="mob-pill-badge">{counts.all}</span>
+              </button>
+              <button
+                className={'mob-pill ' + (filterCategory === 'today' ? 'active' : '') + (counts.today === 0 ? ' empty' : '')}
+                onClick={() => setFilterCategory((c) => c === 'today' ? '' : 'today')}
+              >
+                <span className="mob-pill-dot" style={{ background: '#16a34a' }}></span>
+                <span>Hôm nay</span>
+                <span className="mob-pill-badge">{counts.today}</span>
+              </button>
+              <button
+                className={'mob-pill ' + (filterCategory === 'login' ? 'active' : '') + (counts.login === 0 ? ' empty' : '')}
+                onClick={() => setFilterCategory((c) => c === 'login' ? '' : 'login')}
+              >
+                <span className="mob-pill-dot" style={{ background: '#0284c7' }}></span>
+                <span>Đăng nhập</span>
+                <span className="mob-pill-badge">{counts.login}</span>
+              </button>
+              <button
+                className={'mob-pill ' + (filterCategory === 'add' ? 'active' : '') + (counts.add === 0 ? ' empty' : '')}
+                onClick={() => setFilterCategory((c) => c === 'add' ? '' : 'add')}
+              >
+                <span className="mob-pill-dot" style={{ background: '#0d9488' }}></span>
+                <span>Thêm mới</span>
+                <span className="mob-pill-badge">{counts.add}</span>
+              </button>
+              <button
+                className={'mob-pill ' + (filterCategory === 'update' ? 'active' : '') + (counts.update === 0 ? ' empty' : '')}
+                onClick={() => setFilterCategory((c) => c === 'update' ? '' : 'update')}
+              >
+                <span className="mob-pill-dot" style={{ background: '#d97706' }}></span>
+                <span>Cập nhật</span>
+                <span className="mob-pill-badge">{counts.update}</span>
+              </button>
+              <button
+                className={'mob-pill ' + (filterCategory === 'delete' ? 'active' : '') + (counts.delete === 0 ? ' empty' : '')}
+                onClick={() => setFilterCategory((c) => c === 'delete' ? '' : 'delete')}
+              >
+                <span className="mob-pill-dot" style={{ background: '#dc2626' }}></span>
+                <span>Xóa / Khóa</span>
+                <span className="mob-pill-badge">{counts.delete}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Mobile Sub-Toolbar */}
+          <div className="mob-logs-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Hoạt động {filterCategory ? `· ${filterCategory}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc hoạt động">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Data Section: Desktop Table & Mobile Luxury Cards */}
+          <div className="data-section">
+            {/* Desktop Table View */}
+            <div className="desk-logs-table-wrap">
+              {loading ? <TableSkeleton rows={8} columns={4} /> : (
+                <div style={{ overflowX: 'auto' }}><table id="logsTable" className="display" style={{ width: '100%' }}></table></div>
+              )}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-logs-cards-container">
+              {loading ? (
+                <div className="mob-logs-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-log-card-skeleton">
+                      <div className="sk-line w50"></div>
+                      <div className="sk-line w80"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-logs-empty-state">
+                  <div className="empty-circle"><i className="fas fa-list-check"></i></div>
+                  <h4>Chưa có nhật ký hoạt động phù hợp</h4>
+                  <p>Thử chọn bộ lọc khác hoặc kiểm tra lại sau</p>
+                </div>
+              ) : (
+                visible.map((l, idx) => {
+                  const style = getLogIcon(l.Action);
+                  const changes = l.Changes || [];
+                  return (
+                    <div key={l.id || idx} className="mob-log-card">
+                      {/* HÀNG 1: Icon Hành động + Người thực hiện + Thời gian + Badge Hành động */}
+                      <div className="mob-log-header-row">
+                        <div className="mob-log-icon-box" style={{ color: style.col, background: style.bg, borderColor: style.col + '33' }}>
+                          <i className={'fas ' + style.icon}></i>
+                        </div>
+                        <div className="mob-log-header-info">
+                          <div className="mob-log-user-line">
+                            <strong className="mob-log-username">{l.User || 'Hệ thống'}</strong>
+                            <span className="mob-log-action-badge" style={{ color: style.col, borderColor: style.col + '44' }}>
+                              {l.Action || 'Hoạt động'}
+                            </span>
+                          </div>
+                          <div className="mob-log-time">
+                            <i className="fas fa-clock"></i> {formatLogTime(l.Timestamp)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 2: Chi tiết hoạt động */}
+                      {l.Details && (
+                        <div className="mob-log-details-row">
+                          <i className="fas fa-file-lines"></i>
+                          <span>{l.Details}</span>
+                        </div>
+                      )}
+
+                      {/* HÀNG 3: Diff thay đổi nếu có (Changes) */}
+                      {changes.length > 0 && (
+                        <div className="mob-log-changes-box">
+                          <div className="mob-log-changes-title">
+                            <i className="fas fa-code-compare"></i> Chi tiết thay đổi ({changes.length})
+                          </div>
+                          <div className="mob-log-changes-list">
+                            {changes.map((c, cIdx) => (
+                              <div key={cIdx} className="mob-log-chg-item">
+                                <span className="mob-log-chg-field">{c.f}</span>
+                                <span className="mob-log-chg-old">{c.a || '—'}</span>
+                                <i className="fas fa-arrow-right mob-log-chg-arrow"></i>
+                                <span className="mob-log-chg-new">{c.b || '—'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* 4. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc nhật ký</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm nhật ký</label>
+                    <input className="filter-input" value={filters.search} placeholder="Người dùng, hành động, chi tiết..." onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-user"></i> Người thực hiện</label>
+                    <select className="filter-input" value={filters.user} onChange={(e) => setFilters({ ...filters, user: e.target.value })}>
+                      <option value="">Tất cả người dùng</option>
+                      {usersList.map((u) => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '', user: '', action: '' }); setFilterCategory(''); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Bản ghi)
+                  </button>
+                </div>
+              </div>
             </div>
           )}
-          {loading && <TableSkeleton rows={8} columns={4} />}
-          <div style={{ display: loading ? 'none' : 'block' }}>
-            <table id="logsTable" className="display" style={{ width: '100%' }}></table>
-          </div>
-        </div>
+        </>
       );
     }
 
