@@ -1108,19 +1108,38 @@
             <div className="modal-body">
               <div className="id-head id-head-lead360">
                 <div className="lead360-identity">
-                  <div className="lead360-avatar"><i className="fas fa-user-tie"></i></div>
+                  <div className="lead360-avatar" style={{ background: typeof getLeadAvatarColor === 'function' ? getLeadAvatarColor(lead.fullName) : 'linear-gradient(135deg, #1e3a8a, #3b82f6)' }}>
+                    {typeof getLeadInitial === 'function' ? getLeadInitial(lead.fullName) : 'K'}
+                  </div>
                   <div className="lead360-person">
-                    <div className="nm">{lead.fullName} <Badge s={lead.status} /></div>
+                    <div className="nm">
+                      <span className="lead360-title-name">{lead.fullName}</span>
+                      <Badge s={lead.status} />
+                    </div>
                     <div className="sub">
-                      <i className="fas fa-phone"></i> {lead.phone}
-                      <button className="action-icon wa-icon" style={{ marginLeft: 6 }} title="Nhắn Zalo" onClick={() => waOpen(lead.phone)}><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
-                      {lead.email ? ' · ' + lead.email : ''} · {viEnum(lead.source)} · {viEnum(lead.interestType)}
+                      {lead.phone ? (
+                        <span className="lead360-phone-link">
+                          <i className="fas fa-phone-volume"></i> {typeof fmtLeadPhone === 'function' ? fmtLeadPhone(lead.phone) : lead.phone}
+                        </span>
+                      ) : null}
+                      {lead.phone && (
+                        <button className="action-icon wa-icon lead360-zalo-btn" title="Nhắn Zalo" onClick={() => waOpen(lead.phone)}>
+                          <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14 }}>
+                            <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
+                            <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
+                            <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+                          </svg>
+                        </button>
+                      )}
+                      {lead.email ? <span> · {lead.email}</span> : ''}
+                      {lead.source ? <span> · {viEnum(lead.source)}</span> : ''}
+                      {lead.interestType ? <span> · {viEnum(lead.interestType)}</span> : ''}
                     </div>
                   </div>
                 </div>
                 <div className="id-kpis">
-                  <div className="id-kpi"><i className="fas fa-hourglass-half"></i><div className="v">{daysOpen}</div><div className="l">Số ngày đang mở</div></div>
-                  <div className="id-kpi"><i className="fas fa-bell"></i><div className="v">{fus.length}</div><div className="l">Lịch chăm sóc</div></div>
+                  <div className="id-kpi"><i className="fas fa-hourglass-half"></i><div className="v">{daysOpen}</div><div className="l">Số ngày mở</div></div>
+                  <div className="id-kpi"><i className="fas fa-bell"></i><div className="v">{fus.length}</div><div className="l">Chăm sóc</div></div>
                   <div className="id-kpi"><i className="fas fa-calendar-check"></i><div className="v">{appts.length}</div><div className="l">Lịch xem</div></div>
                   <div className="id-kpi"><i className="fas fa-wallet"></i><div className="v">{(lead.budgetMin || lead.budgetMax) ? pkrShort(lead.budgetMax || lead.budgetMin) : '—'}</div><div className="l">Ngân sách</div></div>
                 </div>
@@ -1185,7 +1204,7 @@
                   <div key={p.id} className="tl-item"><i className="fas fa-building"></i>
                     <div style={{ flex: 1 }}><div className="w"><b>{p.referenceCode}</b> {p.title}</div><div className="m">{pkrShort(p.price)} · {p.locationPath} · điểm phù hợp {s}/6</div></div>
                     <Badge s={p.status} />
-                    <button className="action-icon wa-icon" title="Chia sẻ qua Zalo" onClick={() => waOpen(lead.phone, 'Xin chào ' + lead.fullName + '! Gửi bạn thông tin bất động sản phù hợp: ' + p.title + ' (' + p.referenceCode + ') — Giá: ' + pkrShort(p.price))}><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
+                    <button className="action-icon wa-icon" title="Chia sẻ qua Zalo" onClick={() => waOpen(lead.phone, 'Xin chào ' + lead.fullName + '! Gửi bạn thông tin bất động sản phù hợp: ' + p.title + ' (' + p.referenceCode + ') — Giá: ' + pkrShort(p.price))}><svg className="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
                   </div>)))}
               {tab === 'deal' && (
                 <>
