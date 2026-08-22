@@ -1795,11 +1795,11 @@
       }
     }
     @media (max-width: 900px) {
+      .desk-only-btn {
+        display: none !important;
+      }
       .modal-template-studio {
-        width: 100vw !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        border-radius: 0 !important;
+        display: none !important;
       }
       .tpl-studio-3col-layout {
         grid-template-columns: 1fr;

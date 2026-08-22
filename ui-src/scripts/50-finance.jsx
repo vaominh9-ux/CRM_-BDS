@@ -3445,7 +3445,7 @@ function AgreementsView({ currentUser, role, perms }) {
           <div className="filters-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3><i className="fas fa-file-contract"></i> Tạo tài liệu & Biểu mẫu A4</h3>
             {['Admin', 'Manager'].includes(role) && (
-              <button className="btn btn-secondary btn-sm" onClick={() => setTplManagerOpen(true)}>
+              <button className="btn btn-secondary btn-sm desk-only-btn" onClick={() => setTplManagerOpen(true)}>
                 <i className="fas fa-sliders"></i> Quản lý Mẫu Biểu mẫu
               </button>
             )}
@@ -3525,16 +3525,7 @@ function AgreementsView({ currentUser, role, perms }) {
         <div className="filters-section mob-agreement-creator-card">
           <div className="filters-header">
             <h3><i className={'fas ' + meta.icon}></i> {meta.label}</h3>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {['Admin', 'Manager'].includes(role) && (
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setTplManagerOpen(true)}
-                  title="Quản lý Mẫu Biểu mẫu"
-                >
-                  <i className="fas fa-sliders"></i> Mẫu
-                </button>
-              )}
+            <div>
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => setListOpen(true)}
