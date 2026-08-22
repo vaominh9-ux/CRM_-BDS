@@ -1,0 +1,1417 @@
+    // ============== Users Management (Admin Only) ==============
+    function UsersView({ currentUser, perms, initialSearch }) {
+      const canAdd = can(perms, 'users', 'a');
+      const canEdit = can(perms, 'users', 'e');
+      const canDel = can(perms, 'users', 'd');
+      const { data: res, error, mutate } = useSWR('users:all', () => gsRun('getAllUsers', currentUser), SWR_LIVE);
+      const rows = res ? (res.success ? res.data : []) : undefined;
+      const loading = rows === undefined && !error;
+      // kpi from cached rows — [value, label, icon, color]
+      const kpi = useMemo(() => {
+        const list = rows || [], active = list.filter((u) => u.Status === 'Active').length;
+        return [
+          [list.length,          'Total Users',  'fa-users',       'bg-navy'],
+          [active,               'Active Users', 'fa-user-check',  'bg-success'],
+          [list.length - active, 'Inactive',     'fa-user-clock',  'bg-warning'],
+          [list.filter((u) => u.Role === 'Admin').length, 'Admin Users', 'fa-user-shield', 'bg-info'],
+        ];
+      }, [rows]);
+      const [showModal, setShowModal] = useState(false);
+      const [editingUser, setEditingUser] = useState(null);
+      const [reassigning, setReassigning] = useState(null); // offboarding: move a user's whole book to someone else
+      const tableInstanceRef = useRef(null);
+
+      const [filters, setFilters] = useState({ role: '', status: '', search: '' });
+      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]); // seed from 360 search
+
+      // surface a server error (e.g. access denied) once
+      useEffect(() => {
+        if (res && !res.success) Swal.fire({ icon: 'error', title: 'Error', text: res.message || 'Failed to load users' });
+      }, [res]);
+
+      // rows change: same data -> untouched · changed -> in-place swap (keeps page/search) · first load -> full build
+      const rowsSigRef = useRef('');
+      useEffect(() => {
+        if (!rows) return;
+        const sig = JSON.stringify(rows);
+        if (tableInstanceRef.current && sig === rowsSigRef.current) return; // background refresh, nothing changed
+        rowsSigRef.current = sig;
+        if (tableInstanceRef.current) {
+          try { tableInstanceRef.current.clear(); tableInstanceRef.current.rows.add(rows); tableInstanceRef.current.draw(false); return; } catch (e) {}
+        }
+        initializeDataTable(rows);
+      }, [rows]);
+      useEffect(() => () => { // destroy on unmount ONLY
+        if (tableInstanceRef.current) { try { tableInstanceRef.current.destroy(); tableInstanceRef.current = null; } catch (e) {} }
+      }, []);
+
+      // csv import — client parse -> confirm -> bulk insert -> refetch
+      const handleImport = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const done = () => { e.target.value = ''; }; // reset so same file re-imports
+        file.text().then((text) => {
+          const rows = parseCSV(text);
+          if (rows.length < 2) { done(); return Swal.fire({ icon: 'error', title: 'Import', text: 'CSV is empty or missing header row' }); }
+          const headers = rows[0].map((h) => h.replace(/^\uFEFF/, '').trim()); // strip BOM
+          if (headers.indexOf('Username') === -1) { done(); return Swal.fire({ icon: 'error', title: 'Import', text: 'Missing Username column — download the Template for the exact shape' }); }
+          const records = rows.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => [h, (r[i] || '').trim()])));
+          Swal.fire({ icon: 'question', title: `Import ${records.length} rows?`, text: 'Invalid rows are skipped — errors shown after.',
+                      showCancelButton: true, confirmButtonText: 'Import', confirmButtonColor: '#001f3f' })
+            .then((cf) => {
+              if (!cf.isConfirmed) return done();
+              gsRun('bulkImportUsers', records, currentUser).then((res) => {
+                done();
+                if (!res || !res.success) return Swal.fire({ icon: 'error', title: 'Import failed', text: (res && res.message) || 'Import failed' });
+                mutate(); // refetch list
+                const skipped = (res.errors || []).length;
+                if (skipped) console.warn('Import errors:', res.errors);
+                Swal.fire({ icon: 'success', title: 'Import complete', text: `${res.count} imported${skipped ? ', ' + skipped + ' skipped' : ''}` });
+              }).catch(() => { done(); Swal.fire({ icon: 'error', title: 'Error', text: 'Import failed' }); });
+            });
+        });
+      };
+
+      // template csv — header + 1 generic demo row
+      const downloadTemplate = () => {
+        const csv = 'Username,Email,Password,Role,Status\nagent9,agent9@demo.com,demo123,Agent,Active\n';
+        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        const a = document.createElement('a');
+        a.href = url; a.download = 'users_template.csv'; a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      // publish this section's buttons -> header toolbar; cleared on unmount
+      useEffect(() => {
+        const dt = () => tableInstanceRef.current; // resolve at click time (table rebuilds)
+        setPageActions([
+          ...(canAdd ? [{ icon: 'fa-plus', label: 'Thêm người dùng', primary: true, onClick: () => { setEditingUser(null); setShowModal(true); } }] : []),
+          { icon: 'fa-file-csv', label: 'CSV', onClick: () => dt() && dt().button('.buttons-csv').trigger() },
+          { icon: 'fa-file-pdf', label: 'PDF', onClick: () => dt() && dt().button('.buttons-pdf').trigger() },
+          { icon: 'fa-print', label: 'In', onClick: () => dt() && dt().button('.buttons-print').trigger() },
+          ...(canAdd ? [{ icon: 'fa-file-import', label: 'Nhập CSV', onClick: () => document.getElementById('usersCsvImport').click() }] : []),
+          { icon: 'fa-download', label: 'Tệp mẫu', onClick: downloadTemplate },
+        ]);
+        return () => setPageActions([]);
+      }, [canAdd]);
+
+      const initializeDataTable = (data) => {
+        if (tableInstanceRef.current) {
+          try {
+            tableInstanceRef.current.destroy();
+            tableInstanceRef.current = null;
+            $('#usersTable').empty();
+          } catch (e) {}
+        }
+
+        setTimeout(() => {
+          try {
+            const table = $('#usersTable').DataTable({
+              data: data,
+              destroy: true,
+              language: DT_VI_LANGUAGE,
+              columns: [
+                { data: 'Username', title: 'Username' },
+                { data: 'Email', title: 'Email' },
+                { data: 'Role', title: 'Role' },
+                {
+                  data: 'Status',
+                  title: 'Status',
+                  render: (d) => `<span class="status-badge ${d === 'Active' ? 'status-active' : 'status-inactive'}">${d}</span>`
+                },
+                {
+                  data: 'CreatedAt',
+                  title: 'Created',
+                  render: (d, type, row) => {
+                    // Handle null, undefined, or empty values
+                    if (d === null || d === undefined || d === '' || d === 'N/A') {
+                      return '<span style="color: #999;">N/A</span>';
+                    }
+
+                    try {
+                      let date;
+
+                      // Parse different date formats
+                      if (typeof d === 'string') {
+                        // Handle string dates
+                        if (d.trim() === '') return '<span style="color: #999;">N/A</span>';
+                        date = new Date(d);
+                      } else if (typeof d === 'number') {
+                        // Handle Excel serial numbers
+                        if (d <= 0) return '<span style="color: #999;">N/A</span>';
+                        date = new Date((d - 25569) * 86400 * 1000);
+                      } else if (d instanceof Date) {
+                        date = d;
+                      } else {
+                        return '<span style="color: #999;">N/A</span>';
+                      }
+
+                      // Validate the date object
+                      if (!date || isNaN(date.getTime()) || date.getTime() === 0) {
+                        return '<span style="color: #999;">N/A</span>';
+                      }
+
+                      // Additional validation - check if year is reasonable
+                      const year = date.getFullYear();
+                      if (year < 1900 || year > 2100) {
+                        return '<span style="color: #999;">N/A</span>';
+                      }
+
+                      // Safe date formatting
+                      const month = date.toLocaleString('en-US', { month: 'short' });
+                      const day = String(date.getDate()).padStart(2, '0');
+                      const formattedYear = date.getFullYear();
+
+                      return `${month} ${day}, ${formattedYear}`;
+
+                    } catch (e) {
+                      console.error('Date rendering error:', e, 'Value:', d);
+                      return '<span style="color: #999;">N/A</span>';
+                    }
+                  }
+                },
+                {
+                  data: null,
+                  title: 'Actions',
+                  orderable: false,
+                  className: 'dt-actions actions-3',
+                  width: '106px',
+                  render: (d, t, row) => `<div class="table-actions slots-3">
+                    ${canEdit ? `<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>` : ''}
+                    ${canDel ? `<button class="action-icon assign-icon" data-action="reassign" title="Reassign work"><i class="fas fa-people-arrows"></i></button>` : ''}
+                    ${canDel ? `<button class="action-icon delete-icon" data-action="delete" title="Deactivate"><i class="fas fa-user-slash"></i></button>` : ''}
+                    ${!canEdit && !canDel ? '<span style="color:#999;">—</span>' : ''}
+                  </div>`
+                }
+              ],
+              pageLength: 10,
+              lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+              responsive: true,
+              columnDefs: [{ targets: '_all', defaultContent: '' }], // missing keys render blank, never warn
+              dom: 'lfrtip', // no B — buttons render in the page header, fired via buttons API
+              buttons: [
+                { extend: 'csv',   text: 'CSV',   exportOptions: { columns: ':not(:last-child)' } },
+                { extend: 'pdf',   text: 'PDF',   exportOptions: { columns: ':not(:last-child)' } },
+                { extend: 'print', text: 'Print', exportOptions: { columns: ':not(:last-child)' } }
+              ],
+              order: [[4, 'desc']]
+            });
+
+            $('#usersTable').off('click', '.action-icon');
+            $('#usersTable').on('click', '.action-icon', function() {
+              const action = $(this).data('action');
+              const rowData = table.row($(this).parents('tr')).data();
+
+              if (action === 'edit') {
+                setEditingUser(rowData);
+                setShowModal(true);
+              } else if (action === 'reassign') {
+                setReassigning(rowData);
+              } else if (action === 'delete') {
+                handleDelete(rowData);
+              }
+            });
+
+            tableInstanceRef.current = table;
+            if (filters.search || filters.role || filters.status) applyFilters(); // re-apply active filter after (re)build
+          } catch (e) {
+            console.error('DataTable initialization error:', e);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to initialize table: ' + e.message });
+          }
+        }, 150);
+      };
+
+      const applyFilters = () => {
+        if (!tableInstanceRef.current) return;
+
+        tableInstanceRef.current.columns().search('').draw();
+
+        if (filters.role) {
+          tableInstanceRef.current.column(2).search(filters.role).draw(false);
+        }
+        if (filters.status) {
+          tableInstanceRef.current.column(3).search(filters.status).draw(false);
+        }
+        if (filters.search) {
+          tableInstanceRef.current.search(filters.search).draw(false);
+        }
+
+        tableInstanceRef.current.draw();
+      };
+
+      const clearFilters = () => {
+        setFilters({ role: '', status: '', search: '' });
+        if (tableInstanceRef.current) {
+          tableInstanceRef.current.search('').columns().search('').draw();
+        }
+      };
+
+      useEffect(() => {
+        if (tableInstanceRef.current && rows && rows.length) {
+          applyFilters();
+        }
+      }, [filters]);
+
+      const handleSave = (userData) => {
+        const action = editingUser ? 'updateUser' : 'addUser';
+        const params = editingUser ? [editingUser.Username, userData, currentUser] : [userData, currentUser];
+
+        google.script.run
+          .withSuccessHandler((result) => {
+            if (result.success) {
+              setShowModal(false);
+              setEditingUser(null);
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: result.message,
+                timer: 2000,
+                showConfirmButton: false
+              });
+              mutate();                  // refresh users list
+              swrMutate('dash:stats');   // + dashboard KPIs
+            } else {
+              Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+            }
+          })
+          .withFailureHandler((err) => {
+            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+          })
+          [action](...params);
+      };
+
+      const handleDelete = (user) => {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Deactivate User?',
+          text: `"${user.Username}" is set Inactive — login blocked, history and lead attribution kept. You can reactivate later from Edit.`,
+          showCancelButton: true,
+          confirmButtonColor: '#ea4335',
+          confirmButtonText: 'Deactivate'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            google.script.run
+              .withSuccessHandler((r) => {
+                if (r.success) {
+                  mutate();
+                  swrMutate('dash:stats');
+                  if (r.openLeads > 0) { // offboarding: offer the one-action reassign right away
+                    Swal.fire({ icon: 'warning', title: 'User deactivated', text: r.openLeads + ' open lead(s) still assigned — reassign their work now?',
+                                showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Reassign now', cancelButtonText: 'Later' })
+                      .then((rr) => { if (rr.isConfirmed) setReassigning(user); });
+                  } else {
+                    Swal.fire({ icon: 'success', text: r.message, timer: 2000, showConfirmButton: false });
+                  }
+                } else {
+                  Swal.fire({ icon: 'error', title: 'Error', text: r.message });
+                }
+              })
+              .withFailureHandler((err) => {
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+              })
+              .deleteUser(user.Username, currentUser);
+          }
+        });
+      };
+
+      return (
+        <div className="data-section">
+          {loading ? <KpiSkeleton /> : (
+            <div className="lte-kpi-grid">
+              {kpi.map(([v, l, ic, c], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} />)}
+            </div>
+          )}
+
+          {!loading && (
+            <div className="filters-section">
+              <div className="filters-header">
+                <h3><i className="fas fa-filter"></i> Filters</h3>
+                <button className="btn btn-secondary btn-sm" onClick={clearFilters}>
+                  <i className="fas fa-times-circle"></i> Clear
+                </button>
+              </div>
+              <div className="filters-grid">
+                <div className="filter-group">
+                  <label><i className="fas fa-search"></i> Search</label>
+                  <input
+                    type="text"
+                    value={filters.search}
+                    onChange={(e) => setFilters({...filters, search: e.target.value})}
+                    placeholder="Search users..."
+                    className="filter-input"
+                  />
+                </div>
+                <SearchableDropdown label="Role" icon="fas fa-user-tag"
+                  options={opts(['Admin', 'Manager', 'Agent'])}
+                  value={filters.role} onChange={(v) => setFilters({ ...filters, role: v })} placeholder="All Roles" />
+                <SearchableDropdown label="Status" icon="fas fa-check-circle"
+                  options={opts(['Active', 'Inactive'])}
+                  value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} placeholder="All Status" />
+              </div>
+            </div>
+          )}
+
+          {loading && <TableSkeleton rows={8} columns={6} />}
+          <div style={{ display: loading ? 'none' : 'block' }}>
+            <table id="usersTable" className="display" style={{width: '100%'}}></table>
+          </div>
+
+          {/* hidden — opened by the Import CSV toolbar button */}
+          <input type="file" id="usersCsvImport" accept=".csv" style={{display: 'none'}} onChange={handleImport} />
+
+          {showModal && (
+            <UserModal
+              user={editingUser}
+              onClose={() => {
+                setShowModal(false);
+                setEditingUser(null);
+              }}
+              onSave={handleSave}
+            />
+          )}
+
+          {reassigning && (
+            <ReassignWorkModal fromUser={reassigning} users={rows || []} currentUser={currentUser}
+                               onClose={() => setReassigning(null)}
+                               onSaved={() => { setReassigning(null); mutate();
+                                 ['props:all', 'leads:all', 'fus:all', 'appts:all', 'dash:stats', 'lookups'].forEach((k) => swrMutate(k)); }} />
+          )}
+        </div>
+      );
+    }
+
+    // offboarding action — properties/leads/follow-ups/appointments move in ONE call
+    function ReassignWorkModal({ fromUser, users, currentUser, onClose, onSaved }) {
+      const [toUser, setToUser] = useState('');
+      const [saving, setSaving] = useState(false);
+      const targets = users.filter((u) => u.Status === 'Active' && u.Username !== fromUser.Username);
+      const submit = (e) => {
+        e.preventDefault();
+        if (!toUser) return;
+        setSaving(true);
+        gsRun('reassignAgentWork', fromUser.Username, toUser, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) {
+            const m = r.moved || {};
+            Swal.fire({ icon: 'success', title: r.message,
+              html: '<small>Properties: ' + (m.Properties || 0) + ' · Leads: ' + (m.Leads || 0) + ' · Follow-ups: ' + (m.FollowUps || 0) + ' · Appointments: ' + (m.Appointments || 0) + '</small>' });
+            onSaved();
+          } else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+      };
+      return (
+        <div className="modal-overlay">
+          <TopLoadingBar active={saving} />
+          <div className="modal" style={{ maxWidth: 440 }}>
+            <div className="modal-header">
+              <h3><i className="fas fa-people-arrows"></i> Reassign "{fromUser.Username}"'s work</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ color: '#789', fontSize: 13.5, marginBottom: 12 }}>Every property, lead, follow-up and appointment assigned to <strong>{fromUser.Username}</strong> moves to the user you pick — the standard offboarding step before deactivation.</p>
+              <form onSubmit={submit}>
+                <SearchableDropdown label="Move everything to" icon="fas fa-user-tie"
+                  options={targets.map((u) => ({ value: u.Username, label: u.Username + ' (' + u.Role + ')' }))}
+                  value={toUser} onChange={setToUser} placeholder="Pick a user…" required={true} />
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving || !toUser}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Moving…</> : <><i className="fas fa-people-arrows"></i> Reassign All</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== User Modal ==============
+    function UserModal({ user, onClose, onSave }) {
+      const [formData, setFormData] = useState({
+        Username: user?.Username || '',
+        Email: user?.Email || '',
+        Password: '',
+        Role: user?.Role || 'Agent',
+        Status: user?.Status || 'Active',
+        MonthlyTarget: user?.MonthlyTarget || 0
+      });
+      const [saving, setSaving] = useState(false);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setSaving(true);
+        onSave(formData);
+      };
+
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                <i className="fas fa-user-edit"></i> {user ? 'Sửa người dùng' : 'Thêm người dùng'}
+              </h3>
+              <button className="close-btn" onClick={onClose}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Tên đăng nhập *</label>
+                    <input
+                      type="text"
+                      value={formData.Username}
+                      onChange={(e) => setFormData({...formData, Username: e.target.value})}
+                      required
+                      disabled={!!user}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Email *</label>
+                    <input
+                      type="email"
+                      value={formData.Email}
+                      onChange={(e) => setFormData({...formData, Email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Mật khẩu {user ? '(để trống nếu giữ mật khẩu hiện tại)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={formData.Password}
+                      onChange={(e) => setFormData({...formData, Password: e.target.value})}
+                      required={!user}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  <SearchableDropdown label="Role" icon="fas fa-user-shield"
+                    options={opts(['Admin', 'Manager', 'Agent'])}
+                    value={formData.Role} onChange={(v) => setFormData({ ...formData, Role: v })} placeholder="Role…" required={true} />
+                  <SearchableDropdown label="Status" icon="fas fa-toggle-on"
+                    options={opts(['Active', 'Inactive'])}
+                    value={formData.Status} onChange={(v) => setFormData({ ...formData, Status: v })} placeholder="Status…" required={true} />
+                  <div className="form-group">
+                    <label><i className="fas fa-bullseye"></i> Mục tiêu tháng (VNĐ) <small style={{ color: '#999', textTransform: 'none' }}>(0 = không đặt mục tiêu — dùng tính tỷ lệ bảng xếp hạng)</small></label>
+                    <input type="number" min="0" step="any" value={formData.MonthlyTarget}
+                           onChange={(e) => setFormData({...formData, MonthlyTarget: e.target.value})} />
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? (
+                      <><i className="fas fa-spinner fa-spin"></i> Đang lưu...</>
+                    ) : (
+                      <><i className="fas fa-save"></i> Lưu</>
+                    )}
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>
+                    <i className="fas fa-times"></i> Hủy
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== My Account (User Profile) ==============
+    function AccountView({ currentUser, currentEmail, role }) {
+      const [formData, setFormData] = useState({
+        Email: currentEmail || '',
+        CurrentPassword: '',
+        NewPassword: '',
+        ConfirmPassword: ''
+      });
+      const [saving, setSaving] = useState(false);
+      const [uploading, setUploading] = useState(false);
+      const fileInputRef = useRef(null);
+
+      const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn một tệp hình ảnh' });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploading(true);
+          const base64Data = event.target.result;
+
+          google.script.run
+            .withSuccessHandler((result) => {
+              setUploading(false);
+              if (result.success) {
+                google.script.run
+                  .withSuccessHandler((r) => {
+                    if (r.success) {
+                      Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã cập nhật ảnh đại diện!', timer: 2000, showConfirmButton: false });
+                    }
+                  })
+                  .updateUserSettings(currentUser, { profileImage: result.fileUrl });
+              } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+              }
+            })
+            .withFailureHandler((err) => {
+              setUploading(false);
+              Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            })
+            .uploadFile(base64Data, file.name, 'profile');
+        };
+        reader.readAsDataURL(file);
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (formData.NewPassword && formData.NewPassword !== formData.ConfirmPassword) {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'New passwords do not match!' });
+          return;
+        }
+
+        setSaving(true);
+        google.script.run
+          .withSuccessHandler((result) => {
+            setSaving(false);
+            if (result.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: result.message,
+                timer: 2000,
+                showConfirmButton: false
+              });
+              setFormData({
+                ...formData,
+                CurrentPassword: '',
+                NewPassword: '',
+                ConfirmPassword: ''
+              });
+            } else {
+              Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+            }
+          })
+          .withFailureHandler((err) => {
+            setSaving(false);
+            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+          })
+          .updateMyAccount(currentUser, formData);
+      };
+
+      return (
+        <div className="profile-section">
+          <div className="profile-header">
+            <div className="profile-avatar">
+              {currentUser.charAt(0).toUpperCase()}
+            </div>
+            <div className="profile-info">
+              <h2>{currentUser}</h2>
+              <p>{role} Account</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Username (Cannot be changed)</label>
+              <input
+                type="text"
+                value={currentUser}
+                disabled
+                style={{background: '#f5f5f5', cursor: 'not-allowed'}}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Email *</label>
+              <input
+                type="email"
+                value={formData.Email}
+                onChange={(e) => setFormData({...formData, Email: e.target.value})}
+                required
+              />
+            </div>
+
+            <div style={{marginTop: '25px'}}>
+            <h3 style={{marginBottom: '18px', color: 'var(--navy-primary)', fontSize: '17px'}}>
+              <i className="fas fa-image"></i> Ảnh đại diện
+            </h3>
+            <div style={{marginBottom: '18px'}}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{display: 'none'}}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={() => fileInputRef.current.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <><i className="fas fa-spinner fa-spin"></i> Đang tải lên...</>
+                ) : (
+                  <><i className="fas fa-upload"></i> Tải ảnh lên</>
+                )}
+              </button>
+              <p style={{marginTop: '10px', fontSize: '13px', color: '#666'}}>
+                Tải ảnh đại diện mới (tự động đồng bộ làm Logo &amp; Ảnh đại diện toàn hệ thống). Kích thước đề xuất: 200×200 px
+              </p>
+            </div>
+          </div>
+
+          <hr style={{margin: '25px 0', border: 'none', borderTop: '2px solid #e0e0e0'}} />
+
+            <h3 style={{color: 'var(--navy-primary)', marginBottom: '18px', fontSize: '18px'}}>
+              <i className="fas fa-lock"></i> Đổi mật khẩu
+            </h3>
+
+            <div className="form-group">
+              <label>Current Password *</label>
+              <input
+                type="password"
+                value={formData.CurrentPassword}
+                onChange={(e) => setFormData({...formData, CurrentPassword: e.target.value})}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>New Password (Leave blank to keep current)</label>
+              <input
+                type="password"
+                value={formData.NewPassword}
+                onChange={(e) => setFormData({...formData, NewPassword: e.target.value})}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Confirm New Password</label>
+              <input
+                type="password"
+                value={formData.ConfirmPassword}
+                onChange={(e) => setFormData({...formData, ConfirmPassword: e.target.value})}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? (
+                  <><i className="fas fa-spinner fa-spin"></i> Saving...</>
+                ) : (
+                  <><i className="fas fa-save"></i> Update Account</>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    // ============== Settings Page ==============
+    // admin-only: OpenAI key + model for the AI assistant (key write-only — server never returns it)
+    function AiSettingsCard({ currentUser }) {
+      const { data, mutate } = useSWR('ai:cfg', () => gsRun('getAiConfig', currentUser), SWR_LIVE);
+      const cfg = data && data.success ? data : null;
+      const [key, setKey] = useState('');
+      const [model, setModel] = useState('');
+      const [saving, setSaving] = useState(false);
+      useEffect(() => { if (cfg && !model) setModel(cfg.model); }, [cfg]);
+      const AI_MODELS = ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1', 'gpt-5-mini', 'gpt-5', 'o4-mini'];
+      const options = Array.from(new Set(AI_MODELS.concat(cfg && cfg.model ? [cfg.model] : []))).map((m) => ({ value: m, label: m }));
+      const save = () => {
+        if (!key.trim() && !(cfg && cfg.hasKey)) return Swal.fire({ icon: 'warning', title: 'API key required', text: 'Paste your OpenAI key (sk-…) the first time.' });
+        setSaving(true);
+        gsRun('setAiConfig', key.trim(), model, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { setKey(''); mutate(); Swal.fire({ icon: 'success', title: r.message, timer: 1600, showConfirmButton: false }); }
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+        }).catch(() => setSaving(false));
+      };
+      return (
+        <div style={{ marginTop: 22 }}>
+          <h3 style={{ marginBottom: 14, color: 'var(--navy-primary)', fontSize: 17 }}><i className="fas fa-robot"></i> Trợ lý AI (ChatGPT)</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label><i className="fas fa-key"></i> Khóa API OpenAI {cfg && cfg.hasKey
+                ? <small style={{ color: '#2e7d32', textTransform: 'none' }}>(đã lưu ✓ đuôi …{cfg.keyTail} — dán khóa mới để thay thế)</small>
+                : <small style={{ color: '#c0392b', textTransform: 'none' }}>(chưa thiết lập)</small>}</label>
+              <input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="sk-…" autoComplete="off" />
+            </div>
+            <SearchableDropdown label="Mô hình" icon="fas fa-microchip" options={options} value={model} onChange={setModel} placeholder="Chọn mô hình…" />
+          </div>
+          <p style={{ fontSize: 12.5, color: '#789', margin: '2px 0 10px' }}><i className="fas fa-shield-halved"></i> Khóa được lưu trong Script Properties và chỉ sử dụng phía máy chủ; không bao giờ gửi xuống trình duyệt. Mỗi người dùng chỉ trò chuyện trên dữ liệu được cấp quyền.</p>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>
+            {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Lưu cài đặt AI</>}
+          </button>
+        </div>
+      );
+    }
+
+    // admin-only: agency money defaults + round-robin toggle (Script Properties backed)
+    function MoneyDefaultsCard({ currentUser }) {
+      const { data, mutate } = useSWR('cfg', () => gsRun('getAppConfig', currentUser), SWR_LIVE);
+      const cfg = data && data.success ? data.cfg : null;
+      const [form, setForm] = useState(null);
+      const [saving, setSaving] = useState(false);
+      useEffect(() => { if (cfg && !form) setForm({ ...cfg }); }, [cfg]);
+      if (!form) return null;
+      const setEv = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+      const save = () => {
+        setSaving(true);
+        gsRun('setAppConfig', form, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { mutate(); Swal.fire({ icon: 'success', title: r.message, timer: 1600, showConfirmButton: false }); }
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+        }).catch(() => setSaving(false));
+      };
+      return (
+        <div style={{ marginTop: 22 }}>
+          <h3 style={{ marginBottom: 14, color: 'var(--navy-primary)', fontSize: 17 }}><i className="fas fa-sack-dollar"></i> Thiết lập tài chính mặc định (toàn công ty)</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label><i className="fas fa-percent"></i> Hoa hồng % — Bán</label>
+              <input type="number" min="0" step="any" value={form.commissionPctSale} onChange={setEv('commissionPctSale')} />
+            </div>
+            <div className="form-group">
+              <label><i className="fas fa-percent"></i> Hoa hồng % — Thuê <small style={{ color: '#999', textTransform: 'none' }}>(100 = một tháng tiền thuê)</small></label>
+              <input type="number" min="0" step="any" value={form.commissionPctRent} onChange={setEv('commissionPctRent')} />
+            </div>
+            <div className="form-group">
+              <label><i className="fas fa-user-tie"></i> Tỷ lệ hoa hồng của nhân viên</label>
+              <input type="number" min="0" max="100" step="any" value={form.agentSharePct} onChange={setEv('agentSharePct')} />
+            </div>
+            <div className="form-group">
+              <label><i className="fas fa-file-signature"></i> Tỷ lệ tăng khi gia hạn</label>
+              <input type="number" min="0" step="any" value={form.renewalIncrementPct} onChange={setEv('renewalIncrementPct')} />
+            </div>
+            <div className="form-group">
+              <label><i className="fas fa-shuffle"></i> Luân phiên khách hàng từ website <small style={{ color: '#999', textTransform: 'none' }}>(tự động giao cho nhân viên đang hoạt động)</small></label>
+              <div className="toggle-row">
+                <input type="checkbox" className="toggle" id="cfgRoundRobin" checked={Number(form.roundRobin) === 1}
+                       onChange={(e) => setForm((f) => ({ ...f, roundRobin: e.target.checked ? 1 : 0 }))} />
+                <label htmlFor="cfgRoundRobin" style={{ textTransform: 'none', fontSize: 13, color: '#6b7a89', cursor: 'pointer' }}>
+                  {Number(form.roundRobin) === 1 ? 'Bật — khách hàng mới từ website được luân phiên giữa các nhân viên' : 'Tắt — khách hàng từ website chưa được phân công'}
+                </label>
+              </div>
+            </div>
+          </div>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>
+            {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Lưu thiết lập tài chính</>}
+          </button>
+        </div>
+      );
+    }
+
+    // Agency Company Information Card
+    function AgencyBrandingCard({ currentUser }) {
+      const [branding, setBranding] = useState({ name: '', logo: '', phone: '', address: '', slogan: '' });
+      const [saving, setSaving] = useState(false);
+
+      useEffect(() => {
+        google.script.run
+          .withSuccessHandler((res) => {
+            if (res && res.success && res.branding) {
+              setBranding(res.branding);
+            }
+          })
+          .getAgencyBranding();
+      }, []);
+
+      const handleSave = (e) => {
+        e.preventDefault();
+        setSaving(true);
+        google.script.run
+          .withSuccessHandler((res) => {
+            setSaving(false);
+            if (res && res.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: 'Đã cập nhật Tên công ty & Thông tin liên hệ!',
+                timer: 1600,
+                showConfirmButton: false
+              }).then(() => {
+                window.location.reload();
+              });
+            } else {
+              Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Không thể lưu' });
+            }
+          })
+          .withFailureHandler((err) => {
+            setSaving(false);
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message });
+          })
+          .saveAgencyBranding(branding, currentUser);
+      };
+
+      return (
+        <div style={{ marginTop: 22 }}>
+          <h3 style={{ marginBottom: 14, color: 'var(--navy-primary)', fontSize: 17 }}>
+            <i className="fas fa-building"></i> Thông tin &amp; Tên công ty
+          </h3>
+          <form onSubmit={handleSave}>
+            <div className="form-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+              <div className="form-group">
+                <label><i className="fas fa-signature"></i> Tên công ty / Sàn BĐS *</label>
+                <input
+                  value={branding.name || ''}
+                  onChange={(e) => setBranding({ ...branding, name: e.target.value })}
+                  required
+                  placeholder="Ví dụ: Tên công ty bất động sản"
+                />
+              </div>
+
+              <div className="form-group">
+                <label><i className="fas fa-phone"></i> Hotline / SĐT liên hệ</label>
+                <input
+                  value={branding.phone || ''}
+                  onChange={(e) => setBranding({ ...branding, phone: e.target.value })}
+                  placeholder="0901 234 567"
+                />
+              </div>
+
+              <div className="form-group">
+                <label><i className="fas fa-location-dot"></i> Địa chỉ trụ sở</label>
+                <input
+                  value={branding.address || ''}
+                  onChange={(e) => setBranding({ ...branding, address: e.target.value })}
+                  placeholder="Hà Nội & TP. Hồ Chí Minh, Việt Nam"
+                />
+              </div>
+            </div>
+
+            <p style={{ fontSize: 12.5, color: '#789', margin: '6px 0 10px' }}>
+              <i className="fas fa-circle-info"></i> Tên công ty và hotline sẽ hiển thị trên Cổng thông tin BĐS, Màn hình đăng nhập, Menu CRM và các tài liệu/hợp đồng xuất ra.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={saving}
+              >
+                {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Lưu thông tin công ty</>}
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    function SettingsView({ currentUser, role, onSettingsUpdate }) {
+      const [uploading, setUploading] = useState(false);
+      const [customColors, setCustomColors] = useState({
+        primary: '#001f3f',
+        accent: '#0074D9',
+        text: '#333333'
+      });
+      const [themeId, setThemeId] = useState('');        // currently applied preset (saved)
+      const [previewId, setPreviewId] = useState('');    // preset being previewed (not yet committed)
+      const [defaultId, setDefaultId] = useState('');    // app-wide default (admin-set)
+      const [showAdvanced, setShowAdvanced] = useState(false);
+      const isAdmin = role === 'Admin';
+      const fileInputRef = useRef(null);
+
+      const { data: settingsRes } = useSWR('settings:' + currentUser, () => gsRun('getUserSettings', currentUser), SWR_LIVE);
+      useEffect(() => {
+        const cc = settingsRes && settingsRes.success && settingsRes.settings && settingsRes.settings.customColors;
+        if (cc) { try { const o = JSON.parse(cc); if (o.themeId) { setThemeId(o.themeId); setPreviewId(o.themeId); } if (o.primary) setCustomColors({ primary: o.primary, accent: o.accent, text: o.text || '#333333' }); } catch (e) {} }
+      }, [settingsRes]);
+
+      const { data: defRes } = useSWR('defaultTheme', () => gsRun('getDefaultTheme'), SWR_LIVE);
+      useEffect(() => { if (defRes && defRes.success && defRes.id) setDefaultId(defRes.id); }, [defRes]);
+
+      // click a card → preview only (no apply, no save)
+      const previewTheme = (t) => setPreviewId(t.id);
+
+      // "Set Now" → commit the previewed preset: apply live + persist to this user
+      const applySelectedTheme = () => {
+        const t = findTheme(previewId) || findTheme(themeId) || UI_THEMES[0];
+        const vars = themeVars(t);
+        applyThemeVars(vars);
+        cacheThemeVars(vars);
+        setThemeId(t.id);
+        const payload = { themeId: t.id, vars: vars, primary: t.primary, accent: t.accent, text: '#1A1A1A' };
+        google.script.run
+          .withSuccessHandler((r) => { if (r.success) { Swal.fire({ icon: 'success', title: 'Đã áp dụng giao diện!', text: t.name, timer: 1400, showConfirmButton: false }); onSettingsUpdate(); } })
+          .updateUserSettings(currentUser, { customColors: JSON.stringify(payload) });
+      };
+
+      // admin: make this preset the first-load default for everyone
+      const makeDefault = (t) => {
+        google.script.run
+          .withSuccessHandler((r) => {
+            if (r && r.success) { setDefaultId(t.id); Swal.fire({ icon: 'success', title: 'Đã đặt làm mặc định!', text: t.name + ' sẽ được tải cho mọi người dùng trong lần mở đầu tiên.', timer: 1800, showConfirmButton: false }); }
+            else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+          })
+          .setDefaultTheme(t.id, JSON.stringify(themeVars(t)), currentUser);
+      };
+
+      const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn một tệp hình ảnh' });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploading(true);
+          const base64Data = event.target.result;
+
+          google.script.run
+            .withSuccessHandler((result) => {
+              setUploading(false);
+              if (result.success) {
+                google.script.run
+                  .withSuccessHandler((r) => {
+                    if (r.success) {
+                      Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã cập nhật ảnh đại diện!', timer: 2000, showConfirmButton: false });
+                      onSettingsUpdate();
+                    }
+                  })
+                  .updateUserSettings(currentUser, { profileImage: result.fileUrl });
+              } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+              }
+            })
+            .withFailureHandler((err) => {
+              setUploading(false);
+              Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            })
+            .uploadProfileImage(base64Data, file.name, currentUser);
+        };
+        reader.readAsDataURL(file);
+      };
+
+      const handleColorChange = (type, color) => {
+        setCustomColors({...customColors, [type]: color});
+      };
+
+      const applyColors = () => {
+        setThemeId(''); // custom overrides preset
+        const vars = { '--navy-primary': customColors.primary, '--navy-dark': customColors.primary, '--navy-light': customColors.accent, '--navy-accent': customColors.accent, '--text-primary': customColors.text };
+        applyThemeVars(vars); cacheThemeVars(vars);
+        const payload = { primary: customColors.primary, accent: customColors.accent, text: customColors.text, vars: vars };
+        google.script.run
+          .withSuccessHandler((result) => {
+            if (result.success) {
+              Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã áp dụng bảng màu!', timer: 2000, showConfirmButton: false });
+              onSettingsUpdate();
+            }
+          })
+          .updateUserSettings(currentUser, { customColors: JSON.stringify(payload) });
+      };
+
+      const resetToDefaultColors = () => {
+        const defaultColors = { primary: '#001f3f', accent: '#0074D9', text: '#333333' };
+        setCustomColors(defaultColors); setThemeId('');
+        try { localStorage.removeItem('app_theme_vars'); } catch (e) {}
+        const root = document.documentElement;
+        ['--navy-primary','--navy-dark','--navy-light','--navy-hover','--navy-accent','--c-secondary','--c-bg','--c-card','--c-on-accent','--text-primary','--text-muted'].forEach(k => root.style.removeProperty(k));
+
+        google.script.run
+          .withSuccessHandler((result) => {
+            if (result.success) {
+              Swal.fire({ icon: 'success', title: 'Đã đặt lại!', text: 'Màu sắc đã trở về giao diện Xanh hải quân mặc định!', timer: 2000, showConfirmButton: false });
+              onSettingsUpdate();
+            }
+          })
+          .updateUserSettings(currentUser, { customColors: '' });
+      };
+
+      const pv = findTheme(previewId) || findTheme(themeId) || UI_THEMES[0]; // theme shown in preview panel
+
+      return (
+        <div className="data-section">
+          <div className="settings-info-message">
+            <i className="fas fa-info-circle" style={{marginRight: '6px'}}></i>
+            <strong>Lưu ý:</strong> Ảnh đại diện và màu giao diện là thiết lập cá nhân — thay đổi chỉ áp dụng cho tài khoản của bạn.
+          </div>
+
+          {isAdmin && <AgencyBrandingCard currentUser={currentUser} />}
+          {isAdmin && <MoneyDefaultsCard currentUser={currentUser} />}
+          {isAdmin && <AiSettingsCard currentUser={currentUser} />}
+
+          <div style={{marginTop: '25px'}}>
+            <h3 style={{marginBottom: '18px', color: 'var(--navy-primary)', fontSize: '17px'}}>
+              <i className="fas fa-image"></i> Ảnh đại diện
+            </h3>
+            <div style={{marginBottom: '18px'}}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{display: 'none'}}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={() => fileInputRef.current.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <><i className="fas fa-spinner fa-spin"></i> Đang tải lên...</>
+                ) : (
+                  <><i className="fas fa-upload"></i> Tải ảnh lên</>
+                )}
+              </button>
+              <p style={{marginTop: '10px', fontSize: '13px', color: '#666'}}>
+                Tải ảnh đại diện mới. Kích thước đề xuất: 200×200 px
+              </p>
+            </div>
+          </div>
+
+          
+
+          <hr style={{margin: '25px 0', border: 'none', borderTop: '2px solid #e0e0e0'}} />
+
+          <div style={{marginTop: '25px'}}>
+            <h3 style={{marginBottom: '6px', color: 'var(--navy-primary)', fontSize: '17px'}}>
+              <i className="fas fa-palette"></i> Giao diện
+            </h3>
+            <p style={{fontSize: '12px', color: '#666', marginBottom: '14px'}}>
+              Chọn một bảng màu để xem trước bên dưới — hệ thống chỉ thay đổi khi bạn nhấn <strong>Áp dụng ngay</strong>.
+              {isAdmin && ' Quản trị viên cũng có thể đặt giao diện mặc định cho người dùng trong lần truy cập đầu tiên.'}
+            </p>
+
+            <div className="theme-gallery">
+              {UI_THEMES.map((t) => (
+                <div
+                  key={t.id}
+                  className={'theme-card' + (themeId === t.id ? ' active' : '') + (pv.id === t.id ? ' previewing' : '')}
+                  onClick={() => previewTheme(t)}
+                  title={'Xem trước ' + t.name}
+                >
+                  <div className="theme-swatch">
+                    <span style={{background: t.primary}}></span>
+                    <span style={{background: t.secondary}}></span>
+                    <span style={{background: t.bg}}></span>
+                    <span className="sw-accent" style={{background: t.accent}}></span>
+                  </div>
+                  <div className="theme-body">
+                    <div className="theme-name">
+                      {t.name}
+                      {defaultId === t.id && <span className="theme-default-badge">MẶC ĐỊNH</span>}
+                    </div>
+                    <div className="theme-id">{t.id}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* live preview of the picked palette on a mini dashboard */}
+            <div className="theme-preview-panel">
+              <div className="tp-head">
+                <span className="tp-title"><i className="fas fa-eye" style={{marginRight: '6px', color: 'var(--navy-accent)'}}></i>{pv.name}</span>
+                <span className="tp-chip">{pv.id}</span>
+                {themeId === pv.id && <span className="tp-tag applied">ĐANG ÁP DỤNG</span>}
+                {defaultId === pv.id && <span className="tp-tag deft">MẶC ĐỊNH</span>}
+              </div>
+
+              <div className="tp-mock" style={{background: pv.bg}}>
+                <div className="tp-side" style={{background: pv.primary}}>
+                  <div className="tp-logo"></div>
+                  {['fa-gauge-high','fa-table-cells-large','fa-users','fa-gear'].map(ic => <i className={'fas ' + ic} key={ic}></i>)}
+                </div>
+                <div className="tp-body2">
+                  <div className="tp-nav" style={{background: pv.card}}>
+                    <span className="tp-h" style={{background: pv.secondary}}></span>
+                    <span className="tp-av" style={{background: pv.accent}}></span>
+                  </div>
+                  <div className="tp-content">
+                    <div className="tp-kpis">
+                      {[['128','ĐƠN HÀNG',pv.primary,'#fff'],['9,4tr','DOANH THU',pv.secondary,'#fff'],['+18%','TĂNG TRƯỞNG',pv.accent,pv.onAccent]].map(([n,l,bg,c],i) =>
+                        <div className="tp-kpi" style={{background: bg, color: c}} key={i}><b>{n}</b><small>{l}</small></div>)}
+                    </div>
+                    <div className="tp-row">
+                      <button className="tp-btn" style={{background: pv.accent, color: pv.onAccent}}>Thao tác chính</button>
+                      <span className="tp-badge" style={{background: pv.secondary, color: '#fff'}}>Hoạt động</span>
+                      <span style={{flex: 1, height: '8px', background: 'rgba(0,0,0,.06)'}}></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="tp-legend">
+                {[['Màu chính','primary'],['Màu phụ','secondary'],['Nền','bg'],['Thẻ','card'],['Điểm nhấn','accent']].map(([l,k]) =>
+                  <span className="tp-leg" key={k}><span className="tp-sw" style={{background: pv[k]}}></span>{l}</span>)}
+              </div>
+
+              <div className="tp-actions">
+                <button className="btn btn-success" onClick={applySelectedTheme} disabled={themeId === pv.id}>
+                  <i className="fas fa-check"></i> {themeId === pv.id ? 'Đang áp dụng' : 'Áp dụng ngay'}
+                </button>
+                {isAdmin && (
+                  <button className="btn btn-secondary" onClick={() => makeDefault(pv)} disabled={defaultId === pv.id}>
+                    <i className="fas fa-thumbtack"></i> {defaultId === pv.id ? 'Đang là mặc định' : 'Đặt làm mặc định'}
+                  </button>
+                )}
+                {themeId === pv.id && <span className="tp-applied-note"><i className="fas fa-circle-check"></i> Bảng màu này đang được áp dụng cho tài khoản của bạn</span>}
+              </div>
+            </div>
+
+            <button
+              className="btn btn-secondary"
+              style={{marginTop: '18px'}}
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            >
+              <i className={'fas fa-' + (showAdvanced ? 'chevron-up' : 'sliders-h')}></i> {showAdvanced ? 'Ẩn tùy chỉnh màu nâng cao' : 'Tùy chỉnh màu nâng cao'}
+            </button>
+
+            {showAdvanced && (
+            <div style={{marginTop: '18px'}}>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Màu chính</label>
+                <input
+                  type="color"
+                  value={customColors.primary}
+                  onChange={(e) => handleColorChange('primary', e.target.value)}
+                  style={{width: '100%', height: '48px', cursor: 'pointer'}}
+                />
+              </div>
+              <div className="form-group">
+                <label>Màu điểm nhấn</label>
+                <input
+                  type="color"
+                  value={customColors.accent}
+                  onChange={(e) => handleColorChange('accent', e.target.value)}
+                  style={{width: '100%', height: '48px', cursor: 'pointer'}}
+                />
+              </div>
+              <div className="form-group">
+                <label>Màu chữ</label>
+                <input
+                  type="color"
+                  value={customColors.text}
+                  onChange={(e) => handleColorChange('text', e.target.value)}
+                  style={{width: '100%', height: '48px', cursor: 'pointer'}}
+                />
+              </div>
+            </div>
+
+            <div className="color-preview-section">
+              <h4 style={{fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: 'var(--navy-primary)'}}>
+                <i className="fas fa-eye"></i> Xem trước trực tiếp
+              </h4>
+              <p style={{fontSize: '12px', color: '#666', marginBottom: '10px'}}>Xem cách các màu phối hợp với nhau</p>
+              <div className="color-preview-grid">
+                <div className="color-preview-item">
+                  <div className="color-preview-box" style={{backgroundColor: customColors.primary}}></div>
+                  <div className="color-preview-label">Màu chính</div>
+                  <div className="color-preview-value">{customColors.primary}</div>
+                </div>
+                <div className="color-preview-item">
+                  <div className="color-preview-box" style={{backgroundColor: customColors.accent}}></div>
+                  <div className="color-preview-label">Điểm nhấn</div>
+                  <div className="color-preview-value">{customColors.accent}</div>
+                </div>
+                <div className="color-preview-item">
+                  <div className="color-preview-box" style={{backgroundColor: customColors.text}}></div>
+                  <div className="color-preview-label">Màu chữ</div>
+                  <div className="color-preview-value">{customColors.text}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{display: 'flex', gap: '10px', marginTop: '18px', flexWrap: 'wrap'}}>
+              <button className="btn btn-success" onClick={applyColors}>
+                <i className="fas fa-check"></i> Áp dụng màu
+              </button>
+              <button className="btn btn-secondary" onClick={resetToDefaultColors}>
+                <i className="fas fa-undo"></i> Đặt lại màu xanh mặc định
+              </button>
+            </div>
+            </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============== Activity Logs View ==============
+    function LogsView({ currentUser, initialSearch }) {
+      const { data, error } = useSWR('logs:all', () => gsRun('getLogs', currentUser), SWR_LIVE);
+      const rows = data ? (data.success ? data.data : []) : undefined;
+      const loading = rows === undefined && !error;
+      // kpi from cached rows — [value, label, icon, color]
+      const kpi = useMemo(() => {
+        const list = rows || [], today = new Date().toDateString();
+        const isToday = (t) => { try { const d = new Date(t); return !isNaN(d.getTime()) && d.toDateString() === today; } catch (e) { return false; } };
+        return [
+          [list.length, 'Tổng số hoạt động', 'fa-list-check', 'bg-navy'],
+          [list.filter((l) => isToday(l.Timestamp)).length, 'Hoạt động hôm nay', 'fa-calendar-day', 'bg-success'],
+          [new Set(list.map((l) => l.User).filter(Boolean)).size, 'Người dùng phát sinh', 'fa-user-group', 'bg-info'],
+          [list.filter((l) => /login/i.test(l.Action || '')).length, 'Lượt đăng nhập', 'fa-right-to-bracket', 'bg-warning'],
+        ];
+      }, [rows]);
+      const tableRef = useRef(null);
+
+      // rows change: same data -> untouched · changed -> in-place swap (keeps page/search) · first load -> full build
+      const rowsSigRef = useRef('');
+      useEffect(() => {
+        if (!rows) return;
+        const sig = JSON.stringify(rows);
+        if (tableRef.current && sig === rowsSigRef.current) return; // background refresh, nothing changed
+        rowsSigRef.current = sig;
+        if (tableRef.current) { try { tableRef.current.clear(); tableRef.current.rows.add(rows); tableRef.current.draw(false); return; } catch (e) {} }
+        initTable(rows);
+      }, [rows]);
+      useEffect(() => () => { if (tableRef.current) { try { tableRef.current.destroy(); tableRef.current = null; } catch (e) {} } }, []); // destroy on unmount ONLY
+
+      useEffect(() => { if (initialSearch && tableRef.current) tableRef.current.search(initialSearch).draw(); }, [initialSearch, rows]); // seed from 360 search
+
+      // publish this section's buttons -> header toolbar; audit view = exports only, no import
+      useEffect(() => {
+        const dt = () => tableRef.current;
+        setPageActions([
+          { icon: 'fa-file-csv', label: 'CSV', onClick: () => dt() && dt().button('.buttons-csv').trigger() },
+          { icon: 'fa-file-pdf', label: 'PDF', onClick: () => dt() && dt().button('.buttons-pdf').trigger() },
+          { icon: 'fa-print', label: 'In', onClick: () => dt() && dt().button('.buttons-print').trigger() },
+        ]);
+        return () => setPageActions([]);
+      }, []);
+
+      const initTable = (data) => {
+        if (tableRef.current) { try { tableRef.current.destroy(); tableRef.current = null; $('#logsTable').empty(); } catch (e) {} }
+        setTimeout(() => {
+          try {
+            tableRef.current = $('#logsTable').DataTable({
+              data, destroy: true,
+              language: DT_VI_LANGUAGE,
+              columns: [
+                { data: 'Timestamp', title: 'Thời gian', render: (d) => {
+                    if (!d) return '<span style="color:#999;">N/A</span>';
+                    try { const dt = new Date(d); if (isNaN(dt.getTime())) return d;
+                      return dt.toLocaleString('vi-VN', { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+                    catch (e) { return d; }
+                  } },
+                { data: 'User', title: 'Người dùng' },
+                { data: 'Action', title: 'Hành động', render: (d) => `<span class="status-badge status-active">${esc(d)}</span>` },
+                { data: 'Details', title: 'Chi tiết', render: (d, t) => (t === 'display' ? esc(d) : d) },
+                { data: 'Changes', title: 'Nội dung thay đổi', orderable: false, render: (d, t) => {
+                    if (t !== 'display') return (d || []).map((c) => c.f + ' ' + c.a + ' ' + c.b).join(' '); // still searchable
+                    if (!d || !d.length) return '<span style="color:#b8c6d4">—</span>';
+                    return d.map((c) => '<div class="chg"><b>' + esc(c.f) + '</b>'
+                      + '<span class="chg-a">' + esc(c.a) + '</span>'
+                      + '<i class="fas fa-arrow-right"></i>'
+                      + '<span class="chg-b">' + esc(c.b) + '</span></div>').join('');
+                  } }
+              ],
+              pageLength: 10, lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+              responsive: true, order: [], dom: 'lfrtip', // no B — buttons live in the page header
+              columnDefs: [{ targets: '_all', defaultContent: '' }], // missing keys render blank, never warn
+              buttons: [
+                { extend: 'csv', text: 'CSV' },
+                { extend: 'pdf', text: 'PDF' },
+                { extend: 'print', text: 'In' }
+              ]
+            });
+            if (initialSearch) tableRef.current.search(initialSearch).draw(); // seed from 360 search after (re)build
+          } catch (e) { console.error('Logs table error:', e); }
+        }, 150);
+      };
+
+      return (
+        <div className="data-section">
+          {loading ? <KpiSkeleton /> : (
+            <div className="lte-kpi-grid">
+              {kpi.map(([v, l, ic, c], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} />)}
+            </div>
+          )}
+          {loading && <TableSkeleton rows={8} columns={4} />}
+          <div style={{ display: loading ? 'none' : 'block' }}>
+            <table id="logsTable" className="display" style={{ width: '100%' }}></table>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== Roles & Permissions Matrix (Editor Only) ==============
+    function PermissionsMatrixView({ currentUser }) {
+      const { data: res, isLoading, mutate } = useSWR('rbac:matrix', () => gsRun('getRbacMatrix', currentUser), SWR_LIVE);
+      const data = res && res.success ? res : null;
+      const PERMS = [['v', 'View'], ['a', 'Add'], ['e', 'Edit'], ['d', 'Delete']];
+
+      const toggle = (roleKey, pageKey, perm, cur, locked) => {
+        if (locked) return;
+        const nv = cur ? 0 : 1;
+        mutate((d) => { // optimistic — mirror server logic (d = cached response)
+          if (!d || !d.perms) return d;
+          const perms = { ...d.perms }, rp = { ...(perms[roleKey] || {}) }, cell = { ...(rp[pageKey] || { v:0, a:0, e:0, d:0 }) };
+          cell[perm] = nv;
+          if (perm === 'v' && !nv) { cell.a = 0; cell.e = 0; cell.d = 0; }
+          if (perm !== 'v' && nv) cell.v = 1;
+          rp[pageKey] = cell; perms[roleKey] = rp; return { ...d, perms };
+        }, false);
+        gsRun('toggleRbac', roleKey, pageKey, perm, nv, currentUser)
+          .then((r) => { if (!r || !r.success) { Swal.fire({ icon:'error', title:'Error', text:(r && r.message) || 'Failed' }); mutate(); } })
+          .catch(() => mutate());
+      };
+
+      if (isLoading) return <div className="data-section"><TableSkeleton rows={8} columns={4} /></div>;
+      if (!data) return <NoAccessView />;
+      const groups = data.pages.map((p) => p.group).filter((g, i, a) => a.indexOf(g) === i);
+      const tableMinW = 200 + data.roles.length * 120; // page col + min role col → wrap scrolls when many roles
+
+      return (
+        <div className="data-section">
+          <p style={{ color:'#666', fontSize:'13px', marginBottom:'12px' }}>
+            <i className="fas fa-info-circle"></i> Bật hoặc tắt quyền V·A·E·D theo từng vai trò và màn hình. Mọi thay đổi được lưu ngay. Quyền Admin được khóa toàn quyền.
+          </p>
+          <div className="rbac-wrap">
+            <table className="rbac-table" style={{ minWidth: tableMinW + 'px' }}>
+              <thead><tr>
+                <th className="rbac-pagecol">Màn hình</th>
+                {data.roles.map((r) => (
+                  <th key={r.key}>
+                    <span className="rbac-rolehead" style={{ background:r.color }}>{r.label}</span>
+                    <div className="rbac-perm-legend">V·A·E·D</div>
+                  </th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {groups.map((grp) => (
+                  <React.Fragment key={grp}>
+                    <tr className="rbac-grouprow"><td className="rbac-pagecol">{grp}</td>{data.roles.map((r) => <td key={r.key}></td>)}</tr>
+                    {data.pages.filter((p) => p.group === grp).map((pg) => (
+                      <tr key={pg.key}>
+                        <td className="rbac-pagecol">{pg.label}</td>
+                        {data.roles.map((r) => {
+                          const cell = (data.perms[r.key] && data.perms[r.key][pg.key]) || { v:0, a:0, e:0, d:0 };
+                          const locked = !!r.is_super;
+                          return (
+                            <td key={r.key}><div className="rbac-cell">
+                              {PERMS.map(([pk, label]) => (
+                                <button key={pk} title={label}
+                                  className={`rbac-dot${cell[pk] ? ' on' : ''}${locked ? ' locked' : ''}`}
+                                  disabled={locked}
+                                  onClick={() => toggle(r.key, pg.key, pk, cell[pk], locked)}>{pk.toUpperCase()}</button>
+                              ))}
+                            </div></td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+

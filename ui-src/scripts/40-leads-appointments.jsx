@@ -1,0 +1,1183 @@
+    // ============== Leads (pipeline — Agent reads are hard own-scoped server-side) ==============
+    // ---- Leads kanban: HTML5 drag between stages (desktop) + per-card move menu (touch) ----
+    function LeadKanban({ leads, stages, canEdit, onMove, onAction }) {
+      const [over, setOver] = useState('');
+      const [drag, setDrag] = useState(null);
+      const [menu, setMenu] = useState(0);
+      useEffect(() => { const c = () => setMenu(0); document.addEventListener('click', c); return () => document.removeEventListener('click', c); }, []);
+      const byStage = useMemo(() => { const o = {}; stages.forEach((s) => { o[s] = []; });
+        leads.forEach((l) => { (o[l.status] || (o[l.status] = [])).push(l); }); return o; }, [leads, stages]); // one pass, no per-column filter scans
+
+      return (
+        <div className="kb-wrap">
+          {stages.map((s) => {
+            const list = byStage[s] || [];
+            return (
+              <div key={s} className={'kb-col' + (over === s ? ' over' : '')}
+                   onDragOver={(e) => { if (!canEdit) return; e.preventDefault(); if (over !== s) setOver(s); }}
+                   onDrop={(e) => { e.preventDefault(); setOver(''); if (drag && drag.status !== s) onMove(drag, s); setDrag(null); }}>
+                <div className="kb-head">
+                  <span className="kb-bar" style={{ background: STAGE_COLORS[s] || '#6c757d' }}></span>
+                  <span className="kb-name">{s}</span>
+                  <span className="kb-count">{list.length}</span>
+                </div>
+                <div className="kb-body">
+                  {list.length === 0 && <div className="kb-empty"><i className="fas fa-inbox"></i> No leads here</div>}
+                  {list.slice(0, 50).map((l) => (
+                    <div key={l.id} className={'kb-card' + (drag && drag.id === l.id ? ' dragging' : '')}
+                         style={{ borderLeftColor: STAGE_COLORS[s] || '#6c757d', cursor: canEdit ? 'grab' : 'default' }}
+                         draggable={canEdit} onDragStart={() => setDrag(l)} onDragEnd={() => { setDrag(null); setOver(''); }}
+                         onDoubleClick={() => onAction('view', l)} title="Double-click for Lead 360">
+                      {canEdit && (
+                        <div className="kb-move">
+                          <button className="kb-move-btn" title="Move to…" onClick={(e) => { e.stopPropagation(); setMenu(menu === l.id ? 0 : l.id); }}>
+                            <i className="fas fa-ellipsis-vertical"></i>
+                          </button>
+                          {menu === l.id && (
+                            <div className="kb-move-menu" onClick={(e) => e.stopPropagation()}>
+                              {stages.filter((x) => x !== l.status).map((x) => (
+                                <button key={x} onClick={() => { setMenu(0); onMove(l, x); }}>
+                                  <span className="kb-dot" style={{ background: STAGE_COLORS[x] || '#6c757d' }}></span> Move to {x}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="kb-t">{l.fullName}</div>
+                      <div className="kb-s"><i className="fas fa-phone" style={{ fontSize: 9 }}></i> {l.phone}</div>
+                      <div className="kb-tags">
+                        {l.interestType && <span className="kb-tag">{l.interestType}</span>}
+                        {l.source && <span className="kb-tag">{l.source}</span>}
+                        {(l.budgetMin || l.budgetMax) ? <span className="kb-tag">{pkrShort(l.budgetMin || 0)} – {pkrShort(l.budgetMax || 0)}</span> : null}
+                        {l.propertyRef && <span className="kb-tag">{l.propertyRef}</span>}
+                      </div>
+                      <div className="kb-foot">
+                        <span className="kb-agent"><i className="fas fa-user-tie"></i>{l.assignedAgent || 'Unassigned'} · {fmtDate(l.created)}</span>
+                        <span className="kb-acts">
+                          <button title="Lead 360" onClick={() => onAction('view', l)}><i className="fas fa-id-card-clip"></i></button>
+                          <button title="Nhắn Zalo" onClick={() => onAction('wa', l)}><ZaloIcon size={15} /></button>
+                          {canEdit && <button title="Edit" onClick={() => onAction('edit', l)}><i className="fas fa-edit"></i></button>}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {list.length > 50 && <div className="kb-more">+{list.length - 50} more — narrow it with the filters</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    const customerPhoneKey = (value) => String(value || '').replace(/\D/g, '').replace(/^84(?=\d{9,10}$)/, '0');
+    const findLinkedLead = (leads, source) => {
+      if (!source) return null;
+      const linkedId = source.leadId != null ? source.leadId : (source.fullName ? source.id : null);
+      let lead = linkedId != null ? (leads || []).find((x) => String(x.id) === String(linkedId)) : null;
+      if (lead) return lead;
+      const phone = customerPhoneKey(source.leadPhone || source.buyerPhone || source.tenantPhone || source.phone);
+      if (phone) lead = (leads || []).find((x) => customerPhoneKey(x.phone) === phone);
+      return lead || null;
+    };
+
+    function CrossModuleLeadModal({ source, currentUser, role, perms, lookups, onClose }) {
+      const { data: leadRes } = useSWR('leads:all', () => gsRun('getLeads', currentUser), SWR_LIVE);
+      const leads = leadRes && leadRes.success ? leadRes.data : [];
+      const lead = findLinkedLead(leads, source);
+      if (!source) return null;
+      if (!leadRes) return (
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+          <div className="modal"><div className="modal-header"><h3><i className="fas fa-id-card-clip"></i> Hồ sơ khách hàng</h3><button className="close-btn" onClick={onClose}>&times;</button></div>
+            <div className="modal-body"><div className="loading-container"><div className="spinner"></div><p>Đang tải hồ sơ khách hàng…</p></div></div></div>
+        </div>
+      );
+      if (lead) return <Lead360Modal lead={lead} currentUser={currentUser} role={role} perms={perms} lookups={lookups} onClose={onClose} />;
+      const name = source.leadName || source.buyerName || source.tenantName || source.fullName || 'Khách hàng';
+      const phone = source.leadPhone || source.buyerPhone || source.tenantPhone || source.phone || '—';
+      return (
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+          <div className="modal modal-customer-quick">
+            <div className="modal-header"><h3><i className="fas fa-id-card-clip"></i> Thông tin khách hàng — {name}</h3><button className="close-btn" onClick={onClose}>&times;</button></div>
+            <div className="modal-body">
+              <div className="customer-quick-facts">
+                <div className="pd-fact"><div className="k">Họ và tên</div><div className="v">{name}</div></div>
+                <div className="pd-fact"><div className="k">Điện thoại</div><div className="v">{phone}</div></div>
+                <div className="pd-fact"><div className="k">Bất động sản</div><div className="v">{source.propertyRef || source.propertyTitle || '—'}</div></div>
+                <div className="pd-fact"><div className="k">Nhân viên phụ trách</div><div className="v">{source.assignedAgent || source.agent || '—'}</div></div>
+                <div className="pd-fact"><div className="k">Trạng thái</div><div className="v">{viEnum(source.status || '—')}</div></div>
+              </div>
+              <div className="customer-quick-footer">
+                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><ZaloIcon size={18} style={{ marginRight: 6 }} /> Liên hệ Zalo</button>}
+                <p className="customer-quick-note"><i className="fas fa-circle-info"></i> Thông tin này chưa liên kết với hồ sơ khách hàng tiềm năng.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function LeadsView({ currentUser, role, perms, initialSearch }) {
+      const { data: res, error, mutate } = useSWR('leads:all', () => gsRun('getLeads', currentUser), SWR_LIVE);
+      const rows = res ? (res.success ? res.data : []) : undefined;
+      const loading = rows === undefined && !error;
+      const lookups = useLookups(currentUser);
+      const all = scopeAll(role);
+      const canAdd = can(perms, 'leads', 'a'), canEdit = can(perms, 'leads', 'e'), canDel = can(perms, 'leads', 'd');
+      const [showModal, setShowModal] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [assigning, setAssigning] = useState(null);
+      const [viewing360, setViewing360] = useState(null);   // Lead 360 hub
+      const [offering, setOffering] = useState(null);       // log-offer modal
+      const [dealFor, setDealFor] = useState(null);         // {lead, amount} -> DealModal prefilled
+      const [propPrefill, setPropPrefill] = useState(null); // acquisition: seller lead -> PropertyModal prefill
+      const [stage, setStage] = useState('');
+      const [board, setBoard] = useState(false);            // list <-> kanban board toggle
+      const [filters, setFilters] = useState({ search: initialSearch || '', source: '', interest: '', agent: '' });
+      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+
+      const base = useMemo(() => (rows || []).filter((l) =>
+        (!filters.source || l.source === filters.source) &&
+        (!filters.interest || l.interestType === filters.interest) &&
+        (!filters.agent || l.assignedAgent === filters.agent)
+      ), [rows, filters.source, filters.interest, filters.agent]);
+      const stages = all ? ENUMS.leadStatus.concat(['Unassigned']) : ENUMS.leadStatus; // queue tab = Admin/Manager only
+      const counts = useMemo(() => {
+        const o = {}; base.forEach((l) => { o[l.status] = (o[l.status] || 0) + 1;
+          if (!l.assignedAgent && ['Won', 'Lost'].indexOf(l.status) === -1) o.Unassigned = (o.Unassigned || 0) + 1; });
+        return o;
+      }, [base]);
+      const visible = useMemo(() => {
+        if (!stage) return base;
+        if (stage === 'Unassigned') return base.filter((l) => !l.assignedAgent && ['Won', 'Lost'].indexOf(l.status) === -1);
+        return base.filter((l) => l.status === stage);
+      }, [base, stage]);
+
+      // board ignores the chevron (the columns ARE the stages) — it applies its own text search
+      const boardRows = useMemo(() => { const q = (filters.search || '').trim().toLowerCase();
+        return !q ? base : base.filter((l) => [l.fullName, l.phone, l.source, l.interestType, l.assignedAgent, l.propertyRef, l.status]
+          .join(' ').toLowerCase().indexOf(q) !== -1);
+      }, [base, filters.search]);
+
+      const kpi = useMemo(() => { const r = rows || []; return [
+        [r.filter((l) => ['Won', 'Lost'].indexOf(l.status) === -1).length, 'Open Leads', 'fa-user-tag', 'bg-navy'],
+        [r.filter((l) => l.status === 'New').length, 'New', 'fa-user-plus', 'bg-info'],
+        [r.filter((l) => l.status === 'Won').length, 'Won', 'fa-trophy', 'bg-success'],
+        [r.filter((l) => l.status === 'Lost').length, 'Lost', 'fa-user-xmark', 'bg-danger']
+      ]; }, [rows]);
+
+      const downloadTemplate = () => downloadCSV('leads_template.csv',
+        'FullName,Phone,Email,Source,InterestType,Status,AssignedAgent,BudgetMin,BudgetMax,Message,LostReason\n' +
+        'Lead 99,03001000099,lead99@demo.com,Walk-in,Buy,New,agent1,10000000,15000000,Looking for a 5 marla house,\n');
+
+      useEffect(() => {
+        const dt = () => tableRef.current;
+        setPageActions([
+          ...(canAdd ? [{ icon: 'fa-plus', label: 'Thêm khách hàng', primary: true, onClick: () => { setEditing(null); setShowModal(true); } }] : []),
+          { icon: 'fa-file-csv', label: 'CSV', onClick: () => dt() && dt().button('.buttons-csv').trigger() },
+          { icon: 'fa-file-pdf', label: 'PDF', onClick: () => dt() && dt().button('.buttons-pdf').trigger() },
+          { icon: 'fa-print', label: 'In', onClick: () => dt() && dt().button('.buttons-print').trigger() },
+          ...(canAdd ? [{ icon: 'fa-file-import', label: 'Nhập CSV', onClick: () => document.getElementById('leadsCsvImport').click() }] : []),
+          { icon: 'fa-download', label: 'Tệp mẫu', onClick: downloadTemplate }
+        ]);
+        return () => setPageActions([]);
+      }, [canAdd]);
+
+      const convertToProperty = (l) => { // Sell/Rent Out -> dedup owner server-side, open the property form prefilled
+        gsRun('convertLeadToProperty', l.id, currentUser).then((r) => {
+          if (r && r.success) setPropPrefill(r.prefill);
+          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+        });
+      };
+      const onAction = (action, l) => {
+        if (action === 'wa') { const n = String(l.phone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
+        else if (action === 'view') setViewing360(l);
+        else if (action === 'deal') { const acc = (l.offers || []).find((o) => o.status === 'Accepted'); setDealFor({ lead: l, amount: acc ? acc.amount : '' }); }
+        else if (action === 'edit') { setEditing(l); setShowModal(true); }
+        else if (action === 'assign') setAssigning(l);
+        else if (action === 'delete') {
+          Swal.fire({ icon: 'warning', title: 'Delete lead "' + l.fullName + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+            .then((r) => { if (r.isConfirmed) gsRun('deleteLead', l.id, currentUser).then((res) => {
+              if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
+              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+        }
+      };
+
+      // board drag/menu -> status-only patch; server re-checks own-scope + Lost reason
+      const moveLead = (l, to) => {
+        const send = (lostReason) => gsRun('updateLead', { id: l.id, status: to, lostReason: lostReason || '' }, currentUser).then((r) => {
+          if (r && r.success) { mutate(); swrMutate('dash:stats'); Swal.fire({ icon: 'success', title: l.fullName + ' → ' + to, timer: 1400, showConfirmButton: false }); }
+          else Swal.fire({ icon: 'error', title: 'Move failed', text: (r && r.message) || 'Failed' });
+        });
+        if (to !== 'Lost') return send();
+        Swal.fire({ icon: 'warning', title: 'Mark "' + l.fullName + '" as Lost?', input: 'text', inputLabel: 'Reason (required)',
+          inputPlaceholder: 'Why was this lead lost?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Mark Lost',
+          inputValidator: (v) => (!String(v || '').trim() ? 'Reason is required' : undefined)
+        }).then((r) => { if (r.isConfirmed) send(r.value); });
+      };
+
+      const tableRef = useDataTable('leadsTable', rows === undefined ? null : visible, () => ({
+        search: { search: filters.search },
+        columns: [
+          { data: 'fullName', title: 'Lead', render: (d, t, l) => '<strong>' + esc(d) + '</strong><br><small style="color:#789"><i class="fas fa-phone" style="font-size:10px"></i> ' + esc(l.phone) + '</small>' },
+          { data: 'interestType', title: 'Interest' },
+          { data: 'source', title: 'Source' },
+          { data: null, title: 'Property / Preference', orderable: false, render: (d, t, l) =>
+              l.propertyRef ? '<span class="prop-ref">' + esc(l.propertyRef) + '</span><br><small style="color:#789">' + esc(l.propertyTitle || '') + '</small>'
+              : (l.preferredLocationPath ? '<small style="color:#789"><i class="fas fa-location-dot"></i> ' + esc(l.preferredLocationPath) + '</small>' : '—') },
+          { data: null, title: 'Budget', render: (d, t, l) => (l.budgetMin || l.budgetMax) ? esc(pkrShort(l.budgetMin || 0)) + ' – ' + esc(pkrShort(l.budgetMax || 0)) : '—' },
+          { data: 'status', title: 'Status', render: (d, t, l) => t === 'display'
+              ? badge(d) + (d === 'Lost' && l.lostReason ? '<br><small style="color:#c62828" title="' + esc(l.lostReason) + '">' + esc(String(l.lostReason).substr(0, 34)) + (l.lostReason.length > 34 ? '…' : '') + '</small>' : '') : d },
+          { data: 'assignedAgent', title: 'Agent', render: (d) => d ? esc(d) : '<span class="status-badge st-purple">Unassigned</span>' },
+          { data: 'created', title: 'Created', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
+          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-6', width: '208px', render: (d, t, l) => `<div class="table-actions slots-6 lead-actions">
+            <button class="action-icon view-icon" data-action="view" title="Lead 360"><i class="fas fa-id-card-clip"></i></button>
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
+            ${canEdit && ['Negotiating','Won'].indexOf(l.status) !== -1 ? '<button class="action-icon assign-icon" data-action="deal" title="Convert to Deal"><i class="fas fa-handshake"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${all && !l.assignedAgent ? '<button class="action-icon assign-icon" data-action="assign" title="Assign agent"><i class="fas fa-user-plus"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+          </div>` }
+        ],
+        createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ khách hàng 360'); },
+        order: []
+      }), onAction, [canEdit, canDel], (lead) => setViewing360(lead));
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
+
+      return (
+        <>
+          <KpiRow items={kpi} />
+          {!board && <Pipeline stages={stages} counts={counts} active={stage} onPick={setStage} total={base.length} />}
+          <div className="filters-section">
+            <div className="filters-header">
+              <h3><i className="fas fa-filter"></i> Filters</h3>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className={'btn btn-sm ' + (board ? 'btn-secondary' : 'btn-primary')} onClick={() => setBoard(false)}><i className="fas fa-list"></i> List</button>
+                <button className={'btn btn-sm ' + (board ? 'btn-primary' : 'btn-secondary')} onClick={() => setBoard(true)}><i className="fas fa-table-columns"></i> Board</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); }}>
+                  <i className="fas fa-rotate-left"></i> Clear
+                </button>
+              </div>
+            </div>
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label><i className="fas fa-magnifying-glass"></i> Search</label>
+                <input className="filter-input" value={filters.search} placeholder="Name, phone, status…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+              </div>
+              <SearchableDropdown label="Source" icon="fas fa-bullhorn" options={opts(ENUMS.leadSource)} value={filters.source} onChange={(v) => setFilters({ ...filters, source: v })} placeholder="All Sources" />
+              <SearchableDropdown label="Interest" icon="fas fa-hand-holding-dollar" options={opts(ENUMS.interestType)} value={filters.interest} onChange={(v) => setFilters({ ...filters, interest: v })} placeholder="All Interests" />
+              {all && <SearchableDropdown label="Agent" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="All Agents" />}
+            </div>
+          </div>
+          <div className="data-section">
+            <input type="file" id="leadsCsvImport" accept=".csv" style={{ display: 'none' }}
+                   onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'FullName', 'bulkImportLeads', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
+            {board && <LeadKanban leads={boardRows} stages={ENUMS.leadStatus} canEdit={canEdit} onMove={moveLead} onAction={onAction} />}
+            {loading ? (!board && <TableSkeleton rows={8} columns={8} />)
+              : <div style={{ overflowX: 'auto', display: board ? 'none' : 'block' }}><table id="leadsTable" className="display" style={{ width: '100%' }}></table></div>}
+          </div>
+          {showModal && (
+            <LeadModal lead={editing} currentUser={currentUser} role={role} lookups={lookups}
+                       onClose={() => { setShowModal(false); setEditing(null); }}
+                       onSaved={() => { setShowModal(false); setEditing(null); mutate(); swrMutate('dash:stats'); }} />
+          )}
+          {assigning && (
+            <AssignLeadModal lead={assigning} currentUser={currentUser} lookups={lookups}
+                             onClose={() => setAssigning(null)}
+                             onSaved={() => { setAssigning(null); mutate(); swrMutate('dash:stats'); }} />
+          )}
+          {viewing360 && (
+            <Lead360Modal lead={(rows || []).find((x) => x.id === viewing360.id) || viewing360}
+                          currentUser={currentUser} role={role} perms={perms} lookups={lookups}
+                          onClose={() => setViewing360(null)}
+                          onConvertDeal={(l, amount) => setDealFor({ lead: l, amount })}
+                          onAddOffer={(l) => setOffering(l)}
+                          onConvertProperty={convertToProperty} />
+          )}
+          {offering && (
+            <OfferModal lead={offering} currentUser={currentUser}
+                        onClose={() => setOffering(null)}
+                        onSaved={() => { setOffering(null); mutate(); }} />
+          )}
+          {dealFor && (
+            <DealModal prefill={{ propertyId: dealFor.lead.propertyId, leadId: dealFor.lead.id,
+                                  buyerName: dealFor.lead.fullName, buyerPhone: dealFor.lead.phone, dealAmount: dealFor.amount }}
+                       currentUser={currentUser} role={role} lookups={lookups}
+                       onClose={() => setDealFor(null)}
+                       onSaved={() => { setDealFor(null); mutate(); ['deals:all', 'props:all', 'dash:stats'].forEach((k) => swrMutate(k)); }} />
+          )}
+          {propPrefill && (
+            <PropertyModal prop={null} prefill={propPrefill} currentUser={currentUser} role={role} lookups={lookups}
+                           onClose={() => setPropPrefill(null)}
+                           onSaved={() => { setPropPrefill(null); ['props:all', 'owners:all', 'dash:stats'].forEach((k) => swrMutate(k)); }} />
+          )}
+        </>
+      );
+    }
+
+    function LeadModal({ lead, currentUser, role, lookups, onClose, onSaved }) {
+      const all = scopeAll(role);
+      const editing = !!lead;
+      const { data: pRes } = useSWR('props:all', () => gsRun('getProperties', currentUser), SWR_LIVE);
+      const props = pRes && pRes.success ? pRes.data : [];
+      const [form, setForm] = useState(() => lead ? {
+        fullName: lead.fullName || '', phone: lead.phone || '', email: lead.email || '', source: lead.source || 'Walk-in',
+        interestType: lead.interestType || 'Buy', propertyId: lead.propertyId ? String(lead.propertyId) : '',
+        preferredLocationId: lead.preferredLocationId ? String(lead.preferredLocationId) : '',
+        budgetMin: lead.budgetMin == null ? '' : lead.budgetMin, budgetMax: lead.budgetMax == null ? '' : lead.budgetMax,
+        message: lead.message || '', status: lead.status || 'New', lostReason: lead.lostReason || '', assignedAgent: lead.assignedAgent || ''
+      } : { fullName: '', phone: '', email: '', source: 'Walk-in', interestType: 'Buy', propertyId: '', preferredLocationId: '',
+            budgetMin: '', budgetMax: '', message: '', status: 'New', lostReason: '', assignedAgent: all ? '' : currentUser });
+      const [saving, setSaving] = useState(false);
+      const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+      const setEv = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+      const pathOf = useMemo(() => locPathClient(lookups.locations || []), [lookups.locations]);
+
+      const submit = (e) => {
+        e.preventDefault();
+        if (form.status === 'Lost' && !form.lostReason.trim())
+          return Swal.fire({ icon: 'warning', title: 'Lost reason required', text: 'Without it, pipeline reporting cannot tell you why deals die.' });
+        setSaving(true);
+        gsRun(editing ? 'updateLead' : 'addLead', { ...form, id: lead ? lead.id : undefined }, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2200, showConfirmButton: false }); onSaved(); }
+          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+      };
+
+      return (
+        <div className="modal-overlay">
+          <TopLoadingBar active={saving} />
+          <div className="modal">
+            <div className="modal-header">
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Edit Lead #' + lead.id : 'Add Lead'}</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={submit}>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label><i className="fas fa-user"></i> Full Name *</label>
+                    <input value={form.fullName} onChange={setEv('fullName')} required />
+                  </div>
+                  <div className="form-group">
+                    <label><i className="fas fa-phone"></i> Điện thoại * <small style={{ color: '#999', textTransform: 'none' }}>(khóa định danh)</small></label>
+                    <input value={form.phone} onChange={setEv('phone')} required placeholder="+92300…" />
+                  </div>
+                  <div className="form-group">
+                    <label><i className="fas fa-envelope"></i> Email</label>
+                    <input type="email" value={form.email} onChange={setEv('email')} />
+                  </div>
+                  <SearchableDropdown label="Source" icon="fas fa-bullhorn" options={opts(ENUMS.leadSource)} value={form.source} onChange={set('source')} placeholder="Source…" required={true} />
+                  <SearchableDropdown label="Interest" icon="fas fa-hand-holding-dollar" options={opts(ENUMS.interestType)} value={form.interestType} onChange={set('interestType')} placeholder="Interest…" required={true} />
+                  <SearchableDropdown label="Interested Property" icon="fas fa-building"
+                    options={props.map((p) => ({ value: String(p.id), label: (p.referenceCode || '#' + p.id) + ' — ' + p.title }))}
+                    value={form.propertyId} onChange={set('propertyId')} placeholder="None / search…" />
+                  <SearchableDropdown label="Preferred Location" icon="fas fa-map-location-dot"
+                    options={(lookups.locations || []).map((l) => ({ value: String(l.id), label: pathOf(l.id) }))}
+                    value={form.preferredLocationId} onChange={set('preferredLocationId')} placeholder="Any location" />
+                  <div className="form-group">
+                    <label><i className="fas fa-money-bill"></i> Budget Min (VNĐ)</label>
+                    <input type="number" min="0" step="any" value={form.budgetMin} onChange={setEv('budgetMin')} />
+                  </div>
+                  <div className="form-group">
+                    <label><i className="fas fa-money-bill-trend-up"></i> Budget Max (VNĐ)</label>
+                    <input type="number" min="0" step="any" value={form.budgetMax} onChange={setEv('budgetMax')} />
+                  </div>
+                  {all && (
+                    <SearchableDropdown label="Assigned Agent" icon="fas fa-user-tie"
+                      options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
+                      value={form.assignedAgent} onChange={set('assignedAgent')} placeholder="Unassigned queue" />
+                  )}
+                  {editing && (
+                    <SearchableDropdown label="Pipeline Status" icon="fas fa-flag" options={opts(ENUMS.leadStatus)} value={form.status} onChange={set('status')} placeholder="Status…" />
+                  )}
+                </div>
+                {editing && form.status === 'Lost' && (
+                  <div className="form-group">
+                    <label><i className="fas fa-circle-question"></i> Lost Reason *</label>
+                    <textarea rows="2" value={form.lostReason} onChange={setEv('lostReason')} placeholder="e.g. Budget too high — bought elsewhere" required></textarea>
+                  </div>
+                )}
+                <div className="form-group">
+                  <label><i className="fas fa-message"></i> Ghi chú / Nội dung trao đổi</label>
+                  <textarea rows="3" value={form.message} onChange={setEv('message')}></textarea>
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update Lead' : 'Add Lead'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // quick-assign from the unassigned queue (Admin/Manager)
+    function AssignLeadModal({ lead, currentUser, lookups, onClose, onSaved }) {
+      const [agent, setAgent] = useState('');
+      const [saving, setSaving] = useState(false);
+      const submit = (e) => {
+        e.preventDefault();
+        if (!agent) return;
+        setSaving(true);
+        gsRun('assignLead', lead.id, agent, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2000, showConfirmButton: false }); onSaved(); }
+          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+      };
+      return (
+        <div className="modal-overlay">
+          <TopLoadingBar active={saving} />
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3><i className="fas fa-user-plus"></i> Assign "{lead.fullName}"</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={submit}>
+                <SearchableDropdown label="Agent" icon="fas fa-user-tie"
+                  options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
+                  value={agent} onChange={setAgent} placeholder="Pick an agent…" required={true} />
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving || !agent}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Assigning…</> : <><i className="fas fa-check"></i> Assign</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== Follow-Ups (activity log + reminder queue; Overdue is DERIVED, never stored) ==============
+    function FollowUpsView({ currentUser, role, perms, initialSearch }) {
+      const { data: res, error, mutate } = useSWR('fus:all', () => gsRun('getFollowUps', currentUser), SWR_LIVE);
+      const rows = res ? (res.success ? res.data : []) : undefined;
+      const loading = rows === undefined && !error;
+      const lookups = useLookups(currentUser);
+      const all = scopeAll(role);
+      const canAdd = can(perms, 'followups', 'a'), canEdit = can(perms, 'followups', 'e'), canDel = can(perms, 'followups', 'd');
+      const [showModal, setShowModal] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [viewingLead, setViewingLead] = useState(null);
+      const [stage, setStage] = useState(all ? '' : 'Due Now'); // agents land on what needs action today
+      const [filters, setFilters] = useState({ search: initialSearch || '', type: '', agent: '' });
+      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+
+      const FU_STAGES = ['Due Now', 'Upcoming', 'Completed', 'Cancelled'];
+      const stageOf = (f) => f.status === 'Cancelled' ? 'Cancelled' : f.status === 'Completed' ? 'Completed' : (isOverdue(f) || isDueToday(f) ? 'Due Now' : 'Upcoming');
+
+      const base = useMemo(() => (rows || []).filter((f) =>
+        (!filters.type || f.type === filters.type) &&
+        (!filters.agent || f.assignedAgent === filters.agent)
+      ), [rows, filters.type, filters.agent]);
+      const counts = useMemo(() => { const o = {}; base.forEach((f) => { const s = stageOf(f); o[s] = (o[s] || 0) + 1; }); return o; }, [base]);
+      const visible = useMemo(() => (stage ? base.filter((f) => stageOf(f) === stage) : base), [base, stage]);
+
+      const kpi = useMemo(() => { const r = rows || []; return [
+        [r.filter((f) => f.status === 'Pending').length, 'Pending', 'fa-hourglass-half', 'bg-navy'],
+        [r.filter(isOverdue).length, 'Overdue', 'fa-triangle-exclamation', 'bg-danger'],
+        [r.filter(isDueToday).length, 'Due Today', 'fa-clock', 'bg-warning'],
+        [r.filter((f) => f.status === 'Completed').length, 'Completed', 'fa-circle-check', 'bg-success']
+      ]; }, [rows]);
+
+      const downloadTemplate = () => downloadCSV('followups_template.csv',
+        'LeadPhone,Type,Notes,DueAt,AssignedAgent\n03001000001,Call,Discuss offer,2026-07-20 15:00,agent1\n');
+
+      useEffect(() => {
+        const dt = () => tableRef.current;
+        setPageActions([
+          ...(canAdd ? [{ icon: 'fa-plus', label: 'Thêm lịch chăm sóc', primary: true, onClick: () => { setEditing(null); setShowModal(true); } }] : []),
+          { icon: 'fa-file-csv', label: 'CSV', onClick: () => dt() && dt().button('.buttons-csv').trigger() },
+          { icon: 'fa-file-pdf', label: 'PDF', onClick: () => dt() && dt().button('.buttons-pdf').trigger() },
+          { icon: 'fa-print', label: 'In', onClick: () => dt() && dt().button('.buttons-print').trigger() },
+          ...(canAdd ? [{ icon: 'fa-file-import', label: 'Nhập CSV', onClick: () => document.getElementById('fuCsvImport').click() }] : []),
+          { icon: 'fa-download', label: 'Tệp mẫu', onClick: downloadTemplate }
+        ]);
+        return () => setPageActions([]);
+      }, [canAdd]);
+
+      const onAction = (action, f) => {
+        if (action === 'wa') { const n = String(f.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
+        else if (action === 'done') {
+          gsRun('updateFollowUp', { id: f.id, status: 'Completed' }, currentUser).then((res) => {
+            if (res && res.success) { Swal.fire({ icon: 'success', title: 'Marked completed', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
+            else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' });
+          });
+        }
+        else if (action === 'edit') { setEditing(f); setShowModal(true); }
+        else if (action === 'delete') {
+          Swal.fire({ icon: 'warning', title: 'Delete follow-up #' + f.id + '?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+            .then((r) => { if (r.isConfirmed) gsRun('deleteFollowUp', f.id, currentUser).then((res) => {
+              if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
+              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+        }
+      };
+
+      const FU_ICONS = { Call: 'fa-phone', Zalo: 'fa-comment-dots', WhatsApp: 'fa-comment-dots', Email: 'fa-envelope', Meeting: 'fa-handshake', Note: 'fa-note-sticky' };
+      const tableRef = useDataTable('fuTable', rows === undefined ? null : visible, () => ({
+        search: { search: filters.search },
+        columns: [
+          { data: 'leadName', title: 'Lead', render: (d, t, f) => '<strong>' + esc(d) + '</strong><br><small style="color:#789">' + esc(f.leadPhone || '') + '</small>' },
+          { data: 'type', title: 'Type', render: (d, t) => t === 'display' ? '<i class="fas ' + (FU_ICONS[d] || 'fa-circle') + '" style="color:var(--navy-accent);margin-right:6px"></i>' + esc(d) : d },
+          { data: 'notes', title: 'Notes', render: (d) => esc(String(d || '').substr(0, 70)) + (String(d || '').length > 70 ? '…' : '') },
+          { data: 'dueAt', title: 'Due', render: (d, t, f) => t === 'display'
+              ? (d ? fmtDT(d) + (isOverdue(f) ? ' ' + badge('Overdue') : '') : '<small style="color:#999">logged activity</small>') : (d || '') },
+          { data: 'status', title: 'Status', render: (d, t) => t === 'display' ? badge(d) : d },
+          { data: 'assignedAgent', title: 'Agent', render: (d) => esc(d || '—') },
+          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-4', width: '140px', render: (d, t, f) => `<div class="table-actions slots-4">
+            ${canEdit && f.status === 'Pending' ? '<button class="action-icon view-icon" data-action="done" title="Mark completed"><i class="fas fa-check"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo khách hàng"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+        ],
+        createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ khách hàng'); },
+        order: []
+      }), onAction, [canEdit, canDel], (record) => setViewingLead(record));
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
+
+      return (
+        <>
+          <KpiRow items={kpi} />
+          <Pipeline stages={FU_STAGES} counts={counts} active={stage} onPick={setStage} total={base.length} />
+          <div className="filters-section">
+            <div className="filters-header">
+              <h3><i className="fas fa-filter"></i> Filters</h3>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); }}>
+                <i className="fas fa-rotate-left"></i> Clear
+              </button>
+            </div>
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label><i className="fas fa-magnifying-glass"></i> Search</label>
+                <input className="filter-input" value={filters.search} placeholder="Lead, notes, agent…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+              </div>
+              <SearchableDropdown label="Type" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="All Types" />
+              {all && <SearchableDropdown label="Agent" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="All Agents" />}
+            </div>
+          </div>
+          <div className="data-section">
+            <input type="file" id="fuCsvImport" accept=".csv" style={{ display: 'none' }}
+                   onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'LeadPhone', 'bulkImportFollowUps', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
+            {loading ? <TableSkeleton rows={8} columns={7} /> : <div style={{ overflowX: 'auto' }}><table id="fuTable" className="display" style={{ width: '100%' }}></table></div>}
+          </div>
+          {showModal && (
+            <FollowUpModal fu={editing} currentUser={currentUser} role={role} lookups={lookups}
+                           onClose={() => { setShowModal(false); setEditing(null); }}
+                           onSaved={() => { setShowModal(false); setEditing(null); mutate(); swrMutate('dash:stats'); }} />
+          )}
+          {viewingLead && <CrossModuleLeadModal source={viewingLead} currentUser={currentUser} role={role} perms={perms} lookups={lookups} onClose={() => setViewingLead(null)} />}
+        </>
+      );
+    }
+
+    function FollowUpModal({ fu, currentUser, role, lookups, onClose, onSaved }) {
+      const all = scopeAll(role);
+      const editing = !!fu;
+      const { data: lRes } = useSWR('leads:all', () => gsRun('getLeads', currentUser), SWR_LIVE);
+      const leads = lRes && lRes.success ? lRes.data : [];
+      const [form, setForm] = useState(() => fu ? {
+        leadId: String(fu.leadId || ''), type: fu.type || 'Call', notes: fu.notes || '',
+        dueAt: dtLocal(fu.dueAt), status: fu.status || 'Pending', assignedAgent: fu.assignedAgent || currentUser
+      } : { leadId: '', type: 'Call', notes: '', dueAt: '', status: 'Pending', assignedAgent: currentUser });
+      const [saving, setSaving] = useState(false);
+      const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+
+      const submit = (e) => {
+        e.preventDefault();
+        if (!form.leadId) return Swal.fire({ icon: 'warning', title: 'Pick a lead' });
+        setSaving(true);
+        const payload = editing
+          ? { id: fu.id, type: form.type, notes: form.notes, dueAt: form.dueAt, status: form.status, assignedAgent: form.assignedAgent }
+          : { leadId: form.leadId, type: form.type, notes: form.notes, dueAt: form.dueAt, assignedAgent: form.assignedAgent };
+        gsRun(editing ? 'updateFollowUp' : 'addFollowUp', payload, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2200, showConfirmButton: false }); onSaved(); }
+          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+      };
+
+      return (
+        <div className="modal-overlay">
+          <TopLoadingBar active={saving} />
+          <div className="modal" style={{ maxWidth: 560 }}>
+            <div className="modal-header">
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-bell')}></i> {editing ? 'Edit Follow-Up #' + fu.id : 'Add Follow-Up'}</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={submit}>
+                {!editing && (
+                  <SearchableDropdown label="Lead" icon="fas fa-user-tag"
+                    options={leads.map((l) => ({ value: String(l.id), label: l.fullName + ' (' + l.phone + ') · ' + l.status }))}
+                    value={form.leadId} onChange={set('leadId')} placeholder="Search lead…" required={true} />
+                )}
+                <div className="form-grid">
+                  <SearchableDropdown label="Type" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={form.type} onChange={set('type')} placeholder="Chọn loại tài liệu…" required={true} />
+                  <div className="form-group">
+                    <label><i className="fas fa-clock"></i> Due At <small style={{ color: '#999', textTransform: 'none' }}>(empty = log past activity)</small></label>
+                    <input type="datetime-local" value={form.dueAt} onChange={(e) => setForm((f) => ({ ...f, dueAt: e.target.value }))} />
+                  </div>
+                  {all && (
+                    <SearchableDropdown label="Assigned To" icon="fas fa-user-tie"
+                      options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
+                      value={form.assignedAgent} onChange={set('assignedAgent')} placeholder="Agent…" />
+                  )}
+                  {editing && (
+                    <SearchableDropdown label="Status" icon="fas fa-flag" options={opts(ENUMS.followUpStatus)} value={form.status} onChange={set('status')} placeholder="Status…" />
+                  )}
+                </div>
+                <div className="form-group">
+                  <label><i className="fas fa-align-left"></i> Ghi chú</label>
+                  <textarea rows="3" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="What needs to happen / what happened…"></textarea>
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update' : 'Save'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== Appointments (viewing scheduler — conflicts checked server-side) ==============
+    function AppointmentsView({ currentUser, role, perms, initialSearch }) {
+      const { data: res, error, mutate } = useSWR('appts:all', () => gsRun('getAppointments', currentUser), SWR_LIVE);
+      const rows = res ? (res.success ? res.data : []) : undefined;
+      const loading = rows === undefined && !error;
+      const lookups = useLookups(currentUser);
+      const all = scopeAll(role);
+      const canAdd = can(perms, 'appointments', 'a'), canEdit = can(perms, 'appointments', 'e'), canDel = can(perms, 'appointments', 'd');
+      const [showModal, setShowModal] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [completing, setCompleting] = useState(null); // feedback capture on Complete
+      const [viewingLead, setViewingLead] = useState(null);
+      const [calView, setCalView] = useState(false);      // list <-> month grid toggle
+      const [stage, setStage] = useState('');
+      const [filters, setFilters] = useState({ search: initialSearch || '', agent: '', range: '' });
+      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch, range: '' })); }, [initialSearch]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+
+      const inRange = (a) => {
+        if (!filters.range) return true;
+        const t = new Date(a.scheduledAt), now = new Date();
+        if (filters.range === 'today') return t.toDateString() === now.toDateString();
+        if (filters.range === 'week') { const start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0, 0, 0, 0);
+          const end = new Date(start); end.setDate(start.getDate() + 7); return t >= start && t < end; }
+        if (filters.range === 'month') return t.getMonth() === now.getMonth() && t.getFullYear() === now.getFullYear();
+        if (filters.range === 'past') return t < now;
+        return true;
+      };
+      const base = useMemo(() => (rows || []).filter((a) => (!filters.agent || a.agent === filters.agent) && inRange(a)),
+        [rows, filters.agent, filters.range]);
+      const counts = useMemo(() => { const o = {}; base.forEach((a) => { o[a.status] = (o[a.status] || 0) + 1; }); return o; }, [base]);
+      const visible = useMemo(() => {
+        const q=String(filters.search||'').trim().toLowerCase();
+        return (stage ? base.filter((a)=>a.status===stage) : base).filter((a)=>!q||[
+          a.leadName,a.leadPhone,a.propertyRef,a.propertyTitle,a.agent,a.status,a.notes,a.feedback
+        ].some((value)=>String(value||'').toLowerCase().includes(q)));
+      }, [base,stage,filters.search]);
+
+      const kpi = useMemo(() => { const r = rows || [], now = new Date(); return [
+        [r.filter((a) => ['Scheduled', 'Confirmed'].indexOf(a.status) !== -1 && new Date(a.scheduledAt) >= now).length, 'Sắp tới', 'fa-calendar-plus', 'bg-navy'],
+        [r.filter((a) => ['Scheduled', 'Confirmed'].indexOf(a.status) !== -1 && new Date(a.scheduledAt).toDateString() === now.toDateString()).length, 'Hôm nay', 'fa-calendar-day', 'bg-info'],
+        [r.filter((a) => a.status === 'Completed').length, 'Hoàn thành', 'fa-flag-checkered', 'bg-success'],
+        [r.filter((a) => a.status === 'No Show').length, 'Không đến', 'fa-user-slash', 'bg-danger']
+      ]; }, [rows]);
+
+      const downloadTemplate = () => downloadCSV('appointments_template.csv',
+        'LeadPhone,PropertyRef,ScheduledAt,DurationMinutes,Agent,Notes\n03001000001,RS-LAH-1001,2026-07-21 15:00,45,agent1,First viewing\n');
+
+      useEffect(() => {
+        const dt = () => tableRef.current;
+        setPageActions([
+          ...(canAdd ? [{ icon: 'fa-plus', label: 'Đặt lịch xem', primary: true, onClick: () => { setEditing(null); setShowModal(true); } }] : []),
+          { icon: 'fa-file-csv', label: 'CSV', onClick: () => dt() && dt().button('.buttons-csv').trigger() },
+          { icon: 'fa-file-pdf', label: 'PDF', onClick: () => dt() && dt().button('.buttons-pdf').trigger() },
+          { icon: 'fa-print', label: 'In', onClick: () => dt() && dt().button('.buttons-print').trigger() },
+          ...(canAdd ? [{ icon: 'fa-file-import', label: 'Nhập CSV', onClick: () => document.getElementById('apptCsvImport').click() }] : []),
+          { icon: 'fa-download', label: 'Tệp mẫu', onClick: downloadTemplate }
+        ]);
+        return () => setPageActions([]);
+      }, [canAdd]);
+
+      const onAction = (action, a) => {
+        if (action === 'wa') { const n = String(a.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
+        else if (action === 'confirm') {
+          gsRun('updateAppointment', { id: a.id, status: 'Confirmed' }, currentUser).then((res) => {
+            if (res && res.success) { Swal.fire({ icon: 'success', title: 'Đã xác nhận', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
+            else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' });
+          });
+        }
+        else if (action === 'complete') setCompleting(a);
+        else if (action === 'edit') { setEditing(a); setShowModal(true); }
+        else if (action === 'delete') {
+          Swal.fire({ icon: 'warning', title: 'Xóa lịch hẹn #' + a.id + '?', text: 'Nên chuyển sang trạng thái Đã hủy để giữ lại lịch sử khách không đến.', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa' })
+            .then((r) => { if (r.isConfirmed) gsRun('deleteAppointment', a.id, currentUser).then((res) => {
+              if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
+              else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' }); }); });
+        }
+      };
+
+      const tableRef = useDataTable('apptTable', rows === undefined ? null : visible, () => ({
+        search: { search: filters.search },
+        columns: [
+          { data: 'scheduledAt', title: 'Thời gian', render: (d, t, a) => t === 'display'
+              ? '<strong>' + fmtDT(d) + '</strong><br><small style="color:#789">' + (a.durationMinutes || 30) + ' phút</small>' : (d || '') },
+          { data: 'leadName', title: 'Khách hàng', render: (d, t, a) => esc(d) + '<br><small style="color:#789">' + esc(a.leadPhone || '') + '</small>' },
+          { data: null, title: 'Bất động sản', render: (d, t, a) => '<span class="prop-ref">' + esc(a.propertyRef || '') + '</span><br><small style="color:#789">' + esc(a.propertyTitle || '') + '</small>' },
+          { data: 'agent', title: 'Nhân viên', render: (d) => esc(d || '—') },
+          { data: 'status', title: 'Trạng thái', render: (d, t, a) => t === 'display'
+              ? badge(d) + (a.interestLevel ? ' ' + badge(a.interestLevel) : '') + (d === 'Cancelled' && a.cancellationReason ? '<br><small style="color:#c62828">' + esc(String(a.cancellationReason).substr(0, 34)) + '</small>' : '') : d },
+          { data: 'notes', title: 'Ghi chú', render: (d, t, a) => esc(String(a.feedback || d || '').substr(0, 50)) + (String(a.feedback || d || '').length > 50 ? '…' : '') },
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, a) => `<div class="table-actions slots-5">
+            ${canEdit && a.status === 'Scheduled' ? '<button class="action-icon view-icon" data-action="confirm" title="Xác nhận"><i class="fas fa-check"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${canEdit && ['Scheduled','Confirmed'].indexOf(a.status) !== -1 ? '<button class="action-icon assign-icon" data-action="complete" title="Hoàn thành và ghi phản hồi"><i class="fas fa-flag-checkered"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo khách hàng"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>' : ''}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+        ],
+        createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ khách hàng'); },
+        order: [[0, 'asc']]
+      }), onAction, [canEdit, canDel], (record) => setViewingLead(record));
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
+
+      const RANGES = [{ value: '', label: 'Toàn thời gian' }, { value: 'today', label: 'Hôm nay' }, { value: 'week', label: 'Tuần này' }, { value: 'month', label: 'Tháng này' }, { value: 'past', label: 'Đã qua' }];
+      return (
+        <>
+          <KpiRow items={kpi} />
+          <Pipeline stages={ENUMS.appointmentStatus} counts={counts} active={stage} onPick={setStage} total={base.length} />
+          <div className="filters-section">
+            <div className="filters-header">
+              <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className={'btn btn-sm ' + (calView ? 'btn-secondary' : 'btn-primary')} onClick={() => setCalView(false)}><i className="fas fa-list"></i> Danh sách</button>
+                <button className={'btn btn-sm ' + (calView ? 'btn-primary' : 'btn-secondary')} onClick={() => setCalView(true)}><i className="fas fa-calendar-days"></i> Lịch</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', agent: '', range: '' }); setStage(''); }}>
+                  <i className="fas fa-rotate-left"></i> Xóa
+                </button>
+              </div>
+            </div>
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
+                <input className="filter-input" value={filters.search} placeholder="Khách hàng, bất động sản, nhân viên…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+              </div>
+              <SearchableDropdown label="Khoảng thời gian" icon="fas fa-calendar-week" options={RANGES.filter((r) => r.value)} value={filters.range} onChange={(v) => setFilters({ ...filters, range: v })} placeholder="Toàn thời gian" />
+              {all && <SearchableDropdown label="Nhân viên" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + viEnum(a.role) + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
+            </div>
+          </div>
+          <div className="data-section">
+            <input type="file" id="apptCsvImport" accept=".csv" style={{ display: 'none' }}
+                   onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'LeadPhone', 'bulkImportAppointments', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
+            {calView && <CalendarGrid appts={visible} onSelectAppt={(a) => { setEditing(a); setShowModal(true); }} />}
+            {loading ? (!calView && <TableSkeleton rows={8} columns={7} />)
+              : <div style={{ overflowX: 'auto', display: calView ? 'none' : 'block' }}><table id="apptTable" className="display" style={{ width: '100%' }}></table></div>}
+          </div>
+          {showModal && (
+            <AppointmentModal appt={editing} currentUser={currentUser} role={role} lookups={lookups}
+                              onClose={() => { setShowModal(false); setEditing(null); }}
+                              onSaved={() => { setShowModal(false); setEditing(null); mutate(); swrMutate('dash:stats'); swrMutate('leads:all'); }} />
+          )}
+          {completing && (
+            <FeedbackModal appt={completing} currentUser={currentUser}
+                           onClose={() => setCompleting(null)}
+                           onSaved={() => { setCompleting(null); mutate(); swrMutate('dash:stats'); }} />
+          )}
+          {viewingLead && <CrossModuleLeadModal source={viewingLead} currentUser={currentUser} role={role} perms={perms} lookups={lookups} onClose={() => setViewingLead(null)} />}
+        </>
+      );
+    }
+
+    function AppointmentModal({ appt, currentUser, role, lookups, onClose, onSaved }) {
+      const all = scopeAll(role);
+      const editing = !!appt;
+      const { data: lRes } = useSWR('leads:all', () => gsRun('getLeads', currentUser), SWR_LIVE);
+      const leads = (lRes && lRes.success ? lRes.data : []).filter((l) => ['Won', 'Lost'].indexOf(l.status) === -1 || (appt && appt.leadId == l.id));
+      const { data: pRes } = useSWR('props:all', () => gsRun('getProperties', currentUser), SWR_LIVE);
+      const props = pRes && pRes.success ? pRes.data : [];
+      const [form, setForm] = useState(() => appt ? {
+        leadId: String(appt.leadId || ''), propertyId: String(appt.propertyId || ''), agent: appt.agent || currentUser,
+        scheduledAt: dtLocal(appt.scheduledAt), durationMinutes: String(appt.durationMinutes || 30),
+        status: appt.status || 'Scheduled', cancellationReason: appt.cancellationReason || '', notes: appt.notes || ''
+      } : { leadId: '', propertyId: '', agent: currentUser, scheduledAt: '', durationMinutes: '30', status: 'Scheduled', cancellationReason: '', notes: '' });
+      const [saving, setSaving] = useState(false);
+      const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+
+      const submit = (e) => {
+        e.preventDefault();
+        if (!editing && (!form.leadId || !form.propertyId)) return Swal.fire({ icon: 'warning', title: 'Lead and property are required' });
+        if (form.status === 'Cancelled' && !form.cancellationReason.trim())
+          return Swal.fire({ icon: 'warning', title: 'Cancellation reason required' });
+        setSaving(true);
+        const payload = editing
+          ? { id: appt.id, scheduledAt: form.scheduledAt, durationMinutes: form.durationMinutes, agent: form.agent, status: form.status, cancellationReason: form.cancellationReason, notes: form.notes }
+          : { leadId: form.leadId, propertyId: form.propertyId, agent: form.agent, scheduledAt: form.scheduledAt, durationMinutes: form.durationMinutes, notes: form.notes };
+        gsRun(editing ? 'updateAppointment' : 'addAppointment', payload, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2200, showConfirmButton: false }); onSaved(); }
+          else Swal.fire({ icon: 'error', title: 'Cannot book', text: (r && r.message) || 'Failed' }); // conflict message surfaces here
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+      };
+
+      return (
+        <div className="modal-overlay">
+          <TopLoadingBar active={saving} />
+          <div className="modal" style={{ maxWidth: 560 }}>
+            <div className="modal-header">
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-calendar-plus')}></i> {editing ? 'Edit Viewing #' + appt.id : 'Book Viewing'}</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={submit}>
+                {!editing && (
+                  <SearchableDropdown label="Lead" icon="fas fa-user-tag"
+                    options={leads.map((l) => ({ value: String(l.id), label: l.fullName + ' (' + l.phone + ') · ' + l.status }))}
+                    value={form.leadId} onChange={set('leadId')} placeholder="Search lead…" required={true} />
+                )}
+                {!editing && (
+                  <SearchableDropdown label="Property" icon="fas fa-building"
+                    options={props.filter((p) => ['Sold', 'Rented'].indexOf(p.status) === -1).map((p) => ({ value: String(p.id), label: (p.referenceCode || '#' + p.id) + ' — ' + p.title }))}
+                    value={form.propertyId} onChange={set('propertyId')} placeholder="Search property…" required={true} />
+                )}
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label><i className="fas fa-clock"></i> Date & Time *</label>
+                    <input type="datetime-local" value={form.scheduledAt} onChange={(e) => setForm((f) => ({ ...f, scheduledAt: e.target.value }))} required />
+                  </div>
+                  <SearchableDropdown label="Duration" icon="fas fa-hourglass-half"
+                    options={[{ value: '30', label: '30 minutes' }, { value: '45', label: '45 minutes' }, { value: '60', label: '1 hour' }, { value: '90', label: '1.5 hours' }]}
+                    value={form.durationMinutes} onChange={set('durationMinutes')} placeholder="Duration…" />
+                  {all && (
+                    <SearchableDropdown label="Agent" icon="fas fa-user-tie"
+                      options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
+                      value={form.agent} onChange={set('agent')} placeholder="Agent…" />
+                  )}
+                  {editing && (
+                    <SearchableDropdown label="Status" icon="fas fa-flag" options={opts(ENUMS.appointmentStatus)} value={form.status} onChange={set('status')} placeholder="Status…" />
+                  )}
+                </div>
+                {editing && form.status === 'Cancelled' && (
+                  <div className="form-group">
+                    <label><i className="fas fa-circle-question"></i> Cancellation Reason *</label>
+                    <textarea rows="2" value={form.cancellationReason} onChange={(e) => setForm((f) => ({ ...f, cancellationReason: e.target.value }))} required></textarea>
+                  </div>
+                )}
+                <div className="form-group">
+                  <label><i className="fas fa-align-left"></i> Notes</label>
+                  <textarea rows="2" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}></textarea>
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update' : 'Book Viewing'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== Locations (City → Area → Society hierarchy) ==============
+    const LOCATION_LEVEL_LABELS = { City: 'Thành phố', Area: 'Khu vực', Society: 'Khu đô thị' };
+    function LocationsView({ currentUser, role, perms, initialSearch }) {
+      const { data: res, error, mutate } = useSWR('locs:all', () => gsRun('getLocations', currentUser), SWR_LIVE);
+      const rows = res ? (res.success ? res.data : []) : undefined;
+      const loading = rows === undefined && !error;
+      const canAdd = can(perms, 'locations', 'a'), canEdit = can(perms, 'locations', 'e'), canDel = can(perms, 'locations', 'd');
+      const [showModal, setShowModal] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [filters, setFilters] = useState({ search: initialSearch || '', level: '' });
+      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
+
+      const visible = useMemo(() => (rows || []).filter((l) => !filters.level || l.level === filters.level), [rows, filters.level]);
+      const kpi = useMemo(() => { const r = rows || []; return [
+        [r.filter((l) => l.level === 'City').length, 'Thành phố', 'fa-city', 'bg-navy'],
+        [r.filter((l) => l.level === 'Area').length, 'Khu vực', 'fa-map', 'bg-info'],
+        [r.filter((l) => l.level === 'Society').length, 'Khu đô thị', 'fa-map-pin', 'bg-success'],
+        [r.reduce((s, l) => s + (l.propertyCount || 0), 0), 'Tin đăng liên kết', 'fa-building', 'bg-warning']
+      ]; }, [rows]);
+
+      const downloadTemplate = () => downloadCSV('locations_template.csv',
+        'Name,Level,Parent\nMultan,City,\nModel Town,Area,Multan\nBlock A,Society,Model Town\n');
+
+      useEffect(() => {
+        const dt = () => tableRef.current;
+        setPageActions([
+          ...(canAdd ? [{ icon: 'fa-plus', label: 'Thêm khu vực', primary: true, onClick: () => { setEditing(null); setShowModal(true); } }] : []),
+          { icon: 'fa-file-csv', label: 'CSV', onClick: () => dt() && dt().button('.buttons-csv').trigger() },
+          { icon: 'fa-file-pdf', label: 'PDF', onClick: () => dt() && dt().button('.buttons-pdf').trigger() },
+          { icon: 'fa-print', label: 'In', onClick: () => dt() && dt().button('.buttons-print').trigger() },
+          ...(canAdd ? [{ icon: 'fa-file-import', label: 'Nhập CSV', onClick: () => document.getElementById('locCsvImport').click() }] : []),
+          { icon: 'fa-download', label: 'Tệp mẫu', onClick: downloadTemplate }
+        ]);
+        return () => setPageActions([]);
+      }, [canAdd]);
+
+      const onAction = (action, l) => {
+        if (action === 'edit') { setEditing(l); setShowModal(true); }
+        else if (action === 'delete') {
+          Swal.fire({ icon: 'warning', title: 'Xóa “' + l.name + '”?', text: 'Thao tác này có thể làm hỏng đường dẫn công khai đang sử dụng. Chỉ xóa khi dữ liệu được tạo nhầm.', showCancelButton: true, cancelButtonText: 'Hủy', confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa' })
+            .then((r) => { if (r.isConfirmed) gsRun('deleteLocation', l.id, currentUser).then((res) => {
+              if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('lookups'); }
+              else Swal.fire({ icon: 'error', title: 'Không thể xóa', text: (res && res.message) || 'Thao tác thất bại' }); }); });
+        }
+      };
+
+      const LEVEL_TINT = { City: 'st-navy', Area: 'st-blue', Society: 'st-teal' };
+      const tableRef = useDataTable('locTable', rows === undefined ? null : visible, () => ({
+        search: { search: filters.search },
+        columns: [
+          { data: 'name', title: 'Tên', render: (d, t, l) => '<strong>' + esc(d) + '</strong>' },
+          { data: 'level', title: 'Cấp độ', render: (d, t) => t === 'display' ? '<span class="status-badge ' + (LEVEL_TINT[d] || 'st-gray') + '">' + esc(LOCATION_LEVEL_LABELS[d] || d) + '</span>' : d },
+          { data: 'path', title: 'Đường dẫn đầy đủ', render: (d) => esc(d || '') },
+          { data: 'slug', title: 'Đường dẫn công khai', render: (d) => '<span class="prop-ref">' + esc(d || '') + '</span>' },
+          { data: 'propertyCount', title: 'Tin đăng' },
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-2', width: '72px', render: () => `<div class="table-actions slots-2">
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Đổi tên"><i class="fas fa-edit"></i></button>' : ''}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}
+            ${!canEdit && !canDel ? '<span style="color:#999;">—</span>' : ''}</div>` }
+        ],
+        order: []
+      }), onAction, [canEdit, canDel]);
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
+
+      return (
+        <>
+          <KpiRow items={kpi} />
+          <div className="filters-section">
+            <div className="filters-header">
+              <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
+              <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ search: '', level: '' })}><i className="fas fa-rotate-left"></i> Xóa</button>
+            </div>
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
+                <input className="filter-input" value={filters.search} placeholder="Tên, đường dẫn, định danh…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+              </div>
+              <SearchableDropdown label="Cấp độ" icon="fas fa-layer-group" options={ENUMS.locationLevel.map((v) => ({ value: v, label: LOCATION_LEVEL_LABELS[v] }))} value={filters.level} onChange={(v) => setFilters({ ...filters, level: v })} placeholder="Tất cả cấp độ" />
+            </div>
+          </div>
+          <div className="data-section">
+            <input type="file" id="locCsvImport" accept=".csv" style={{ display: 'none' }}
+                   onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'Name', 'bulkImportLocations', currentUser, () => { mutate(); swrMutate('lookups'); }); e.target.value = ''; }} />
+            {loading ? <TableSkeleton rows={8} columns={6} /> : <div style={{ overflowX: 'auto' }}><table id="locTable" className="display" style={{ width: '100%' }}></table></div>}
+          </div>
+          {showModal && (
+            <LocationModal loc={editing} currentUser={currentUser} locations={rows || []}
+                           onClose={() => { setShowModal(false); setEditing(null); }}
+                           onSaved={() => { setShowModal(false); setEditing(null); mutate(); swrMutate('lookups'); }} />
+          )}
+        </>
+      );
+    }
+
+    function LocationModal({ loc, currentUser, locations, onClose, onSaved }) {
+      const editing = !!loc;
+      const [form, setForm] = useState(() => loc
+        ? { name: loc.name || '', level: loc.level || 'City', parentId: loc.parentId ? String(loc.parentId) : '' }
+        : { name: '', level: 'City', parentId: '' });
+      const [saving, setSaving] = useState(false);
+      const parentLevel = form.level === 'Area' ? 'City' : form.level === 'Society' ? 'Area' : '';
+      const parents = locations.filter((l) => l.level === parentLevel);
+
+      const submit = (e) => {
+        e.preventDefault();
+        if (parentLevel && !form.parentId) return Swal.fire({ icon: 'warning', title: 'Cần chọn cấp cha', text: (LOCATION_LEVEL_LABELS[form.level] || form.level) + ' phải trực thuộc ' + (LOCATION_LEVEL_LABELS[parentLevel] || parentLevel) + '.' });
+        setSaving(true);
+        const payload = editing ? { id: loc.id, name: form.name } : { name: form.name, level: form.level, parentId: form.parentId || null };
+        gsRun(editing ? 'updateLocation' : 'addLocation', payload, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2000, showConfirmButton: false }); onSaved(); }
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Lỗi', text: String((err && err.message) || err) }); });
+      };
+
+      return (
+        <div className="modal-overlay">
+          <TopLoadingBar active={saving} />
+          <div className="modal" style={{ maxWidth: 460 }}>
+            <div className="modal-header">
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-map-location-dot')}></i> {editing ? 'Đổi tên khu vực' : 'Thêm khu vực'}</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={submit}>
+                <div className="form-group">
+                  <label><i className="fas fa-signature"></i> Tên *</label>
+                  <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+                </div>
+                {!editing && (
+                  <SearchableDropdown label="Cấp độ" icon="fas fa-layer-group" options={ENUMS.locationLevel.map((v) => ({ value: v, label: LOCATION_LEVEL_LABELS[v] }))} value={form.level}
+                    onChange={(v) => setForm((f) => ({ ...f, level: v, parentId: '' }))} placeholder="Chọn cấp độ…" required={true} />
+                )}
+                {!editing && parentLevel && (
+                  <SearchableDropdown label={'Trực thuộc ' + (LOCATION_LEVEL_LABELS[parentLevel] || parentLevel)} icon="fas fa-sitemap"
+                    options={parents.map((p) => ({ value: String(p.id), label: p.path || p.name }))}
+                    value={form.parentId} onChange={(v) => setForm((f) => ({ ...f, parentId: v }))} placeholder={'Chọn ' + (LOCATION_LEVEL_LABELS[parentLevel] || parentLevel).toLowerCase() + '…'} required={true} />
+                )}
+                {editing && <p style={{ color: '#789', fontSize: 13 }}><i className="fas fa-link"></i> Định danh <strong>{loc.slug}</strong> được giữ nguyên để đường dẫn công khai không bị gián đoạn.</p>}
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật' : 'Thêm'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== Amenities (Admin-only taxonomy — kept clean so portal facets never fragment) ==============
+    function AmenitiesView({ currentUser, role, perms, initialSearch }) {
+      const { data: res, error, mutate } = useSWR('amens:all', () => gsRun('getAmenities', currentUser), SWR_LIVE);
+      const rows = res ? (res.success ? res.data : []) : undefined;
+      const loading = rows === undefined && !error;
+      const canAdd = can(perms, 'amenities', 'a'), canEdit = can(perms, 'amenities', 'e'), canDel = can(perms, 'amenities', 'd');
+      const [showModal, setShowModal] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [search, setSearch] = useState(initialSearch || '');
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+
+      const kpi = useMemo(() => { const r = rows || []; const used = r.filter((a) => a.propertyCount > 0);
+        const top = used.slice().sort((a, b) => b.propertyCount - a.propertyCount)[0];
+        return [
+          [r.length, 'Amenities', 'fa-list-check', 'bg-navy'],
+          [used.length, 'In Use', 'fa-circle-check', 'bg-success'],
+          [r.length - used.length, 'Unused', 'fa-circle-minus', 'bg-warning'],
+          [top ? top.name : '—', 'Most Tagged', 'fa-star', 'bg-info']
+        ]; }, [rows]);
+
+      const downloadTemplate = () => downloadCSV('amenities_template.csv', 'Name,Icon\nSolar Panels,fa-solar-panel\n');
+
+      useEffect(() => {
+        const dt = () => tableRef.current;
+        setPageActions([
+          ...(canAdd ? [{ icon: 'fa-plus', label: 'Thêm tiện ích', primary: true, onClick: () => { setEditing(null); setShowModal(true); } }] : []),
+          { icon: 'fa-file-csv', label: 'CSV', onClick: () => dt() && dt().button('.buttons-csv').trigger() },
+          { icon: 'fa-file-pdf', label: 'PDF', onClick: () => dt() && dt().button('.buttons-pdf').trigger() },
+          { icon: 'fa-print', label: 'In', onClick: () => dt() && dt().button('.buttons-print').trigger() },
+          ...(canAdd ? [{ icon: 'fa-file-import', label: 'Nhập CSV', onClick: () => document.getElementById('amenCsvImport').click() }] : []),
+          { icon: 'fa-download', label: 'Tệp mẫu', onClick: downloadTemplate }
+        ]);
+        return () => setPageActions([]);
+      }, [canAdd]);
+
+      const onAction = (action, a) => {
+        if (action === 'edit') { setEditing(a); setShowModal(true); }
+        else if (action === 'delete') {
+          Swal.fire({ icon: 'warning', title: 'Delete "' + a.name + '"?', text: a.propertyCount ? 'Tagged on ' + a.propertyCount + ' listings — the tag will drop off them.' : undefined, showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+            .then((r) => { if (r.isConfirmed) gsRun('deleteAmenity', a.id, currentUser).then((res) => {
+              if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('lookups'); }
+              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+        }
+      };
+
+      const tableRef = useDataTable('amenTable', rows === undefined ? null : (rows || []), () => ({
+        search: { search: search },
+        columns: [
+          { data: 'icon', title: 'Icon', orderable: false, render: (d) => '<i class="fas ' + esc(d || 'fa-check') + '" style="color:var(--navy-accent);font-size:18px"></i>' },
+          { data: 'name', title: 'Name', render: (d) => '<strong>' + esc(d) + '</strong>' },
+          { data: 'propertyCount', title: 'Tagged Listings' },
+          { data: 'created', title: 'Created', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
+          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-2', width: '72px', render: () => `<div class="table-actions slots-2">
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+        ],
+        order: [[1, 'asc']]
+      }), onAction, [canEdit, canDel]);
+      useEffect(() => { const t = tableRef.current; if (t) t.search(search || '').draw(); }, [search, rows]);
+
+      return (
+        <>
+          <KpiRow items={kpi} />
+          <div className="filters-section">
+            <div className="filters-header">
+              <h3><i className="fas fa-filter"></i> Filters</h3>
+              <button className="btn btn-secondary btn-sm" onClick={() => setSearch('')}><i className="fas fa-rotate-left"></i> Clear</button>
+            </div>
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label><i className="fas fa-magnifying-glass"></i> Search</label>
+                <input className="filter-input" value={search} placeholder="Amenity name…" onChange={(e) => setSearch(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <div className="data-section">
+            <input type="file" id="amenCsvImport" accept=".csv" style={{ display: 'none' }}
+                   onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'Name', 'bulkImportAmenities', currentUser, () => { mutate(); swrMutate('lookups'); }); e.target.value = ''; }} />
+            {loading ? <TableSkeleton rows={8} columns={5} /> : <div style={{ overflowX: 'auto' }}><table id="amenTable" className="display" style={{ width: '100%' }}></table></div>}
+          </div>
+          {showModal && (
+            <AmenityModal amenity={editing} currentUser={currentUser}
+                          onClose={() => { setShowModal(false); setEditing(null); }}
+                          onSaved={() => { setShowModal(false); setEditing(null); mutate(); swrMutate('lookups'); }} />
+          )}
+        </>
+      );
+    }
+
+    const AMEN_ICONS = ['fa-bolt','fa-car','fa-user-tie','fa-tree','fa-person-swimming','fa-shield-halved','fa-elevator','fa-vector-square','fa-couch','fa-fire-flame-simple','fa-stairs','fa-building','fa-solar-panel','fa-wifi','fa-dumbbell','fa-mosque','fa-school','fa-kitchen-set','fa-water','fa-video','fa-warehouse','fa-tv','fa-snowflake','fa-key'];
+    function AmenityModal({ amenity, currentUser, onClose, onSaved }) {
+      const editing = !!amenity;
+      const [form, setForm] = useState(() => amenity ? { name: amenity.name || '', icon: amenity.icon || '' } : { name: '', icon: '' });
+      const [saving, setSaving] = useState(false);
+      const submit = (e) => {
+        e.preventDefault();
+        setSaving(true);
+        gsRun(editing ? 'updateAmenity' : 'addAmenity', { ...form, id: amenity ? amenity.id : undefined }, currentUser).then((r) => {
+          setSaving(false);
+          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2000, showConfirmButton: false }); onSaved(); }
+          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+      };
+      return (
+        <div className="modal-overlay">
+          <TopLoadingBar active={saving} />
+          <div className="modal" style={{ maxWidth: 440 }}>
+            <div className="modal-header">
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-list-check')}></i> {editing ? 'Edit Amenity' : 'Add Amenity'}</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={submit}>
+                <div className="form-group">
+                  <label><i className="fas fa-signature"></i> Name *</label>
+                  <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required placeholder="Ví dụ: Điện mặt trời" />
+                </div>
+                <SearchableDropdown label="Icon" icon="fas fa-icons"
+                  options={AMEN_ICONS.map((ic) => ({ value: ic, label: ic.replace('fa-', '').replace(/-/g, ' ') }))}
+                  value={form.icon} onChange={(v) => setForm((f) => ({ ...f, icon: v }))} placeholder="Pick an icon…" />
+                {form.icon && <p style={{ margin: '4px 0 10px', color: '#789' }}>Preview: <i className={'fas ' + form.icon} style={{ color: 'var(--navy-accent)', fontSize: 18 }}></i></p>}
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update' : 'Add'}</>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+

@@ -7,7 +7,7 @@ const outputPath = path.join(projectRoot, 'code-appscript', 'index.html');
 const sourceRoot = path.join(projectRoot, 'ui-src');
 const templatePath = path.join(sourceRoot, 'index.template.html');
 const stylesDir = path.join(sourceRoot, 'styles');
-const jsxPath = path.join(sourceRoot, 'scripts', 'app.jsx');
+const scriptsDir = path.join(sourceRoot, 'scripts');
 
 const CSS_MARKER = '<!-- CRM_APP_CSS -->';
 const JSX_MARKER = '<!-- CRM_APP_JSX -->';
@@ -35,7 +35,7 @@ function firstDifference(left, right) {
 }
 
 function composeSource() {
-  for (const sourcePath of [templatePath, jsxPath, stylesDir]) {
+  for (const sourcePath of [templatePath, scriptsDir, stylesDir]) {
     if (!fs.existsSync(sourcePath)) fail(`Thiếu nguồn UI: ${sourcePath}`);
   }
 
@@ -43,7 +43,10 @@ function composeSource() {
   const cssFiles = fs.readdirSync(stylesDir).filter(f => f.endsWith('.css')).sort();
   if (!cssFiles.length) fail(`Không tìm thấy file CSS nào trong: ${stylesDir}`);
   const css = cssFiles.map(f => fs.readFileSync(path.join(stylesDir, f), 'utf8')).join('');
-  const jsx = fs.readFileSync(jsxPath, 'utf8');
+
+  const jsxFiles = fs.readdirSync(scriptsDir).filter(f => f.endsWith('.jsx') || f.endsWith('.js')).sort();
+  if (!jsxFiles.length) fail(`Không tìm thấy file JSX nào trong: ${scriptsDir}`);
+  const jsx = jsxFiles.map(f => fs.readFileSync(path.join(scriptsDir, f), 'utf8')).join('');
 
   if ((template.match(new RegExp(CSS_MARKER, 'g')) || []).length !== 1) {
     fail(`Template phải chứa đúng một marker ${CSS_MARKER}`);
