@@ -1413,11 +1413,27 @@
       const canAdd = can(perms, 'locations', 'a'), canEdit = can(perms, 'locations', 'e'), canDel = can(perms, 'locations', 'd');
       const [showModal, setShowModal] = useState(false);
       const [editing, setEditing] = useState(null);
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '', level: '' });
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
       useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
 
-      const visible = useMemo(() => (rows || []).filter((l) => !filters.level || l.level === filters.level), [rows, filters.level]);
+      const counts = useMemo(() => {
+        const o = { City: 0, Area: 0, Society: 0 };
+        (rows || []).forEach((l) => { if (o[l.level] !== undefined) o[l.level]++; });
+        return o;
+      }, [rows]);
+
+      const visible = useMemo(() => {
+        const q = String(filters.search || '').trim().toLowerCase();
+        return (rows || []).filter((l) => {
+          if (filters.level && l.level !== filters.level) return false;
+          if (q && ![l.name, l.path, l.slug, LOCATION_LEVEL_LABELS[l.level]].some((val) => String(val || '').toLowerCase().includes(q))) return false;
+          return true;
+        });
+      }, [rows, filters.level, filters.search]);
+      const activeFiltersCount = (filters.search ? 1 : 0) + (filters.level ? 1 : 0);
+
       const kpi = useMemo(() => { const r = rows || []; return [
         [r.filter((l) => l.level === 'City').length, 'Thành phố', 'fa-city', 'bg-navy'],
         [r.filter((l) => l.level === 'Area').length, 'Khu vực', 'fa-map', 'bg-info'],
@@ -1467,12 +1483,62 @@
         ],
         order: []
       }), onAction, [canEdit, canDel]);
-      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]);
 
       return (
         <>
           <KpiRow items={kpi} />
-          <div className="filters-section">
+
+          {/* 1. Mobile Horizontally Scrollable Level Pills */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (!filters.level ? 'active' : '')}
+                onClick={() => setFilters((f) => ({ ...f, level: '' }))}
+              >
+                <span>Tất cả cấp độ</span>
+                <span className="mob-pill-badge">{(rows || []).length}</span>
+              </button>
+              {ENUMS.locationLevel.map((lvl) => {
+                const count = counts[lvl] || 0;
+                const col = lvl === 'City' ? '#1e3a8a' : lvl === 'Area' ? '#0284c7' : '#0d9488';
+                return (
+                  <button
+                    key={lvl}
+                    className={'mob-pill ' + (filters.level === lvl ? 'active' : '') + (count === 0 ? ' empty' : '')}
+                    onClick={() => setFilters((f) => ({ ...f, level: f.level === lvl ? '' : lvl }))}
+                  >
+                    <span className="mob-pill-dot" style={{ background: col }}></span>
+                    <span>{LOCATION_LEVEL_LABELS[lvl] || lvl}</span>
+                    <span className="mob-pill-badge">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2. Mobile Sub-Toolbar */}
+          <div className="mob-locs-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Khu vực {filters.level ? `· ${LOCATION_LEVEL_LABELS[filters.level]}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              {canAdd && (
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditing(null); setShowModal(true); }} title="Thêm khu vực">
+                  <i className="fas fa-plus"></i>
+                </button>
+              )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc khu vực">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ search: '', level: '' })}><i className="fas fa-rotate-left"></i> Xóa</button>
@@ -1485,11 +1551,131 @@
               <SearchableDropdown label="Cấp độ" icon="fas fa-layer-group" options={ENUMS.locationLevel.map((v) => ({ value: v, label: LOCATION_LEVEL_LABELS[v] }))} value={filters.level} onChange={(v) => setFilters({ ...filters, level: v })} placeholder="Tất cả cấp độ" />
             </div>
           </div>
+
+          {/* 4. Data Section: Desktop Table & Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="locCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'Name', 'bulkImportLocations', currentUser, () => { mutate(); swrMutate('lookups'); }); e.target.value = ''; }} />
-            {loading ? <TableSkeleton rows={8} columns={6} /> : <div style={{ overflowX: 'auto' }}><table id="locTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table View */}
+            <div className="desk-locs-table-wrap">
+              {loading ? <TableSkeleton rows={8} columns={6} /> : <div style={{ overflowX: 'auto' }}><table id="locTable" className="display" style={{ width: '100%' }}></table></div>}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-locs-cards-container">
+              {loading ? (
+                <div className="mob-locs-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-loc-card-skeleton">
+                      <div className="sk-line w50"></div>
+                      <div className="sk-line w80"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-locs-empty-state">
+                  <div className="empty-circle"><i className="fas fa-map-location-dot"></i></div>
+                  <h4>Chưa có khu vực phù hợp</h4>
+                  <p>Thử tìm kiếm từ khóa khác hoặc thêm khu vực mới</p>
+                  {canAdd && (
+                    <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditing(null); setShowModal(true); }}>
+                      <i className="fas fa-plus"></i> Thêm khu vực
+                    </button>
+                  )}
+                </div>
+              ) : (
+                visible.map((l) => {
+                  const iconClass = l.level === 'City' ? 'fa-city' : l.level === 'Area' ? 'fa-map' : 'fa-map-pin';
+                  const levelClass = l.level.toLowerCase();
+                  return (
+                    <div key={l.id} className={'mob-loc-card level-' + levelClass}>
+                      {/* HÀNG 1: Icon + Tên khu vực + Badge cấp độ */}
+                      <div className="mob-loc-header-row">
+                        <div className={'mob-loc-icon-box ' + levelClass}>
+                          <i className={'fas ' + iconClass}></i>
+                        </div>
+                        <div className="mob-loc-info">
+                          <div className="mob-loc-name">
+                            <strong>{l.name}</strong>
+                            <span className={'mob-loc-level-badge ' + levelClass}>
+                              {LOCATION_LEVEL_LABELS[l.level] || l.level}
+                            </span>
+                          </div>
+                          <div className="mob-loc-path">
+                            <i className="fas fa-sitemap"></i> {l.path || l.name}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 2: Định danh Slug & Số tin đăng */}
+                      <div className="mob-loc-meta-row">
+                        <div className="mob-loc-slug">
+                          <i className="fas fa-link"></i> <code>{l.slug || '—'}</code>
+                        </div>
+                        <div className={'mob-loc-prop-count ' + (l.propertyCount > 0 ? 'has-props' : '')}>
+                          <i className="fas fa-building"></i> {l.propertyCount || 0} Tin BĐS
+                        </div>
+                      </div>
+
+                      {/* HÀNG 3: Các nút hành động 1-chạm */}
+                      {(canEdit || canDel) && (
+                        <div className="mob-loc-actions">
+                          {canEdit && (
+                            <button className="mob-btn mob-btn-edit" onClick={() => onAction('edit', l)} title="Đổi tên khu vực">
+                              <i className="fas fa-pen-to-square"></i> Đổi tên
+                            </button>
+                          )}
+                          {canDel && (
+                            <button className="mob-btn mob-btn-del" onClick={() => onAction('delete', l)} title="Xóa khu vực">
+                              <i className="fas fa-trash"></i> Xóa
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
+
+          {/* 5. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc khu vực</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm khu vực</label>
+                    <input className="filter-input" value={filters.search} placeholder="Tên khu vực, đường dẫn, slug..." onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label><i className="fas fa-layer-group"></i> Cấp độ địa lý</label>
+                    <select className="filter-input" value={filters.level} onChange={(e) => setFilters({ ...filters, level: e.target.value })}>
+                      <option value="">Tất cả cấp độ</option>
+                      {ENUMS.locationLevel.map((lvl) => (
+                        <option key={lvl} value={lvl}>{LOCATION_LEVEL_LABELS[lvl] || lvl}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '', level: '' }); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Khu vực)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showModal && (
             <LocationModal loc={editing} currentUser={currentUser} locations={rows || []}
                            onClose={() => { setShowModal(false); setEditing(null); }}
@@ -1523,19 +1709,19 @@
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving} />
-          <div className="modal" style={{ maxWidth: 460 }}>
+          <div className="modal modal-loc-form" style={{ maxWidth: 460 }}>
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-map-location-dot')}></i> {editing ? 'Đổi tên khu vực' : 'Thêm khu vực'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-map-location-dot')}></i> {editing ? 'Đổi tên khu vực' : 'Thêm khu vực mới'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 <div className="form-group">
-                  <label><i className="fas fa-signature"></i> Tên *</label>
-                  <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+                  <label><i className="fas fa-signature"></i> Tên khu vực *</label>
+                  <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required placeholder="Ví dụ: Quận 1, Khu đô thị Sala..." />
                 </div>
                 {!editing && (
-                  <SearchableDropdown label="Cấp độ" icon="fas fa-layer-group" options={ENUMS.locationLevel.map((v) => ({ value: v, label: LOCATION_LEVEL_LABELS[v] }))} value={form.level}
+                  <SearchableDropdown label="Cấp độ địa lý" icon="fas fa-layer-group" options={ENUMS.locationLevel.map((v) => ({ value: v, label: LOCATION_LEVEL_LABELS[v] }))} value={form.level}
                     onChange={(v) => setForm((f) => ({ ...f, level: v, parentId: '' }))} placeholder="Chọn cấp độ…" required={true} />
                 )}
                 {!editing && parentLevel && (
@@ -1543,11 +1729,11 @@
                     options={parents.map((p) => ({ value: String(p.id), label: p.path || p.name }))}
                     value={form.parentId} onChange={(v) => setForm((f) => ({ ...f, parentId: v }))} placeholder={'Chọn ' + (LOCATION_LEVEL_LABELS[parentLevel] || parentLevel).toLowerCase() + '…'} required={true} />
                 )}
-                {editing && <p style={{ color: '#789', fontSize: 13 }}><i className="fas fa-link"></i> Định danh <strong>{loc.slug}</strong> được giữ nguyên để đường dẫn công khai không bị gián đoạn.</p>}
+                {editing && <p style={{ color: '#64748b', fontSize: 12.5, margin: '8px 0', background: '#f8fafc', padding: '8px 10px', borderRadius: 8, border: '1px dashed #e2e8f0' }}><i className="fas fa-link"></i> Định danh SEO <strong>{loc.slug}</strong> được giữ nguyên để các đường dẫn công khai không bị gián đoạn.</p>}
                 <div className="form-actions">
                   <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật' : 'Thêm'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật khu vực' : 'Lưu khu vực'}</>}
                   </button>
                 </div>
               </form>
