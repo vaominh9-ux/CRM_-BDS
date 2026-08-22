@@ -22660,11 +22660,6 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                       </div>
                     ))}
                   </div>
-
-                  <div className="tpl-tags-help-tip">
-                    <i className="fas fa-hand-pointer" style={{ color: 'var(--navy-accent)' }}></i>
-                    <span>Nhấp vào thẻ biến để tự động chèn vào vị trí con trỏ chuột trên trang A4.</span>
-                  </div>
                 </div>
 
                 {/* =========================================================
@@ -22869,11 +22864,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
 
                   {/* Footer Actions */}
                   <div className="tpl-studio-footer">
-                    <div className="tpl-studio-footer-status">
-                      <i className="fas fa-shield-check" style={{ color: '#16a34a' }}></i>
-                      <span>Cấu hình mẫu được lưu bền vững trên Supabase &amp; Hệ thống</span>
-                    </div>
-                    <div className="tpl-studio-footer-btns">
+                    <div className="tpl-studio-footer-btns" style={{ marginLeft: 'auto' }}>
                       <button className="btn btn-secondary" onClick={onClose}>
                         Đóng
                       </button>
