@@ -4421,60 +4421,90 @@
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        height: 60px !important;
-        padding: 3px 6px !important;
-        background: rgba(10, 25, 47, 0.98) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.3) !important;
+        height: 64px !important;
+        padding: 4px 6px 6px !important;
+        background: rgba(255, 255, 255, 0.96) !important;
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        border-top: 1px solid #e2e8f0 !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 -1px 3px rgba(0, 0, 0, 0.02) !important;
         z-index: 998 !important;
         box-sizing: border-box !important;
+      }
+      body.dark-mode .bottom-nav {
+        background: rgba(10, 25, 47, 0.96) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4) !important;
       }
       .bottom-nav-container {
         height: 100% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-around !important;
+        max-width: 500px !important;
+        margin: 0 auto !important;
+        gap: 2px !important;
       }
       .bottom-nav-item {
         flex: 1 !important;
         min-height: unset !important;
         height: 100% !important;
-        padding: 3px 2px !important;
-        border-radius: 10px !important;
+        padding: 4px 2px 2px !important;
+        border-radius: 12px !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 2px !important;
-        color: rgba(255, 255, 255, 0.65) !important;
-        transition: all 0.2s ease !important;
+        gap: 3px !important;
+        color: #64748b !important;
+        background: transparent !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: relative !important;
+        border: none !important;
+        cursor: pointer !important;
+      }
+      body.dark-mode .bottom-nav-item {
+        color: rgba(255, 255, 255, 0.6) !important;
       }
       .bottom-nav-item i {
-        font-size: 17px !important;
+        font-size: 18px !important;
         margin: 0 !important;
-        transition: transform 0.2s ease !important;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease !important;
       }
       .bottom-nav-item span {
-        font-size: 9.5px !important;
+        font-size: 10px !important;
         font-weight: 600 !important;
-        letter-spacing: 0.1px !important;
+        letter-spacing: -0.1px !important;
         text-transform: none !important;
+        transition: color 0.2s ease !important;
       }
       .bottom-nav-item.active {
+        color: var(--navy-accent, #0074D9) !important;
+        background: rgba(0, 116, 217, 0.08) !important;
+      }
+      body.dark-mode .bottom-nav-item.active {
         color: #ffd700 !important;
-        background: rgba(212, 175, 55, 0.12) !important;
+        background: rgba(212, 175, 55, 0.14) !important;
       }
       .bottom-nav-item.active i {
+        color: var(--navy-accent, #0074D9) !important;
+        transform: translateY(-2px) scale(1.12) !important;
+      }
+      body.dark-mode .bottom-nav-item.active i {
         color: #ffd700 !important;
-        transform: scale(1.1) !important;
+      }
+      .bottom-nav-item.active span {
+        font-weight: 750 !important;
+        color: var(--navy-accent, #0074D9) !important;
+      }
+      body.dark-mode .bottom-nav-item.active span {
+        color: #ffd700 !important;
       }
 
       /* Đệm lề đáy để nội dung không bị che khuất bởi Bottom Nav */
       .main-content,
       .content-wrapper {
-        padding-bottom: 75px !important;
+        padding-bottom: 80px !important;
       }
       
       /* 4. Khung đồ thị & danh sách LteCard trên Mobile */
@@ -5704,17 +5734,17 @@
       );
     }
 
-    // ============== Bottom Navigation (Mobile) ==============
+    // ============== Bottom Navigation (Mobile) - 5 Tab CRM Chuyên Nghiệp ==============
     function BottomNavigation({ activeMenu, setActiveMenu, perms, setShowMobileSidebar }) {
-      // up to 3 permitted quick pages + menu
-      const quick = [];
-      if (can(perms, 'dashboard', 'v')) quick.push('dashboard');
-      if (can(perms, 'settings', 'v')) quick.push('settings');
-      quick.push('account');
+      const allTabs = [
+        { id: 'dashboard', icon: 'fa-chart-pie', label: 'Tổng quan', onClick: () => setActiveMenu('dashboard') },
+        { id: 'leads', icon: 'fa-user-tag', label: 'Khách hàng', onClick: () => setActiveMenu('leads') },
+        { id: 'properties', icon: 'fa-building', label: 'BĐS', onClick: () => setActiveMenu('properties') },
+        { id: 'appointments', icon: 'fa-calendar-check', label: 'Lịch hẹn', onClick: () => setActiveMenu('appointments') },
+        { id: 'menu', icon: 'fa-bars', label: 'Menu', onClick: () => setShowMobileSidebar(true) }
+      ];
 
-      const labelOf = (k) => k === 'account' ? 'Account' : PAGE_META[k].label.split(' ')[0];
-      const navItems = [{ id: 'menu', icon: 'fa-bars', label: 'Menu', onClick: () => setShowMobileSidebar(true) }]
-        .concat(quick.slice(0, 3).map(k => ({ id: k, icon: PAGE_META[k].icon, label: labelOf(k), onClick: () => setActiveMenu(k) })));
+      const navItems = allTabs.filter(item => item.id === 'menu' || can(perms, item.id, 'v'));
 
       return (
         <div className="bottom-nav">
