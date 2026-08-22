@@ -1558,6 +1558,37 @@
       background: #f1f5f9;
       font-weight: 700;
     }
+    .tpl-page-counter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #bae6fd;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .tpl-page-break-tag {
+      display: block;
+      margin: 32px -48px;
+      padding: 10px 20px;
+      background: #f8fafc;
+      border-top: 2px dashed #0284c7;
+      border-bottom: 2px dashed #0284c7;
+      text-align: center;
+      color: #0284c7;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      user-select: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+      page-break-after: always;
+      break-after: page;
+    }
     .tpl-editor-footnote {
       background: #ffffff;
       border-top: 1px solid #cbd5e1;

@@ -2602,6 +2602,20 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
   }, [selectedKey, tplRes]);
 
       const [tagQuery, setTagQuery] = useState('');
+      const [pageCount, setPageCount] = useState(1);
+
+      useEffect(() => {
+        const calculatePages = () => {
+          if (richEditorRef.current) {
+            const h = richEditorRef.current.scrollHeight || 0;
+            const p = Math.max(1, Math.ceil(h / 960));
+            setPageCount(p);
+          }
+        };
+        calculatePages();
+        const t = setTimeout(calculatePages, 200);
+        return () => clearTimeout(t);
+      }, [fullTemplateHtml, templateMode]);
 
       const MERGE_TAG_GROUPS = [
         {
@@ -2711,7 +2725,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
 
       // Chèn ngắt trang A4
       const insertPageBreak = () => {
-        const pageBreakHtml = '<div class="tpl-page-break-tag" contenteditable="false" style="page-break-after:always;break-after:page;border-top:2px dashed #0284c7;margin:24px 0;text-align:center;color:#0284c7;font-size:11.5px;font-weight:bold;letter-spacing:1px;user-select:none;">✂️ [ NGẮT SANG TRANG IN A4 MỚI ]</div><p><br/></p>';
+        const pageBreakHtml = '<div class="tpl-page-break-tag" contenteditable="false" style="page-break-after:always;break-after:page;user-select:none;">✂️ [ HẾT TRANG — NGẮT SANG TRANG IN A4 TIẾP THEO ]</div><p><br/></p>';
         execCmd('insertHTML', pageBreakHtml);
       };
 
@@ -2764,6 +2778,14 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                   for (let i = 0; i < body.children.length; i++) {
                     const child = body.children[i];
                     if (child.nodeName === 'w:p') {
+                      // Kiểm tra ngắt trang trong Word
+                      const hasPageBreak = child.getElementsByTagName('w:lastRenderedPageBreak').length > 0 ||
+                        Array.from(child.getElementsByTagName('w:br')).some((b) => b.getAttribute('w:type') === 'page');
+                      
+                      if (hasPageBreak && htmlOutput.trim().length > 0) {
+                        htmlOutput += '<div class="tpl-page-break-tag" contenteditable="false" style="page-break-after:always;break-after:page;user-select:none;">✂️ [ HẾT TRANG — NGẮT SANG TRANG IN A4 TIẾP THEO ]</div>';
+                      }
+
                       let pText = '';
                       const runs = child.getElementsByTagName('w:r');
                       for (let r = 0; r < runs.length; r++) {
@@ -2821,7 +2843,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                   Swal.fire({
                     icon: 'success',
                     title: 'Đã nạp file Word thành công!',
-                    text: 'File ' + file.name + ' đã được trích xuất hoàn chỉnh vào trang in A4!',
+                    text: 'Văn bản đã được tự động dàn trang A4 với ngắt trang trực quan!',
                     timer: 2200,
                     showConfirmButton: false
                   });
@@ -3187,7 +3209,11 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                           
                           <div className="tpl-tool-divider"></div>
 
-                          <div className="tpl-tool-btn-group" style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+                          <div className="tpl-tool-btn-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span className="tpl-page-counter-pill" title="Hệ thống tự động tính toán số trang in A4 chuẩn">
+                              <i className="fas fa-file-lines" style={{ color: '#0284c7' }}></i>
+                              <span>{pageCount} trang A4</span>
+                            </span>
                             <button
                               type="button"
                               className="tpl-upload-btn"
@@ -3215,7 +3241,12 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                         </div>
 
                         <div className="tpl-editor-footnote">
-                          <span>💡 <b>Mẹo soạn thảo chuẩn A4:</b> Bạn có thể copy (Ctrl+A &rarr; Ctrl+C) từ file Word trên máy tính và dán trực tiếp (Ctrl+V) vào tờ giấy A4 trên. Hệ thống bảo toàn 100% định dạng in đậm, bảng biểu, căn lề và dấu ngắt trang A4.</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>💡 <b>Cơ chế tự động phân trang A4:</b> Khi nội dung dài vượt quá 1 trang in A4, hệ thống sẽ tự động phân trang khi in/xuất PDF, hoặc bạn có thể nhấp <b>✂️ Ngắt trang A4</b> trên thanh công cụ để chủ động chia trang theo ý muốn.</span>
+                            <span style={{ fontWeight: 700, color: 'var(--navy-primary)', whiteSpace: 'nowrap', marginLeft: 16 }}>
+                              <i className="fas fa-file-contract"></i> Ước tính: {pageCount} trang A4
+                            </span>
+                          </div>
                         </div>
                       </div>
                     )}
