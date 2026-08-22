@@ -3063,9 +3063,11 @@
     /* Mobile-specific Leads components (hidden by default on desktop) */
     .mob-pipeline-bar { display: none; }
     .mob-filter-btn { display: none; }
+    .mob-leads-sub-toolbar { display: none; }
     .mob-leads-cards-container { display: none; }
     .mob-filter-sheet-overlay { display: none; }
     .desk-pipeline-block { display: block; }
+    .desk-filters-section { display: block; }
     .desk-filters-grid { display: grid; }
     .desk-leads-table-wrap { display: block; }
 
@@ -5275,32 +5277,17 @@
       .desk-pipeline-block {
         display: none !important;
       }
-      .desk-filters-grid {
-        display: none !important;
-      }
-      .desk-clear-btn {
+      .desk-filters-section {
         display: none !important;
       }
       .desk-leads-table-wrap {
-        display: none !important;
-      }
-      .mob-filter-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 4px !important;
-      }
-      .mob-filter-count {
-        font-weight: 700 !important;
-        color: #ffd700 !important;
-      }
-      .hide-on-mobile-xs {
         display: none !important;
       }
 
       /* 1. Dải Pills Trạng Thái Lướt Ngang */
       .mob-pipeline-bar {
         display: block !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 6px !important;
         position: relative !important;
       }
       .mob-pills-scroll {
@@ -5366,7 +5353,71 @@
         color: #ffffff !important;
       }
 
-      /* 2. Thẻ Khách Hàng Di Động Luxury */
+      /* 2. Thanh Phụ Tinh Gọn (Sub-Toolbar) */
+      .mob-leads-sub-toolbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 2px 0 10px 0 !important;
+        padding: 0 2px !important;
+      }
+      .mob-sub-count {
+        font-size: 12.5px !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+      }
+      .mob-sub-count strong {
+        color: var(--navy-primary, #001f3f) !important;
+        font-weight: 700 !important;
+      }
+      body.dark-mode .mob-sub-count strong {
+        color: #ffffff !important;
+      }
+      .mob-sub-toolbar-right {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .mob-tool-btn {
+        width: 34px !important;
+        height: 30px !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #64748b !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 12.5px !important;
+        cursor: pointer !important;
+        position: relative !important;
+        transition: all 0.15s ease !important;
+      }
+      .mob-tool-btn.active {
+        background: var(--navy-primary, #001f3f) !important;
+        color: #ffffff !important;
+        border-color: var(--navy-primary, #001f3f) !important;
+      }
+      body.dark-mode .mob-tool-btn {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+      }
+      body.dark-mode .mob-tool-btn.active {
+        background: var(--navy-accent, #0074D9) !important;
+        color: #ffffff !important;
+      }
+      .mob-filter-dot {
+        position: absolute !important;
+        top: 4px !important;
+        right: 4px !important;
+        width: 6px !important;
+        height: 6px !important;
+        background: #ef4444 !important;
+        border-radius: 50% !important;
+      }
+
+      /* 3. Thẻ Khách Hàng Di Động Luxury (Zero vỡ dòng) */
       .mob-leads-cards-container {
         display: flex !important;
         flex-direction: column !important;
@@ -5376,7 +5427,7 @@
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
         border-radius: 16px !important;
-        padding: 14px !important;
+        padding: 12px 14px !important;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
         cursor: pointer !important;
         transition: transform 0.15s ease, box-shadow 0.15s ease !important;
@@ -5391,16 +5442,16 @@
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
       }
 
-      /* Header Thẻ: Avatar + Tên + Dropdown Trạng Thái */
-      .mob-lead-top-row {
+      /* Hàng 1: Avatar + Tên + Dropdown Trạng Thái */
+      .mob-lead-header-row {
         display: flex !important;
         align-items: center !important;
         gap: 10px !important;
-        margin-bottom: 10px !important;
+        margin-bottom: 6px !important;
       }
       .mob-lead-avatar {
-        width: 40px !important;
-        height: 40px !important;
+        width: 38px !important;
+        height: 38px !important;
         border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
@@ -5409,14 +5460,14 @@
         font-size: 14px !important;
         font-weight: 700 !important;
         flex-shrink: 0 !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
       }
-      .mob-lead-identity {
+      .mob-lead-name-box {
         flex: 1 !important;
         min-width: 0 !important;
       }
       .mob-lead-name {
-        font-size: 14.5px !important;
+        font-size: 15px !important;
         font-weight: 700 !important;
         color: var(--navy-primary, #001f3f) !important;
         white-space: nowrap !important;
@@ -5427,22 +5478,11 @@
       body.dark-mode .mob-lead-name {
         color: #ffffff !important;
       }
-      .mob-lead-sub {
-        font-size: 12px !important;
-        color: #64748b !important;
-        margin-top: 1px !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 4px !important;
-      }
-      .mob-lead-phone {
-        font-weight: 500 !important;
-      }
-      .mob-lead-src {
-        color: #94a3b8 !important;
+      .mob-lead-stage-wrap {
+        flex-shrink: 0 !important;
       }
       .mob-lead-stage-select {
-        font-size: 11px !important;
+        font-size: 11.5px !important;
         font-weight: 700 !important;
         padding: 4px 8px !important;
         border-radius: 12px !important;
@@ -5453,7 +5493,52 @@
         appearance: auto !important;
       }
 
-      /* Thân Thẻ: Chips Nhu cầu, Ngân sách, BĐS */
+      /* Hàng 2: SĐT + Nguồn Khách Hàng Độc Lập */
+      .mob-lead-contact-strip {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        margin-bottom: 8px !important;
+        padding-left: 48px !important;
+        margin-top: -4px !important;
+      }
+      .mob-contact-phone {
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+        color: #0284c7 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+      }
+      body.dark-mode .mob-contact-phone {
+        color: #38bdf8 !important;
+      }
+      .mob-contact-no-phone {
+        font-size: 11.5px !important;
+        color: #94a3b8 !important;
+        font-style: italic !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      .mob-contact-source-pill {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: #64748b !important;
+        background: #f1f5f9 !important;
+        padding: 2px 7px !important;
+        border-radius: 6px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      body.dark-mode .mob-contact-source-pill {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #cbd5e1 !important;
+      }
+
+      /* Hàng 3: Chips Nhu cầu, Ngân sách, BĐS */
       .mob-lead-card-body {
         margin-bottom: 8px !important;
       }
@@ -5539,7 +5624,7 @@
         color: #94a3b8 !important;
       }
 
-      /* Thông tin phụ: Sale & Ngày tạo */
+      /* Hàng 4: Thông tin phụ Sale & Ngày tạo */
       .mob-lead-meta-row {
         display: flex !important;
         justify-content: space-between !important;
@@ -5554,7 +5639,7 @@
         border-color: rgba(255, 255, 255, 0.06) !important;
       }
 
-      /* 3. Thanh Hành Động 1-Chạm Di Động */
+      /* Hàng 5: Thanh Hành Động 1-Chạm Di Động */
       .mob-lead-action-bar {
         display: grid !important;
         grid-template-columns: 1fr 1fr 1fr auto !important;
@@ -9720,6 +9805,31 @@
       return colors[Math.abs(hash) % colors.length];
     };
 
+    const fmtLeadPhone = (phone) => {
+      const p = String(phone || '').trim().replace(/\D/g, '');
+      if (!p) return '';
+      if (p.length === 10) return p.slice(0, 4) + '.' + p.slice(4, 7) + '.' + p.slice(7);
+      if (p.length === 11) return p.slice(0, 4) + '.' + p.slice(4, 7) + '.' + p.slice(7);
+      return phone;
+    };
+
+    const getLeadSourceIcon = (src) => {
+      const map = {
+        'Walk-in': 'fa-person-walking',
+        'Website': 'fa-globe',
+        'Trang web': 'fa-globe',
+        'Referral': 'fa-users',
+        'Giới thiệu': 'fa-users',
+        'Social Media': 'fa-hashtag',
+        'Mạng xã hội': 'fa-hashtag',
+        'Call / Inquiry': 'fa-phone-volume',
+        'Direct': 'fa-handshake',
+        'Trực tiếp': 'fa-handshake',
+        'Portal': 'fa-building-columns'
+      };
+      return map[src] || 'fa-bullhorn';
+    };
+
     function LeadsView({ currentUser, role, perms, initialSearch }) {
       const { data: res, error, mutate } = useSWR('leads:all', () => gsRun('getLeads', currentUser), SWR_LIVE);
       const rows = res ? (res.success ? res.data : []) : undefined;
@@ -9883,28 +9993,45 @@
             </div>
           </div>
 
-          {/* 3. Filters Toolbar */}
-          <div className="filters-section leads-filters-section">
+          {/* 3. Mobile Compact Toolbar (Sub-Bar on Mobile) */}
+          <div className="mob-leads-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> khách hàng {stage ? `· ${viEnum(stage)}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              <button className={'mob-tool-btn ' + (!board ? 'active' : '')} onClick={() => setBoard(false)} title="Xem dạng danh sách thẻ">
+                <i className="fas fa-list"></i>
+              </button>
+              <button className={'mob-tool-btn ' + (board ? 'active' : '')} onClick={() => setBoard(true)} title="Xem dạng bảng Kanban">
+                <i className="fas fa-table-columns"></i>
+              </button>
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)}>
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <button className={'btn btn-sm ' + (board ? 'btn-secondary' : 'btn-primary')} onClick={() => setBoard(false)}>
-                  <i className="fas fa-list"></i> <span className="hide-on-mobile-xs">Danh sách</span>
+                  <i className="fas fa-list"></i> <span>Danh sách</span>
                 </button>
                 <button className={'btn btn-sm ' + (board ? 'btn-primary' : 'btn-secondary')} onClick={() => setBoard(true)}>
-                  <i className="fas fa-table-columns"></i> <span className="hide-on-mobile-xs">Bảng</span>
+                  <i className="fas fa-table-columns"></i> <span>Bảng</span>
                 </button>
-                <button className={'btn btn-sm mob-filter-btn ' + (activeFiltersCount > 0 ? 'btn-primary' : 'btn-secondary')} onClick={() => setShowFilterDrawer(true)}>
-                  <i className="fas fa-sliders"></i> Lọc {activeFiltersCount > 0 && <span className="mob-filter-count">({activeFiltersCount})</span>}
-                </button>
-                <button className="btn btn-secondary btn-sm desk-clear-btn" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); }} title="Xóa bộ lọc">
-                  <i className="fas fa-rotate-left"></i> <span className="hide-on-mobile-xs">Xóa</span>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); }} title="Xóa bộ lọc">
+                  <i className="fas fa-rotate-left"></i> <span>Xóa</span>
                 </button>
               </div>
             </div>
 
-            {/* Desktop Filters Grid */}
-            <div className="filters-grid desk-filters-grid">
+            <div className="filters-grid">
               <div className="filter-group">
                 <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
                 <input className="filter-input" value={filters.search} placeholder="Tên, SĐT, trạng thái…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
@@ -9915,7 +10042,7 @@
             </div>
           </div>
 
-          {/* 4. Data Content: Desktop DataTable / Kanban / Mobile Luxury Cards */}
+          {/* 5. Data Content: Desktop DataTable / Kanban / Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="leadsCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'FullName', 'bulkImportLeads', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
@@ -9960,21 +10087,15 @@
                 ) : (
                   visible.map((l) => (
                     <div key={l.id} className="mob-lead-card" onClick={() => onAction('view', l)}>
-                      {/* Top Row: Avatar + Name + Status Dropdown */}
-                      <div className="mob-lead-top-row">
+                      {/* Row 1: Avatar + Tên + Dropdown Trạng Thái (Căn chỉnh cân đối) */}
+                      <div className="mob-lead-header-row">
                         <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(l.fullName) }}>
                           {getLeadInitial(l.fullName)}
                         </div>
-                        <div className="mob-lead-identity">
-                          <div className="mob-lead-name-wrap">
-                            <span className="mob-lead-name">{l.fullName}</span>
-                          </div>
-                          <div className="mob-lead-sub">
-                            <span className="mob-lead-phone"><i className="fas fa-phone-volume"></i> {l.phone}</span>
-                            {l.source && <span className="mob-lead-src"> · {viEnum(l.source)}</span>}
-                          </div>
+                        <div className="mob-lead-name-box">
+                          <span className="mob-lead-name">{l.fullName}</span>
                         </div>
-                        <div className="mob-lead-stage-badge-wrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="mob-lead-stage-wrap" onClick={(e) => e.stopPropagation()}>
                           <select
                             className="mob-lead-stage-select"
                             value={l.status}
@@ -9994,7 +10115,25 @@
                         </div>
                       </div>
 
-                      {/* Middle Body: Chips, Property, Note */}
+                      {/* Row 2: SĐT (Đã định dạng) + Nguồn Khách Hàng (Độc lập, không bị ép dòng) */}
+                      <div className="mob-lead-contact-strip">
+                        {l.phone ? (
+                          <span className="mob-contact-phone">
+                            <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
+                          </span>
+                        ) : (
+                          <span className="mob-contact-no-phone">
+                            <i className="fas fa-phone-slash"></i> Chưa có SĐT
+                          </span>
+                        )}
+                        {l.source && (
+                          <span className="mob-contact-source-pill">
+                            <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Row 3: Chips Nhu cầu, Ngân sách, Vị trí */}
                       <div className="mob-lead-card-body">
                         <div className="mob-lead-chips">
                           {l.interestType && (
@@ -10030,7 +10169,7 @@
                         )}
                       </div>
 
-                      {/* Meta Row: Agent & Date */}
+                      {/* Row 4: Meta Sale & Ngày tạo */}
                       <div className="mob-lead-meta-row">
                         <span className="mob-meta-agent">
                           <i className="fas fa-user-tie"></i> {l.assignedAgent || 'Chưa phân công'}
@@ -10040,12 +10179,12 @@
                         </span>
                       </div>
 
-                      {/* 1-Tap Quick Action Bar */}
+                      {/* Row 5: 1-Tap Quick Action Bar */}
                       <div className="mob-lead-action-bar" onClick={(e) => e.stopPropagation()}>
-                        <a href={'tel:' + String(l.phone || '').replace(/\D/g, '')} className="mob-btn mob-btn-call" title="Gọi điện">
-                          <i className="fas fa-phone"></i> Gọi điện
+                        <a href={'tel:' + String(l.phone || '').replace(/\D/g, '')} className={'mob-btn mob-btn-call' + (!l.phone ? ' disabled' : '')} title="Gọi điện">
+                          <i className="fas fa-phone"></i> Gọi ngay
                         </a>
-                        <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', l)} title="Nhắn Zalo">
+                        <button className={'mob-btn mob-btn-zalo' + (!l.phone ? ' disabled' : '')} onClick={() => l.phone && onAction('wa', l)} title="Nhắn Zalo">
                           <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
                             <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
                             <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
@@ -10069,7 +10208,7 @@
             )}
           </div>
 
-          {/* 5. Mobile Filter Drawer (Bottom Sheet) */}
+          {/* 6. Mobile Filter Drawer (Bottom Sheet) */}
           {showFilterDrawer && (
             <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
               <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>

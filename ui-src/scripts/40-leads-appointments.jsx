@@ -141,6 +141,31 @@
       return colors[Math.abs(hash) % colors.length];
     };
 
+    const fmtLeadPhone = (phone) => {
+      const p = String(phone || '').trim().replace(/\D/g, '');
+      if (!p) return '';
+      if (p.length === 10) return p.slice(0, 4) + '.' + p.slice(4, 7) + '.' + p.slice(7);
+      if (p.length === 11) return p.slice(0, 4) + '.' + p.slice(4, 7) + '.' + p.slice(7);
+      return phone;
+    };
+
+    const getLeadSourceIcon = (src) => {
+      const map = {
+        'Walk-in': 'fa-person-walking',
+        'Website': 'fa-globe',
+        'Trang web': 'fa-globe',
+        'Referral': 'fa-users',
+        'Giới thiệu': 'fa-users',
+        'Social Media': 'fa-hashtag',
+        'Mạng xã hội': 'fa-hashtag',
+        'Call / Inquiry': 'fa-phone-volume',
+        'Direct': 'fa-handshake',
+        'Trực tiếp': 'fa-handshake',
+        'Portal': 'fa-building-columns'
+      };
+      return map[src] || 'fa-bullhorn';
+    };
+
     function LeadsView({ currentUser, role, perms, initialSearch }) {
       const { data: res, error, mutate } = useSWR('leads:all', () => gsRun('getLeads', currentUser), SWR_LIVE);
       const rows = res ? (res.success ? res.data : []) : undefined;
@@ -304,28 +329,45 @@
             </div>
           </div>
 
-          {/* 3. Filters Toolbar */}
-          <div className="filters-section leads-filters-section">
+          {/* 3. Mobile Compact Toolbar (Sub-Bar on Mobile) */}
+          <div className="mob-leads-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> khách hàng {stage ? `· ${viEnum(stage)}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              <button className={'mob-tool-btn ' + (!board ? 'active' : '')} onClick={() => setBoard(false)} title="Xem dạng danh sách thẻ">
+                <i className="fas fa-list"></i>
+              </button>
+              <button className={'mob-tool-btn ' + (board ? 'active' : '')} onClick={() => setBoard(true)} title="Xem dạng bảng Kanban">
+                <i className="fas fa-table-columns"></i>
+              </button>
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)}>
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <button className={'btn btn-sm ' + (board ? 'btn-secondary' : 'btn-primary')} onClick={() => setBoard(false)}>
-                  <i className="fas fa-list"></i> <span className="hide-on-mobile-xs">Danh sách</span>
+                  <i className="fas fa-list"></i> <span>Danh sách</span>
                 </button>
                 <button className={'btn btn-sm ' + (board ? 'btn-primary' : 'btn-secondary')} onClick={() => setBoard(true)}>
-                  <i className="fas fa-table-columns"></i> <span className="hide-on-mobile-xs">Bảng</span>
+                  <i className="fas fa-table-columns"></i> <span>Bảng</span>
                 </button>
-                <button className={'btn btn-sm mob-filter-btn ' + (activeFiltersCount > 0 ? 'btn-primary' : 'btn-secondary')} onClick={() => setShowFilterDrawer(true)}>
-                  <i className="fas fa-sliders"></i> Lọc {activeFiltersCount > 0 && <span className="mob-filter-count">({activeFiltersCount})</span>}
-                </button>
-                <button className="btn btn-secondary btn-sm desk-clear-btn" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); }} title="Xóa bộ lọc">
-                  <i className="fas fa-rotate-left"></i> <span className="hide-on-mobile-xs">Xóa</span>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', source: '', interest: '', agent: '' }); setStage(''); }} title="Xóa bộ lọc">
+                  <i className="fas fa-rotate-left"></i> <span>Xóa</span>
                 </button>
               </div>
             </div>
 
-            {/* Desktop Filters Grid */}
-            <div className="filters-grid desk-filters-grid">
+            <div className="filters-grid">
               <div className="filter-group">
                 <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
                 <input className="filter-input" value={filters.search} placeholder="Tên, SĐT, trạng thái…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
@@ -336,7 +378,7 @@
             </div>
           </div>
 
-          {/* 4. Data Content: Desktop DataTable / Kanban / Mobile Luxury Cards */}
+          {/* 5. Data Content: Desktop DataTable / Kanban / Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="leadsCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'FullName', 'bulkImportLeads', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
@@ -381,21 +423,15 @@
                 ) : (
                   visible.map((l) => (
                     <div key={l.id} className="mob-lead-card" onClick={() => onAction('view', l)}>
-                      {/* Top Row: Avatar + Name + Status Dropdown */}
-                      <div className="mob-lead-top-row">
+                      {/* Row 1: Avatar + Tên + Dropdown Trạng Thái (Căn chỉnh cân đối) */}
+                      <div className="mob-lead-header-row">
                         <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(l.fullName) }}>
                           {getLeadInitial(l.fullName)}
                         </div>
-                        <div className="mob-lead-identity">
-                          <div className="mob-lead-name-wrap">
-                            <span className="mob-lead-name">{l.fullName}</span>
-                          </div>
-                          <div className="mob-lead-sub">
-                            <span className="mob-lead-phone"><i className="fas fa-phone-volume"></i> {l.phone}</span>
-                            {l.source && <span className="mob-lead-src"> · {viEnum(l.source)}</span>}
-                          </div>
+                        <div className="mob-lead-name-box">
+                          <span className="mob-lead-name">{l.fullName}</span>
                         </div>
-                        <div className="mob-lead-stage-badge-wrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="mob-lead-stage-wrap" onClick={(e) => e.stopPropagation()}>
                           <select
                             className="mob-lead-stage-select"
                             value={l.status}
@@ -415,7 +451,25 @@
                         </div>
                       </div>
 
-                      {/* Middle Body: Chips, Property, Note */}
+                      {/* Row 2: SĐT (Đã định dạng) + Nguồn Khách Hàng (Độc lập, không bị ép dòng) */}
+                      <div className="mob-lead-contact-strip">
+                        {l.phone ? (
+                          <span className="mob-contact-phone">
+                            <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
+                          </span>
+                        ) : (
+                          <span className="mob-contact-no-phone">
+                            <i className="fas fa-phone-slash"></i> Chưa có SĐT
+                          </span>
+                        )}
+                        {l.source && (
+                          <span className="mob-contact-source-pill">
+                            <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Row 3: Chips Nhu cầu, Ngân sách, Vị trí */}
                       <div className="mob-lead-card-body">
                         <div className="mob-lead-chips">
                           {l.interestType && (
@@ -451,7 +505,7 @@
                         )}
                       </div>
 
-                      {/* Meta Row: Agent & Date */}
+                      {/* Row 4: Meta Sale & Ngày tạo */}
                       <div className="mob-lead-meta-row">
                         <span className="mob-meta-agent">
                           <i className="fas fa-user-tie"></i> {l.assignedAgent || 'Chưa phân công'}
@@ -461,12 +515,12 @@
                         </span>
                       </div>
 
-                      {/* 1-Tap Quick Action Bar */}
+                      {/* Row 5: 1-Tap Quick Action Bar */}
                       <div className="mob-lead-action-bar" onClick={(e) => e.stopPropagation()}>
-                        <a href={'tel:' + String(l.phone || '').replace(/\D/g, '')} className="mob-btn mob-btn-call" title="Gọi điện">
-                          <i className="fas fa-phone"></i> Gọi điện
+                        <a href={'tel:' + String(l.phone || '').replace(/\D/g, '')} className={'mob-btn mob-btn-call' + (!l.phone ? ' disabled' : '')} title="Gọi điện">
+                          <i className="fas fa-phone"></i> Gọi ngay
                         </a>
-                        <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', l)} title="Nhắn Zalo">
+                        <button className={'mob-btn mob-btn-zalo' + (!l.phone ? ' disabled' : '')} onClick={() => l.phone && onAction('wa', l)} title="Nhắn Zalo">
                           <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
                             <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
                             <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
@@ -490,7 +544,7 @@
             )}
           </div>
 
-          {/* 5. Mobile Filter Drawer (Bottom Sheet) */}
+          {/* 6. Mobile Filter Drawer (Bottom Sheet) */}
           {showFilterDrawer && (
             <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
               <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
