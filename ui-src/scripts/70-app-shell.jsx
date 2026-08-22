@@ -212,7 +212,8 @@
       }, [isLoggedIn, currentUser]);
       const closeTour = () => { setTour(false); try { localStorage.setItem('ai_tour_' + currentUser, '1'); } catch (e) {} };
 
-      const SESSION_DURATION = 60 * 60 * 1000;
+      // 30 ngày duy trì đăng nhập (kèm cơ chế tự động làm mới Supabase refresh token)
+      const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000;
 
       const applyTheme = (mode) => {
         if (mode === 'dark') {
@@ -247,7 +248,7 @@
             if (session) {
               const sessionData = JSON.parse(session);
               const currentTime = new Date().getTime();
-              const sessionAge = currentTime - sessionData.loginTime;
+              const sessionAge = currentTime - (sessionData.loginTime || currentTime);
 
               if (sessionAge < SESSION_DURATION) {
                 setIsLoggedIn(true);
@@ -267,6 +268,7 @@
                     try {
                       const s = JSON.parse(localStorage.getItem('userSession') || '{}');
                       s.permissions = r.perms; s.canEditRbac = !!r.canEdit;
+                      s.loginTime = new Date().getTime(); // tự động gia hạn khi có hoạt động
                       localStorage.setItem('userSession', JSON.stringify(s));
                     } catch (e) {}
                   }
@@ -288,7 +290,7 @@
           if (session) {
             const sessionData = JSON.parse(session);
             const currentTime = new Date().getTime();
-            const sessionAge = currentTime - sessionData.loginTime;
+            const sessionAge = currentTime - (sessionData.loginTime || currentTime);
 
             if (sessionAge >= SESSION_DURATION) {
               localStorage.removeItem('userSession');
@@ -299,8 +301,8 @@
               setUserRole(null);
               Swal.fire({
                 icon: 'warning',
-                title: 'Session Expired',
-                text: 'Your session has expired. Please login again.',
+                title: 'Phiên đăng nhập đã hết hạn',
+                text: 'Phiên đăng nhập đã hết hạn sau 30 ngày. Vui lòng đăng nhập lại.',
                 confirmButtonColor: 'var(--navy-primary)'
               });
             }
