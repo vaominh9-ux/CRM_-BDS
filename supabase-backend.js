@@ -210,7 +210,7 @@ async function saveAgencyBranding(args,jwt) {
 
 const PAGE_META = [
   ['dashboard','Tổng quan','TỔNG QUAN'],['ai','Trợ lý AI','TỔNG QUAN'],
-  ['properties','Bất động sản','CRM'],['leads','Khách hàng tiềm năng','CRM'],['followups','Chăm sóc khách hàng','CRM'],['appointments','Lịch hẹn','CRM'],
+  ['properties','Bất động sản','CRM'],['leads','Tiềm năng','CRM'],['followups','Chăm sóc','CRM'],['appointments','Lịch hẹn','CRM'],
   ['deals','Giao dịch','TÀI CHÍNH'],['tenancies','Hợp đồng thuê','TÀI CHÍNH'],['agreements','Hợp đồng','TÀI CHÍNH'],['reports','Báo cáo','TÀI CHÍNH'],
   ['owners','Chủ sở hữu','DANH MỤC'],['locations','Khu vực','DANH MỤC'],['amenities','Tiện ích','DANH MỤC'],
   ['users','Người dùng','HỆ THỐNG'],['settings','Cài đặt','HỆ THỐNG'],['logs','Nhật ký hoạt động','HỆ THỐNG'],['trash','Thùng rác','HỆ THỐNG']

@@ -5440,8 +5440,8 @@
       dashboard:    { label:'Tổng quan',            icon:'fa-chart-pie',          group:'TỔNG QUAN' },
       ai:           { label:'Trợ lý AI',            icon:'fa-robot',              group:'TỔNG QUAN' },
       properties:   { label:'Bất động sản',         icon:'fa-building',           group:'CRM' },
-      leads:        { label:'Khách hàng tiềm năng', icon:'fa-user-tag',           group:'CRM' },
-      followups:    { label:'Chăm sóc khách hàng',  icon:'fa-bell',               group:'CRM' },
+      leads:        { label:'Tiềm năng',            icon:'fa-user-tag',           group:'CRM' },
+      followups:    { label:'Chăm sóc',             icon:'fa-bell',               group:'CRM' },
       appointments: { label:'Lịch hẹn',             icon:'fa-calendar-check',     group:'CRM' },
       deals:        { label:'Giao dịch',            icon:'fa-handshake',          group:'TÀI CHÍNH' },
       tenancies:    { label:'Hợp đồng thuê',        icon:'fa-house-user',         group:'TÀI CHÍNH' },
@@ -6203,7 +6203,8 @@
       const shortLabel = (k) => {
         if (!PAGE_META[k]) return k;
         if (k === 'dashboard') return 'Tổng quan';
-        if (k === 'leads') return 'Khách hàng';
+        if (k === 'leads') return 'Tiềm năng';
+        if (k === 'followups') return 'Chăm sóc';
         if (k === 'properties') return 'BĐS';
         if (k === 'appointments') return 'Lịch hẹn';
         if (k === 'deals') return 'Giao dịch';
