@@ -379,6 +379,7 @@
       if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
       return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     };
+    const getLeadInitial = getLeadInitials;
 
     const STATUS_TINT = {
       Draft: 'st-gray', Available: 'st-green', Reserved: 'st-orange', Sold: 'st-purple', Rented: 'st-teal', Withdrawn: 'st-red',
