@@ -2004,18 +2004,18 @@
       };
       return (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 920 }}>
+          <div className="modal modal-doc-preview" style={{ maxWidth: 920 }}>
             <div className="modal-header">
               <h3><i className="fas fa-file-contract"></i> {doc.title}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
-            <div className="modal-body">
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+            <div className="modal-body" style={{ padding: '12px 16px' }}>
+              <div className="mob-doc-modal-actions" style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
                 <button className="btn btn-primary btn-sm" onClick={doPrint}><i className="fas fa-print"></i> In văn bản (A4)</button>
                 <button className="btn btn-secondary btn-sm" onClick={doPdf} disabled={busy}>
                   <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-file-pdf')}></i> Tải tệp PDF
                 </button>
-                <span style={{ marginLeft: 'auto', fontSize: 12, color: '#789', alignSelf: 'center' }}><i className="fas fa-circle-info"></i> Định dạng chuẩn A4 — nên chọn lề "Tối thiểu / None" khi in để vừa vặn nhất</span>
+                <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b', alignSelf: 'center' }}><i className="fas fa-circle-info"></i> Định dạng chuẩn A4</span>
               </div>
               <iframe ref={frameRef} srcDoc={doc.html} className="a4-frame" title="document"
                       onLoad={() => { if (autoPrint && !printed.current) { printed.current = true; setTimeout(doPrint, 400); } }}></iframe>
@@ -2030,57 +2030,62 @@
       const ten = meta.src === 'ten';
       return (
         <div className="modal-overlay">
-          <div className="modal modal-80">
+          <div className="modal modal-80 modal-doc-list">
             <div className="modal-header">
               <h3><i className={'fas ' + meta.icon}></i> {meta.label} — {records.length} hồ sơ phù hợp</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: 12.5, color: '#789', margin: '0 0 12px' }}>
-                <i className="fas fa-circle-info"></i> {meta.hint}. Nhấp <b>Xem</b> trên bất kỳ dòng nào — tài liệu A4 sẽ mở ra để xem và in.
+              <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 12px' }}>
+                <i className="fas fa-circle-info"></i> {meta.hint}. Nhấp <b>Xem & In</b> để mở văn bản A4 hoàn chỉnh.
               </p>
               {records.length === 0 ? (
                 <p className="dash-empty"><i className="fas fa-file-circle-xmark"></i>Chưa có hồ sơ phù hợp để tạo tài liệu này</p>
               ) : (
-                <div className="about-table-wrapper">
-                  <table className="about-roles-table">
-                    <thead>
-                      <tr>
-                        <th>#</th><th>Bất động sản</th><th>{ten ? 'Người thuê' : 'Người mua / Khách hàng'}</th>
-                        <th>{ten ? 'Tiền thuê / tháng' : 'Giá trị giao dịch'}</th>
-                        <th>{ten ? 'Đã thu' : 'Đã nộp'}</th>
-                        <th>{ten ? 'Công nợ' : 'Còn lại'}</th>
-                        <th>Trạng thái</th><th>Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {records.map((r, i) => {
-                        const outstanding = (ten ? r.arrears : r.balance) || 0;
-                        return (
-                          <tr key={r.id}>
-                            <td>{i + 1}</td>
-                            <td style={{ textAlign: 'left' }}>
-                              <b>{r.propertyRef || '#' + r.propertyId}</b>
-                              <span className="elig-row-sub">{r.propertyTitle || '—'}</span>
-                            </td>
-                            <td style={{ textAlign: 'left' }}>
-                              {(ten ? r.tenantName : r.buyerName) || '—'}
-                              <span className="elig-row-sub">{(ten ? r.tenantPhone : r.buyerPhone) || '—'}</span>
-                            </td>
-                            <td>{pkrShort(ten ? r.monthlyRent : r.dealAmount)}</td>
-                            <td>{pkrShort(ten ? (r.collected || 0) : (r.paid || 0))}</td>
-                            <td style={{ color: outstanding > 0 ? '#c62828' : '#2e7d32', fontWeight: 700 }}>{pkrShort(outstanding)}</td>
-                            <td><Badge s={r.status} /></td>
-                            <td>
-                              <button className="btn btn-primary btn-sm" disabled={!!busyId} onClick={() => onView(r)}>
-                                <i className={'fas ' + (busyId === r.id ? 'fa-spinner fa-spin' : 'fa-eye')}></i> {busyId === r.id ? 'Đang tải…' : 'Xem'}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <div className="mob-doc-records-list">
+                  {records.map((r, i) => {
+                    const outstanding = (ten ? r.arrears : r.balance) || 0;
+                    return (
+                      <div key={r.id} className="mob-doc-record-card">
+                        <div className="mob-doc-rec-head">
+                          <div className="mob-doc-rec-prop">
+                            <span className="mob-doc-rec-ref">{r.propertyRef || '#' + r.propertyId}</span>
+                            <span className="mob-doc-rec-title">{r.propertyTitle || '—'}</span>
+                          </div>
+                          <Badge s={r.status} />
+                        </div>
+
+                        <div className="mob-doc-rec-party">
+                          <i className="fas fa-user-tie"></i>
+                          <span className="mob-doc-rec-name">{(ten ? r.tenantName : r.buyerName) || '—'}</span>
+                          {((ten ? r.tenantPhone : r.buyerPhone)) && (
+                            <span className="mob-doc-rec-phone">· {(ten ? r.tenantPhone : r.buyerPhone)}</span>
+                          )}
+                        </div>
+
+                        <div className="mob-doc-rec-financials">
+                          <div className="mob-doc-rec-fitem">
+                            <small>{ten ? 'Tiền thuê/th' : 'Giá trị HĐ'}</small>
+                            <b>{pkrShort(ten ? r.monthlyRent : r.dealAmount)}</b>
+                          </div>
+                          <div className="mob-doc-rec-fitem">
+                            <small>{ten ? 'Đã thu' : 'Đã nộp'}</small>
+                            <b style={{ color: '#16a34a' }}>{pkrShort(ten ? (r.collected || 0) : (r.paid || 0))}</b>
+                          </div>
+                          <div className="mob-doc-rec-fitem">
+                            <small>{ten ? 'Công nợ' : 'Còn lại'}</small>
+                            <b style={{ color: outstanding > 0 ? '#dc2626' : '#16a34a' }}>{pkrShort(outstanding)}</b>
+                          </div>
+                        </div>
+
+                        <div className="mob-doc-rec-foot">
+                          <button className="btn btn-primary btn-sm mob-doc-view-btn" disabled={!!busyId} onClick={() => onView(r)}>
+                            <i className={'fas ' + (busyId === r.id ? 'fa-spinner fa-spin' : 'fa-eye')}></i> {busyId === r.id ? 'Đang tải…' : 'Xem & In văn bản'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -2104,12 +2109,12 @@
       useEffect(() => { setPageActions([]); return () => setPageActions([]); }, []); // generator view — no list toolbar
 
       const DOC_TYPES = [
-        { value: 'rental',      label: 'Hợp đồng thuê bất động sản', icon: 'fa-file-signature',   src: 'ten',  hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc và 6 điều khoản chuẩn' },
-        { value: 'sale',        label: 'Hợp đồng đặt cọc mua bán',    icon: 'fa-file-contract',    src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán và điều khoản' },
-        { value: 'receipt',     label: 'Phiếu thu tiền giao dịch',    icon: 'fa-receipt',          src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch và số dư còn lại' },
-        { value: 'rentreceipt', label: 'Phiếu thu & Bảng kê tiền thuê', icon: 'fa-file-invoice',     src: 'ten',  hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và công nợ' },
-        { value: 'dues',        label: 'Thông báo số dư & Công nợ',  icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật' },
-        { value: 'invoice',     label: 'Hóa đơn hoa hồng môi giới', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất' }
+        { value: 'rental',      label: 'HĐ thuê BĐS', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature',   src: 'ten',  hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc và 6 điều khoản chuẩn' },
+        { value: 'sale',        label: 'HĐ cọc mua bán', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract',    src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán và điều khoản' },
+        { value: 'receipt',     label: 'Phiếu thu giao dịch', shortLabel: 'Phiếu Thu', icon: 'fa-receipt',          src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch và số dư còn lại' },
+        { value: 'rentreceipt', label: 'Bảng kê tiền thuê', shortLabel: 'Kê Tiền Thuê', icon: 'fa-file-invoice',     src: 'ten',  hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và công nợ' },
+        { value: 'dues',        label: 'Thông báo công nợ', shortLabel: 'Báo Công Nợ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật' },
+        { value: 'invoice',     label: 'Hóa đơn hoa hồng', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất' }
       ];
       const meta = DOC_TYPES.find((x) => x.value === docType) || DOC_TYPES[0];
       // ONE eligibility rule per type — the dropdown, the counts and the popup all read it
@@ -2134,8 +2139,8 @@
         gsRun('buildAgreement', docType, parseInt(recId, 10), currentUser).then((r) => {
           setBusy(false);
           if (r && r.success) setDoc(r);
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
-        }).catch((e) => { setBusy(false); Swal.fire({ icon: 'error', title: 'Error', text: String((e && e.message) || e) }); });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Không thể tạo văn bản' });
+        }).catch((e) => { setBusy(false); Swal.fire({ icon: 'error', title: 'Lỗi', text: String((e && e.message) || e) }); });
       };
 
       // popup row action: build that record's document, open the A4 sheet and fire the print dialog
@@ -2143,61 +2148,115 @@
         setRowBusy(r.id);
         gsRun('buildAgreement', docType, r.id, currentUser).then((res) => {
           setRowBusy(0);
-          if (!res || !res.success) return Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' });
+          if (!res || !res.success) return Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Không thể tạo văn bản' });
           setRecId(String(r.id)); setAutoPrint(true); setDoc(res);
-        }).catch((e) => { setRowBusy(0); Swal.fire({ icon: 'error', title: 'Error', text: String((e && e.message) || e) }); });
+        }).catch((e) => { setRowBusy(0); Swal.fire({ icon: 'error', title: 'Lỗi', text: String((e && e.message) || e) }); });
       };
 
       const kpi = [
-        [tens.filter((t) => t.status === 'Active').length, 'Hợp đồng thuê đang hoạt động', 'fa-house-user', 'bg-navy'],
+        [tens.filter((t) => t.status === 'Active').length, 'HĐ thuê đang hoạt động', 'fa-house-user', 'bg-navy'],
         [deals.filter((x) => x.dealType === 'Sale' && x.status !== 'Cancelled').length, 'Giao dịch mua bán', 'fa-handshake', 'bg-info'],
         [deals.filter((x) => x.status !== 'Cancelled' && x.balance > 0).length, 'Còn số dư phải thu', 'fa-triangle-exclamation', 'bg-warning'],
         [deals.filter((x) => x.status === 'Completed').length, 'Sẵn sàng xuất hóa đơn', 'fa-file-invoice-dollar', 'bg-success']
       ];
 
       return (
-        <>
+        <div className="agreements-page-wrapper">
           <KpiRow items={kpi} />
-          <div className="filters-section">
-            <div className="filters-header"><h3><i className="fas fa-file-contract"></i> Tạo tài liệu</h3></div>
+
+          {/* Dải viên thuốc loại biểu mẫu lướt ngang */}
+          <div className="mob-pipeline-bar" style={{ marginBottom: 12 }}>
+            <div className="mob-pills-scroll">
+              {DOC_TYPES.map((x) => {
+                const count = eligibleFor(x.value).length;
+                return (
+                  <button
+                    key={x.value}
+                    className={'mob-pill ' + (docType === x.value ? 'active' : '')}
+                    onClick={() => setDocType(x.value)}
+                  >
+                    <i className={'fas ' + x.icon}></i>
+                    <span>{x.shortLabel || x.label}</span>
+                    <span className="mob-pill-count">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Khối Tạo Văn Bản Mẫu */}
+          <div className="filters-section mob-agreement-creator-card">
+            <div className="filters-header">
+              <h3><i className={'fas ' + meta.icon}></i> {meta.label}</h3>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => setListOpen(true)}
+                disabled={!records.length}
+              >
+                <i className="fas fa-list-check"></i> Xem {records.length} hồ sơ
+              </button>
+            </div>
             <div className="filters-grid">
               <SearchableDropdown label="Loại tài liệu" icon={'fas ' + meta.icon}
                 options={DOC_TYPES.map((x) => ({ value: x.value, label: x.label }))}
-                value={docType} onChange={setDocType} placeholder="Type…" />
+                value={docType} onChange={setDocType} placeholder="Loại tài liệu…" />
               <SearchableDropdown label={meta.src === 'ten' ? 'Hợp đồng thuê' : 'Giao dịch'} icon={meta.src === 'ten' ? 'fas fa-house-user' : 'fas fa-handshake'}
                 options={records.map((r) => ({ value: String(r.id), label: recLabel(r) }))}
                 value={recId} onChange={setRecId}
                 placeholder={records.length ? 'Chọn hồ sơ…' : 'Chưa có hồ sơ phù hợp'} />
               <div className="filter-group filter-action">
                 <label>&nbsp;</label>
-                <button className="btn btn-primary" onClick={generate} disabled={busy || !records.length}>
-                  <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles')}></i> {busy ? 'Đang tạo…' : 'Tạo tài liệu'}
+                <button className="btn btn-primary mob-agreement-gen-btn" onClick={generate} disabled={busy || !records.length}>
+                  <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles')}></i> {busy ? 'Đang tạo…' : 'Tạo văn bản A4'}
                 </button>
               </div>
             </div>
-            <p style={{ fontSize: 12.5, color: '#789', margin: '4px 2px 0' }}><i className="fas fa-circle-info"></i> {meta.hint}. Xem trước bản in chuẩn A4 — có thể in trực tiếp hoặc tải về.</p>
+            <p style={{ fontSize: 12, color: '#64748b', margin: '6px 2px 0' }}>
+              <i className="fas fa-circle-info"></i> {meta.hint}.
+            </p>
           </div>
-          <div className="data-section">
-            <div className="section-header"><h2><i className="fas fa-list-check"></i> Danh mục tài liệu</h2></div>
-            {DOC_TYPES.map((x) => {
-              const n = eligibleFor(x.value).length;
-              return (
-                <div key={x.value} className="tl-item" style={{ cursor: 'pointer' }} onClick={() => setDocType(x.value)}>
-                  <i className={'fas ' + x.icon}></i>
-                  <div style={{ flex: 1 }}><div className="w"><b>{x.label}</b></div><div className="m">{x.hint}</div></div>
-                  <button className={'btn btn-sm elig-btn ' + (n ? 'btn-primary' : 'btn-secondary')} disabled={!n}
-                          title={n ? 'Mở ' + n + ' hồ sơ phù hợp' : 'Chưa có hồ sơ phù hợp'}
-                          onClick={(e) => { e.stopPropagation(); setDocType(x.value); setListOpen(true); }}>
-                    <i className="fas fa-list-check"></i> {n} hồ sơ phù hợp
-                  </button>
-                </div>
-              );
-            })}
+
+          {/* Danh mục tài liệu trực quan */}
+          <div className="data-section mob-agreement-catalog">
+            <div className="section-header">
+              <h2><i className="fas fa-folder-open"></i> Danh mục biểu mẫu chuẩn</h2>
+            </div>
+            <div className="mob-doc-types-grid">
+              {DOC_TYPES.map((x) => {
+                const n = eligibleFor(x.value).length;
+                return (
+                  <div
+                    key={x.value}
+                    className={'mob-doc-type-card' + (docType === x.value ? ' selected' : '')}
+                    onClick={() => setDocType(x.value)}
+                  >
+                    <div className="mob-doc-type-icon">
+                      <i className={'fas ' + x.icon}></i>
+                    </div>
+                    <div className="mob-doc-type-info">
+                      <div className="mob-doc-type-title">{x.label}</div>
+                      <div className="mob-doc-type-desc">{x.hint}</div>
+                    </div>
+                    <div className="mob-doc-type-action">
+                      <button
+                        className={'btn btn-sm elig-btn ' + (n ? 'btn-primary' : 'btn-secondary')}
+                        disabled={!n}
+                        title={n ? 'Mở ' + n + ' hồ sơ phù hợp' : 'Chưa có hồ sơ phù hợp'}
+                        onClick={(e) => { e.stopPropagation(); setDocType(x.value); setListOpen(true); }}
+                      >
+                        <i className="fas fa-list-check"></i> {n} hồ sơ
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
           {listOpen && <EligibleDocsModal meta={meta} records={records} busyId={rowBusy} onView={viewRecord} onClose={() => setListOpen(false)} />}
           {doc && <A4DocModal doc={doc} docType={docType} recId={parseInt(recId, 10)} currentUser={currentUser}
                               autoPrint={autoPrint} onClose={() => { setDoc(null); setAutoPrint(false); }} />}
-        </>
+        </div>
       );
     }
 
