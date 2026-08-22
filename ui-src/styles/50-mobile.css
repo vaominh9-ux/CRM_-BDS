@@ -2893,5 +2893,351 @@
         justify-content: center !important;
         gap: 6px !important;
       }
+
+      /* ===== PHÂN HỆ HỢP ĐỒNG THUÊ TRÊN ĐIỆN THOẠI (LUXURY TENANCIES UI) ===== */
+      .desk-tenancies-table-wrap {
+        display: none !important;
+      }
+      .mob-tenancies-sub-toolbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 2px 0 10px 0 !important;
+        padding: 0 2px !important;
+      }
+      .mob-tenancies-cards-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      .mob-tenancy-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 13px 14px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+      }
+      .mob-tenancy-card:active {
+        transform: scale(0.99) !important;
+      }
+      body.dark-mode .mob-tenancy-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      /* Hàng 1: Header Mã BĐS & Trạng thái */
+      .mob-tenancy-header-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 10px !important;
+      }
+      .mob-tenancy-ref-box {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .mob-tenancy-type-badge {
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
+        padding: 2px 6px !important;
+        border-radius: 6px !important;
+        background: #eff6ff !important;
+        color: #2563eb !important;
+        border: 1px solid #bfdbfe !important;
+      }
+      body.dark-mode .mob-tenancy-type-badge {
+        background: rgba(37, 99, 235, 0.15) !important;
+        color: #93c5fd !important;
+        border-color: rgba(37, 99, 235, 0.3) !important;
+      }
+      .mob-expiring-badge {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        padding: 2px 6px !important;
+        border-radius: 6px !important;
+        background: #fef2f2 !important;
+        color: #ef4444 !important;
+        border: 1px solid #fecaca !important;
+      }
+      body.dark-mode .mob-expiring-badge {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+      }
+
+      /* Hàng 2: Khách thuê & BĐS */
+      .mob-tenancy-parties-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+      }
+      .mob-tenancy-tenant-box {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 2px 0 !important;
+        cursor: pointer !important;
+      }
+      .mob-tenancy-tenant-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+      }
+      .mob-tenancy-tenant-name {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        font-size: 13.5px !important;
+        color: #1e293b !important;
+      }
+      body.dark-mode .mob-tenancy-tenant-name {
+        color: #f1f5f9 !important;
+      }
+      .mob-tenancy-tenant-phone {
+        font-size: 12px !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+      }
+      body.dark-mode .mob-tenancy-tenant-phone {
+        color: #94a3b8 !important;
+      }
+      .mob-tenancy-prop-title {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #334155 !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        padding: 6px 8px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      body.dark-mode .mob-tenancy-prop-title {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+      }
+      .mob-tenancy-prop-title i {
+        color: var(--navy-accent, #0284c7) !important;
+        flex-shrink: 0 !important;
+      }
+
+      /* Hàng 3: 4 Khối Chỉ số tài chính (Financial Grid) */
+      .mob-tenancy-financial-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+        margin: 10px 0 8px 0 !important;
+      }
+      .mob-tenancy-fin-tile {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        padding: 6px 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+      }
+      body.dark-mode .mob-tenancy-fin-tile {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+      }
+      .mob-tenancy-fin-tile .fin-label {
+        font-size: 9.5px !important;
+        color: #64748b !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+      }
+      body.dark-mode .mob-tenancy-fin-tile .fin-label {
+        color: #94a3b8 !important;
+      }
+      .mob-tenancy-fin-tile .fin-val {
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+      }
+      .mob-tenancy-fin-tile .rent-val {
+        color: #0284c7 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 4px !important;
+      }
+      .mob-tenancy-fin-tile .due-day-hint,
+      .mob-tenancy-fin-tile .last-pay-hint {
+        font-size: 9px !important;
+        font-weight: 600 !important;
+        color: #64748b !important;
+      }
+      body.dark-mode .mob-tenancy-fin-tile .due-day-hint,
+      body.dark-mode .mob-tenancy-fin-tile .last-pay-hint {
+        color: #94a3b8 !important;
+      }
+      .mob-tenancy-fin-tile .collected-val {
+        color: #16a34a !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 4px !important;
+      }
+      .mob-tenancy-fin-tile .arrears-val.bad {
+        color: #dc2626 !important;
+      }
+      .mob-tenancy-fin-tile .arrears-val.good {
+        color: #16a34a !important;
+      }
+      .mob-tenancy-fin-tile .deposit-val {
+        color: #0f172a !important;
+      }
+      body.dark-mode .mob-tenancy-fin-tile .deposit-val {
+        color: #f8fafc !important;
+      }
+
+      /* Hàng 4: Thời hạn & Nhân viên */
+      .mob-tenancy-meta-info {
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        padding-top: 8px !important;
+        border-top: 1px dashed #e2e8f0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+      }
+      body.dark-mode .mob-tenancy-meta-info {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+      }
+      .mob-tenancy-dates,
+      .mob-tenancy-agent {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+
+      /* Hàng 5: Nút thao tác */
+      .mob-tenancy-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+      }
+      .mob-tenancy-actions .mob-btn {
+        flex: 1 1 auto !important;
+        height: 34px !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        border: none !important;
+      }
+      .mob-btn-collect {
+        background: #f0fdf4 !important;
+        color: #16a34a !important;
+        border: 1px solid #bbf7d0 !important;
+      }
+      .mob-btn-view {
+        background: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd !important;
+      }
+      .mob-btn-renew {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0 !important;
+        flex: 0 0 34px !important;
+      }
+      .mob-btn-end {
+        background: #fef2f2 !important;
+        color: #ef4444 !important;
+        border: 1px solid #fecaca !important;
+        flex: 0 0 34px !important;
+      }
+      body.dark-mode .mob-btn-collect {
+        background: rgba(22, 163, 74, 0.15) !important;
+        color: #86efac !important;
+        border-color: rgba(22, 163, 74, 0.3) !important;
+      }
+      body.dark-mode .mob-btn-view {
+        background: rgba(2, 132, 199, 0.15) !important;
+        color: #38bdf8 !important;
+        border-color: rgba(2, 132, 199, 0.3) !important;
+      }
+      body.dark-mode .mob-btn-renew {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      body.dark-mode .mob-btn-end {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+      }
+
+      /* Modal Hợp đồng thuê 360 dạng Bottom Sheet trên Mobile */
+      .modal.modal-tenancy360 {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 94vh !important;
+        max-height: 94vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin: auto 0 0 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border: none !important;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
+        animation: slideUp 0.25s ease !important;
+      }
+      .modal-tenancy360 .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+      }
+      .modal-tenancy360 .modal-body {
+        padding: 14px 16px 28px 14px !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .modal-tenancy360 .id-head {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .modal-tenancy360 .id-kpis {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 6px !important;
+      }
+      .modal-tenancy360 .rs-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: flex !important;
+        gap: 6px !important;
+        padding-bottom: 4px !important;
+        margin: 12px 0 !important;
+      }
+      .modal-tenancy360 .rs-tab {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+      }
+      .modal-tenancy360 .pd-facts {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
     }
   

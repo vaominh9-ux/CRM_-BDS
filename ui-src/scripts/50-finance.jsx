@@ -863,8 +863,8 @@
       const [saving, setSaving] = useState(false);
       const amt = r2(form.amount);
       const arrearsNow = r2(ten.arrears || 0);
-      const err = !/^\d{4}-\d{2}$/.test(form.month) ? 'Pick the month' : !(amt > 0) ? 'Enter the amount'
-        : (ten.rentLog || []).some((q) => q.month === form.month) ? form.month + ' is already collected' : '';
+      const err = !/^\d{4}-\d{2}$/.test(form.month) ? 'Chọn tháng thu tiền' : !(amt > 0) ? 'Nhập số tiền thu'
+        : (ten.rentLog || []).some((q) => q.month === form.month) ? 'Tháng ' + form.month + ' đã được thu trước đó' : '';
       const submit = (e) => {
         e.preventDefault();
         if (err) return;
@@ -872,7 +872,7 @@
         gsRun('collectRent', ten.id, form, currentUser).then((r) => {
           setSaving(false);
           if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 1800, showConfirmButton: false }); onSaved(); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
         }).catch(() => setSaving(false));
       };
       return (
@@ -887,26 +887,26 @@
                 <div className="txn-split">
                   <div className="txn-form">
                     <div className="form-grid">
-                      <div className="form-group"><label><i className="fas fa-calendar"></i> Month *</label>
+                      <div className="form-group"><label><i className="fas fa-calendar"></i> Tháng thu tiền *</label>
                         <input type="month" value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} required /></div>
-                      <div className="form-group"><label><i className="fas fa-money-bill"></i> Amount (VNĐ) *</label>
+                      <div className="form-group"><label><i className="fas fa-money-bill"></i> Số tiền thu (VNĐ) *</label>
                         <input type="number" min="1" step="any" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required /></div>
-                      <SearchableDropdown label="Method" icon="fas fa-wallet" options={opts(ENUMS.paymentMethod)} value={form.method} onChange={(v) => setForm({ ...form, method: v })} placeholder="Method…" />
-                      <div className="form-group"><label><i className="fas fa-hashtag"></i> Reference</label>
-                        <input value={form.ref} onChange={(e) => setForm({ ...form, ref: e.target.value })} /></div>
+                      <SearchableDropdown label="Hình thức thanh toán" icon="fas fa-wallet" options={opts(ENUMS.paymentMethod)} value={form.method} onChange={(v) => setForm({ ...form, method: v })} placeholder="Chọn hình thức…" />
+                      <div className="form-group"><label><i className="fas fa-hashtag"></i> Mã tham chiếu / Số chứng từ</label>
+                        <input value={form.ref} onChange={(e) => setForm({ ...form, ref: e.target.value })} placeholder="Ủy nhiệm chi, hóa đơn..." /></div>
                     </div>
                   </div>
                   <div className="txn-preview">
-                    <div className="txn-h"><i className="fas fa-calculator"></i> Rent Position</div>
-                    <div className="txn-line"><span className="f">Monthly rent</span><span className="v">{fmtPKR(ten.monthlyRent)}</span></div>
-                    <div className="txn-line"><span className="f">Months unpaid</span><span className="v">{due.length ? due.join(', ') : 'None'}</span></div>
-                    <div className={'txn-line' + (arrearsNow > 0 ? ' bad' : '')}><span className="f">Arrears before</span><span className="v">{fmtPKR(arrearsNow)}</span></div>
-                    <div className="txn-line total"><span className="f">Arrears after</span><span className="v">{fmtPKR(Math.max(0, r2(arrearsNow - amt)))}</span></div>
+                    <div className="txn-h"><i className="fas fa-calculator"></i> Tình trạng tiền thuê</div>
+                    <div className="txn-line"><span className="f">Tiền thuê / tháng</span><span className="v">{fmtPKR(ten.monthlyRent)}</span></div>
+                    <div className="txn-line"><span className="f">Các tháng chưa thu</span><span className="v">{due.length ? due.join(', ') : 'Không có'}</span></div>
+                    <div className={'txn-line' + (arrearsNow > 0 ? ' bad' : '')}><span className="f">Công nợ trước thu</span><span className="v">{fmtPKR(arrearsNow)}</span></div>
+                    <div className="txn-line total"><span className="f">Công nợ còn lại sau thu</span><span className="v">{fmtPKR(Math.max(0, r2(arrearsNow - amt)))}</span></div>
                     {err && <div className="txn-err"><i className="fas fa-triangle-exclamation"></i> {err}</div>}
                     <div className="form-actions" style={{ marginTop: 14 }}>
-                      <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                      <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                       <button type="submit" className="btn btn-primary" disabled={saving || !!err}>
-                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> Collect</>}
+                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Xác nhận thu tiền</>}
                       </button>
                     </div>
                   </div>
@@ -922,7 +922,7 @@
       const [form, setForm] = useState({ newRent: r2(ten.monthlyRent * (1 + (cfg.renewalIncrementPct || 10) / 100)), newEndDate: '', notes: '' });
       const [saving, setSaving] = useState(false);
       const inc = ten.monthlyRent > 0 ? r2((r2(form.newRent) - ten.monthlyRent) / ten.monthlyRent * 100) : 0;
-      const err = !(r2(form.newRent) > 0) ? 'New rent is required' : '';
+      const err = !(r2(form.newRent) > 0) ? 'Nhập giá thuê mới' : '';
       const submit = (e) => {
         e.preventDefault();
         if (err) return;
@@ -930,14 +930,14 @@
         gsRun('renewTenancy', ten.id, form, currentUser).then((r) => {
           setSaving(false);
           if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 1800, showConfirmButton: false }); onSaved(); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
         }).catch(() => setSaving(false));
       };
       return (
         <div className="modal-overlay">
           <div className="modal modal-txn" style={{ maxWidth: 860 }}>
             <div className="modal-header">
-              <h3><i className="fas fa-file-signature"></i> Gia hạn — {ten.propertyRef} · {ten.tenantName}</h3>
+              <h3><i className="fas fa-file-signature"></i> Gia hạn hợp đồng thuê — {ten.propertyRef} · {ten.tenantName}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
@@ -945,25 +945,25 @@
                 <div className="txn-split">
                   <div className="txn-form">
                     <div className="form-grid">
-                      <div className="form-group"><label><i className="fas fa-money-bill-trend-up"></i> New Rent (VNĐ) *</label>
+                      <div className="form-group"><label><i className="fas fa-money-bill-trend-up"></i> Giá thuê mới (VNĐ) *</label>
                         <input type="number" min="1" step="any" value={form.newRent} onChange={(e) => setForm({ ...form, newRent: e.target.value })} required /></div>
-                      <div className="form-group"><label><i className="fas fa-calendar-day"></i> New End Date</label>
+                      <div className="form-group"><label><i className="fas fa-calendar-day"></i> Ngày kết thúc mới</label>
                         <input type="date" value={form.newEndDate} onChange={(e) => setForm({ ...form, newEndDate: e.target.value })} /></div>
                     </div>
-                    <div className="form-group"><label><i className="fas fa-align-left"></i> Notes</label>
-                      <textarea rows="2" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}></textarea></div>
+                    <div className="form-group"><label><i className="fas fa-align-left"></i> Ghi chú gia hạn</label>
+                      <textarea rows="2" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Thỏa thuận tăng giá, gia hạn 1 năm…"></textarea></div>
                   </div>
                   <div className="txn-preview">
-                    <div className="txn-h"><i className="fas fa-calculator"></i> Renewal</div>
-                    <div className="txn-line"><span className="f">Current rent</span><span className="v">{fmtPKR(ten.monthlyRent)}</span></div>
-                    <div className="txn-line"><span className="f">New rent</span><span className="v">{fmtPKR(r2(form.newRent))}</span></div>
-                    <div className="txn-line total"><span className="f">Increment</span><span className="v">{inc}%</span></div>
-                    <div className="txn-impact"><i className="fas fa-calendar"></i> Expiry: {ten.endDate || 'open-ended'} → <b>{form.newEndDate || ten.endDate || 'open-ended'}</b></div>
+                    <div className="txn-h"><i className="fas fa-calculator"></i> Tính toán gia hạn</div>
+                    <div className="txn-line"><span className="f">Giá thuê hiện tại</span><span className="v">{fmtPKR(ten.monthlyRent)}</span></div>
+                    <div className="txn-line"><span className="f">Giá thuê mới</span><span className="v">{fmtPKR(r2(form.newRent))}</span></div>
+                    <div className="txn-line total"><span className="f">Tỷ lệ điều chỉnh</span><span className="v">{inc}%</span></div>
+                    <div className="txn-impact"><i className="fas fa-calendar"></i> Hạn HĐ: {ten.endDate || 'không thời hạn'} → <b>{form.newEndDate || ten.endDate || 'không thời hạn'}</b></div>
                     {err && <div className="txn-err">{err}</div>}
                     <div className="form-actions" style={{ marginTop: 14 }}>
-                      <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                      <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                       <button type="submit" className="btn btn-primary" disabled={saving || !!err}>
-                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> Renew</>}
+                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Xác nhận gia hạn</>}
                       </button>
                     </div>
                   </div>
@@ -980,7 +980,7 @@
       const [saving, setSaving] = useState(false);
       const ded = r2(form.deductions);
       const refund = r2((ten.securityDeposit || 0) - ded);
-      const err = ded > (ten.securityDeposit || 0) ? 'Deductions exceed the deposit' : '';
+      const err = ded > (ten.securityDeposit || 0) ? 'Khấu trừ vượt quá tiền cọc' : '';
       const submit = (e) => {
         e.preventDefault();
         if (err) return;
@@ -988,7 +988,7 @@
         gsRun('endTenancy', ten.id, form, currentUser).then((r) => {
           setSaving(false);
           if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2000, showConfirmButton: false }); onSaved(); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
         }).catch(() => setSaving(false));
       };
       return (
@@ -1003,19 +1003,19 @@
                 <div className="txn-split">
                   <div className="txn-form">
                     <div className="form-grid">
-                      <div className="form-group"><label><i className="fas fa-scissors"></i> Khấu trừ (VNĐ)</label>
-                        <input type="number" min="0" step="any" value={form.deductions} onChange={(e) => setForm({ ...form, deductions: e.target.value })} placeholder="Hư hỏng, hóa đơn chưa thanh toán…" /></div>
+                      <div className="form-group"><label><i className="fas fa-scissors"></i> Khấu trừ tiền cọc (VNĐ)</label>
+                        <input type="number" min="0" step="any" value={form.deductions} onChange={(e) => setForm({ ...form, deductions: e.target.value })} placeholder="Hư hỏng cơ sở vật chất, tiền điện nước…" /></div>
                     </div>
-                    <div className="form-group"><label><i className="fas fa-align-left"></i> Ghi chú</label>
-                      <textarea rows="3" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Lý do khấu trừ, tình trạng bàn giao…"></textarea></div>
+                    <div className="form-group"><label><i className="fas fa-align-left"></i> Ghi chú kết thúc</label>
+                      <textarea rows="3" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Lý do khấu trừ, tình trạng bàn giao nhà…"></textarea></div>
                     {(ten.arrears || 0) > 0 && <div className="txn-err"><i className="fas fa-triangle-exclamation"></i> Người thuê còn nợ {fmtPKR(ten.arrears)} — hãy thu hoặc khấu trừ trước khi kết thúc.</div>}
                   </div>
                   <div className="txn-preview">
                     <div className="txn-h"><i className="fas fa-calculator"></i> Quyết toán tiền cọc</div>
-                    <div className="txn-line"><span className="f">Tiền cọc</span><span className="v">{fmtPKR(ten.securityDeposit)}</span></div>
+                    <div className="txn-line"><span className="f">Tiền cọc ban đầu</span><span className="v">{fmtPKR(ten.securityDeposit)}</span></div>
                     <div className="txn-line"><span className="f">Khấu trừ</span><span className="v">− {fmtPKR(ded)}</span></div>
                     <div className={'txn-line total' + (refund < 0 ? ' bad' : '')}><span className="f">Hoàn trả người thuê</span><span className="v">{fmtPKR(refund)}</span></div>
-                    <div className="txn-impact"><i className="fas fa-arrow-right-arrow-left"></i> Bất động sản → <b>Còn trống</b> (đưa lại lên thị trường)</div>
+                    <div className="txn-impact"><i className="fas fa-arrow-right-arrow-left"></i> Bất động sản → <b>Có sẵn</b> (mở lại cho thuê)</div>
                     {err && <div className="txn-err">{err}</div>}
                     <div className="form-actions" style={{ marginTop: 14 }}>
                       <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
@@ -1042,7 +1042,7 @@
         gsRun('addMaintenance', ten.id, { issue }, currentUser).then((r) => {
           setBusy(false);
           if (r && r.success) { setIssue(''); onChanged(); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
         }).catch(() => setBusy(false));
       };
       const fixIssue = (m) => {
@@ -1052,9 +1052,9 @@
       };
       return (
         <div className="modal-overlay">
-          <div className="modal">
+          <div className="modal modal-tenancy360">
             <div className="modal-header">
-              <h3><i className="fas fa-house-user"></i> Hợp đồng thuê — {ten.propertyRef}</h3>
+              <h3><i className="fas fa-house-user"></i> Hợp đồng thuê 360 — {ten.propertyRef}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
@@ -1128,12 +1128,20 @@
       const [modal, setModal] = useState(null); // {type:'collect'|'renew'|'end'|'view', ten}
       const [viewingLead, setViewingLead] = useState(null);
       const [stage, setStage] = useState('Active');
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '' });
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
-      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
 
       const counts = useMemo(() => { const o = {}; (rows || []).forEach((t) => { o[t.status] = (o[t.status] || 0) + 1; }); return o; }, [rows]);
-      const visible = useMemo(() => (stage ? (rows || []).filter((t) => t.status === stage) : (rows || [])), [rows, stage]);
+      const visible = useMemo(() => {
+        const q = String(filters.search || '').trim().toLowerCase();
+        return (stage ? (rows || []).filter((t) => t.status === stage) : (rows || [])).filter((t) => !q || [
+          t.tenantName, t.tenantPhone, t.propertyRef, t.propertyTitle, t.agent, t.status
+        ].some((val) => String(val || '').toLowerCase().includes(q)));
+      }, [rows, stage, filters.search]);
+      const activeFiltersCount = filters.search ? 1 : 0;
+
       const mm = ymNow();
       const kpi = useMemo(() => { const r = (rows || []).filter((t) => t.status === 'Active'); return [
         [r.length, 'Hợp đồng thuê đang hoạt động', 'fa-house-user', 'bg-navy'],
@@ -1158,7 +1166,11 @@
         else if (action === 'collect') setModal({ type: 'collect', ten: t });
         else if (action === 'renew') setModal({ type: 'renew', ten: t });
         else if (action === 'end') setModal({ type: 'end', ten: t });
-        else if (action === 'wa') waOpen(t.tenantPhone, 'Xin chào ' + t.tenantName + ', chúng tôi liên hệ về hợp đồng thuê ' + (t.propertyRef || 'của bạn') + '.');
+        else if (action === 'wa') {
+          const last = (t.rentLog || []).slice(-1)[0];
+          const msg = 'Xin chào ' + (t.tenantName || 'Quý khách') + ', tôi liên hệ về hợp đồng thuê ' + (t.propertyRef || '') + '. Tiền thuê: ' + fmtPKR(t.monthlyRent) + '/tháng (hạn ngày ' + (t.rentDueDay || 5) + ' hàng tháng). Công nợ hiện tại: ' + (t.arrears > 0 ? fmtPKR(t.arrears) : '0 đ') + '.';
+          waOpen(t.tenantPhone, msg);
+        }
       };
 
       const expSoon = (t) => t.endDate && t.status === 'Active' && (new Date(t.endDate) - new Date()) / 864e5 <= 30 && (new Date(t.endDate) - new Date()) / 864e5 >= 0;
@@ -1173,11 +1185,11 @@
           { data: 'endDate', title: 'Ngày kết thúc', render: (d, t, x) => t === 'display' ? (d ? esc(d) + (expSoon(x) ? ' ' + badge('Overdue').replace('Overdue', '≤30 ngày') : '') : 'Không thời hạn') : (d || '') },
           { data: 'status', title: 'Trạng thái', render: (d, t) => t === 'display' ? badge(d) : d },
           { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, x) => `<div class="table-actions slots-5">
-            ${canEdit && x.status === 'Active' ? '<button class="action-icon assign-icon" data-action="collect" title="Collect rent"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            <button class="action-icon view-icon" data-action="view" title="Tenancy 360"><i class="fas fa-eye"></i></button>
+            ${canEdit && x.status === 'Active' ? '<button class="action-icon assign-icon" data-action="collect" title="Thu tiền thuê"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            <button class="action-icon view-icon" data-action="view" title="Chi tiết HĐ 360"><i class="fas fa-eye"></i></button>
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo người thuê"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
-            ${all && x.status === 'Active' ? '<button class="action-icon edit-icon" data-action="renew" title="Renew contract"><i class="fas fa-file-signature"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            ${all && x.status === 'Active' ? '<button class="action-icon delete-icon" data-action="end" title="End tenancy"><i class="fas fa-door-open"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}</div>` }
+            ${all && x.status === 'Active' ? '<button class="action-icon edit-icon" data-action="renew" title="Gia hạn hợp đồng"><i class="fas fa-file-signature"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${all && x.status === 'Active' ? '<button class="action-icon delete-icon" data-action="end" title="Kết thúc hợp đồng"><i class="fas fa-door-open"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}</div>` }
         ],
         createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ khách hàng'); },
         order: []
@@ -1187,8 +1199,57 @@
       return (
         <>
           <KpiRow items={kpi} />
-          <Pipeline stages={ENUMS.tenancyStatus} counts={counts} active={stage} onPick={setStage} total={(rows || []).length} />
-          <div className="filters-section">
+
+          {/* 1. Desktop Pipeline */}
+          <div className="desk-pipeline-block">
+            <Pipeline stages={ENUMS.tenancyStatus} counts={counts} active={stage} onPick={setStage} total={(rows || []).length} />
+          </div>
+
+          {/* 2. Mobile Horizontally Scrollable Pipeline Pills */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (!stage ? 'active' : '')}
+                onClick={() => setStage('')}
+              >
+                <span>Tất cả</span>
+                <span className="mob-pill-badge">{(rows || []).length}</span>
+              </button>
+              {ENUMS.tenancyStatus.map((st) => {
+                const count = counts[st] || 0;
+                const col = STAGE_COLORS[st] || '#64748b';
+                return (
+                  <button
+                    key={st}
+                    className={'mob-pill ' + (stage === st ? 'active' : '') + (count === 0 ? ' empty' : '')}
+                    onClick={() => setStage(stage === st ? '' : st)}
+                  >
+                    <span className="mob-pill-dot" style={{ background: col }}></span>
+                    <span>{viEnum(st)}</span>
+                    <span className="mob-pill-badge">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Mobile Sub-Toolbar */}
+          <div className="mob-tenancies-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Hợp đồng {stage ? `· ${viEnum(stage)}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc hợp đồng thuê">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header"><h3><i className="fas fa-filter"></i> Filters</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '' }); setStage(''); }}><i className="fas fa-rotate-left"></i> Clear</button>
             </div>
@@ -1199,10 +1260,170 @@
               </div>
             </div>
           </div>
+
+          {/* 5. Data Section: Desktop Table & Mobile Luxury Cards */}
           <div className="data-section">
-            {loading ? <TableSkeleton rows={6} columns={8} /> : <div style={{ overflowX: 'auto' }}><table id="tenTable" className="display" style={{ width: '100%' }}></table></div>}
-            {!loading && (rows || []).length === 0 && <p style={{ color: '#789', textAlign: 'center', padding: 16 }}>Chưa có hợp đồng thuê — khi hoàn thành giao dịch thuê, hệ thống sẽ tự động tạo hợp đồng.</p>}
+            {/* Desktop Table View */}
+            <div className="desk-tenancies-table-wrap">
+              {loading ? <TableSkeleton rows={6} columns={8} /> : <div style={{ overflowX: 'auto' }}><table id="tenTable" className="display" style={{ width: '100%' }}></table></div>}
+              {!loading && (rows || []).length === 0 && <p style={{ color: '#789', textAlign: 'center', padding: 16 }}>Chưa có hợp đồng thuê — khi hoàn thành giao dịch thuê, hệ thống sẽ tự động tạo hợp đồng.</p>}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-tenancies-cards-container">
+              {loading ? (
+                <div className="mob-tenancies-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-tenancy-card-skeleton">
+                      <div className="sk-line w50"></div>
+                      <div className="sk-line w80"></div>
+                      <div className="sk-line w40"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-tenancies-empty-state">
+                  <div className="empty-circle"><i className="fas fa-house-user"></i></div>
+                  <h4>Chưa có hợp đồng phù hợp</h4>
+                  <p>Hợp đồng thuê được tự động sinh ra khi hoàn thành giao dịch cho thuê</p>
+                </div>
+              ) : (
+                visible.map((t) => {
+                  const initial = (t.tenantName || 'T').trim().charAt(0).toUpperCase();
+                  const isExpiring = expSoon(t);
+                  const lastPayment = (t.rentLog || []).slice(-1)[0];
+                  return (
+                    <div key={t.id} className={'mob-tenancy-card status-' + (t.status || '').toLowerCase()}>
+                      {/* HÀNG 1: Mã BĐS & Trạng thái */}
+                      <div className="mob-tenancy-header-row">
+                        <div className="mob-tenancy-ref-box">
+                          <span className="prop-ref">{t.propertyRef || '#' + (t.propertyId || '—')}</span>
+                          <span className="mob-tenancy-type-badge">HĐ Thuê</span>
+                          {isExpiring && <span className="mob-expiring-badge">≤ 30 ngày</span>}
+                        </div>
+                        <Badge s={t.status} />
+                      </div>
+
+                      {/* HÀNG 2: Khách thuê & Tiêu đề BĐS */}
+                      <div className="mob-tenancy-parties-row">
+                        <div className="mob-tenancy-tenant-box" onClick={() => setViewingLead(t)}>
+                          <div className="mob-lead-avatar">{initial}</div>
+                          <div className="mob-tenancy-tenant-info">
+                            <div className="mob-tenancy-tenant-name">
+                              <strong>{t.tenantName || 'Chưa có tên'}</strong>
+                              <span className="mob-view-profile-hint"><i className="fas fa-address-card"></i> Hồ sơ</span>
+                            </div>
+                            <div className="mob-tenancy-tenant-phone">{t.tenantPhone || 'Chưa có SĐT'}</div>
+                          </div>
+                        </div>
+
+                        <div className="mob-tenancy-prop-title">
+                          <i className="fas fa-building"></i>
+                          <span>{t.propertyTitle || 'Bất động sản cho thuê'}</span>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 3: Bảng 4 chỉ số tài chính HĐ (Financial Grid) */}
+                      <div className="mob-tenancy-financial-grid">
+                        <div className="mob-tenancy-fin-tile">
+                          <span className="fin-label">Tiền thuê / tháng</span>
+                          <span className="fin-val rent-val">
+                            {pkrShort(t.monthlyRent)}
+                            <small className="due-day-hint">Hạn ngày {t.rentDueDay || 5}</small>
+                          </span>
+                        </div>
+                        <div className="mob-tenancy-fin-tile">
+                          <span className="fin-label">Đã thu (Tổng)</span>
+                          <span className="fin-val collected-val">
+                            {pkrShort(t.collected || 0)}
+                            <small className="last-pay-hint">{lastPayment ? lastPayment.month : 'Chưa thu'}</small>
+                          </span>
+                        </div>
+                        <div className="mob-tenancy-fin-tile">
+                          <span className="fin-label">Công nợ</span>
+                          <span className={'fin-val arrears-val ' + (t.arrears > 0 ? 'bad' : 'good')}>
+                            {t.arrears > 0 ? pkrShort(t.arrears) : '0 đ'}
+                          </span>
+                        </div>
+                        <div className="mob-tenancy-fin-tile">
+                          <span className="fin-label">Tiền đặt cọc</span>
+                          <span className="fin-val deposit-val">{pkrShort(t.securityDeposit || 0)}</span>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 4: Thời hạn & Nhân viên */}
+                      <div className="mob-tenancy-meta-info">
+                        <div className="mob-tenancy-dates">
+                          <i className="fas fa-calendar-days"></i> Thời hạn: <strong>{t.startDate || '—'}</strong> → <strong>{t.endDate || 'Không thời hạn'}</strong>
+                        </div>
+                        <div className="mob-tenancy-agent">
+                          <i className="fas fa-user-tie"></i> Phụ trách: <strong>{t.agent || 'Chưa phân công'}</strong>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 5: Các nút hành động 1-chạm */}
+                      <div className="mob-tenancy-actions">
+                        {canEdit && t.status === 'Active' && (
+                          <button className="mob-btn mob-btn-collect" onClick={() => onAction('collect', t)} title="Thu tiền thuê">
+                            <i className="fas fa-money-bill-wave"></i> Thu tiền
+                          </button>
+                        )}
+                        <button className="mob-btn mob-btn-view" onClick={() => onAction('view', t)} title="Hợp đồng thuê 360">
+                          <i className="fas fa-eye"></i> 360
+                        </button>
+                        <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', t)} title="Nhắn Zalo khách thuê">
+                          <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
+                            <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
+                            <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
+                            <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+                          </svg>
+                          Zalo
+                        </button>
+                        {all && t.status === 'Active' && (
+                          <button className="mob-btn mob-btn-renew" onClick={() => onAction('renew', t)} title="Gia hạn hợp đồng">
+                            <i className="fas fa-file-signature"></i>
+                          </button>
+                        )}
+                        {all && t.status === 'Active' && (
+                          <button className="mob-btn mob-btn-end" onClick={() => onAction('end', t)} title="Kết thúc hợp đồng">
+                            <i className="fas fa-door-open"></i>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
+
+          {/* 6. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc hợp đồng thuê</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm hợp đồng</label>
+                    <input className="filter-input" value={filters.search} placeholder="Người thuê, mã BĐS, nhân viên…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '' }); setStage(''); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Hợp đồng)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {modal && modal.type === 'collect' && <CollectRentModal ten={modal.ten} currentUser={currentUser} onClose={() => setModal(null)} onSaved={() => { setModal(null); refetch(); }} />}
           {modal && modal.type === 'renew' && <RenewTenancyModal ten={modal.ten} currentUser={currentUser} cfg={cfg} onClose={() => setModal(null)} onSaved={() => { setModal(null); refetch(); }} />}
           {modal && modal.type === 'end' && <EndTenancyModal ten={modal.ten} currentUser={currentUser} onClose={() => setModal(null)} onSaved={() => { setModal(null); refetch(); }} />}
