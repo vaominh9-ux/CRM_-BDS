@@ -21194,7 +21194,6 @@
     }
 
     // ============== Agreements — professional A4 documents from deals & tenancies ==============
-    // ONE html source (server buildAgreement) drives the preview iframe, browser print AND the PDF download
     function A4DocModal({ doc, docType, recId, currentUser, autoPrint, onClose }) {
       const frameRef = useRef(null);
       const [busy, setBusy] = useState(false);
@@ -21209,21 +21208,27 @@
           style = docObj.createElement('style');
           style.id = 'a4-edit-mode-style';
           style.textContent = `
-            body[contenteditable="true"] { cursor: text; }
+            body[contenteditable="true"] {
+              cursor: text !important;
+            }
+            body[contenteditable="true"] p, 
+            body[contenteditable="true"] td, 
+            body[contenteditable="true"] span, 
+            body[contenteditable="true"] strong, 
+            body[contenteditable="true"] h1, 
+            body[contenteditable="true"] h2, 
+            body[contenteditable="true"] h3 {
+              transition: background-color 0.15s ease, outline 0.15s ease;
+            }
             body[contenteditable="true"] p:hover, 
-            body[contenteditable="true"] td:hover, 
-            body[contenteditable="true"] div:hover,
-            body[contenteditable="true"] span:hover,
-            body[contenteditable="true"] b:hover,
-            body[contenteditable="true"] h1:hover,
-            body[contenteditable="true"] h2:hover,
-            body[contenteditable="true"] h3:hover {
+            body[contenteditable="true"] td:hover,
+            body[contenteditable="true"] strong:hover {
               outline: 1px dashed #0284c7 !important;
-              background-color: rgba(2, 132, 199, 0.03);
+              background-color: rgba(2, 132, 199, 0.04);
             }
             body[contenteditable="true"] *:focus {
               outline: 2px solid #0284c7 !important;
-              background-color: rgba(2, 132, 199, 0.07);
+              background-color: rgba(2, 132, 199, 0.08);
             }
             @media print {
               body, * { outline: none !important; background-color: transparent !important; }
@@ -21240,17 +21245,9 @@
         if (docObj && docObj.body) {
           injectEditStyles(docObj);
           docObj.body.contentEditable = next ? 'true' : 'false';
-          docObj.designMode = next ? 'on' : 'off';
           if (next) {
             docObj.body.addEventListener('input', () => setIsEdited(true), { once: true });
             docObj.body.focus();
-            Swal.fire({
-              icon: 'info',
-              title: 'Chế độ Chỉnh sửa trực tiếp',
-              text: 'Bạn có thể nhấp chuột trực tiếp vào bất kỳ dòng chữ, số tiền, tên người hoặc điều khoản nào để sửa đổi trước khi in.',
-              timer: 2500,
-              showConfirmButton: false
-            });
           }
         }
       };
@@ -21270,7 +21267,14 @@
           if (frame) {
             frame.srcDoc = doc.html;
             setIsEdited(false);
-            setIsEditing(false);
+            setTimeout(() => {
+              const docObj = frame.contentDocument || frame.contentWindow.document;
+              if (docObj && docObj.body) {
+                injectEditStyles(docObj);
+                docObj.body.contentEditable = 'true';
+                docObj.body.addEventListener('input', () => setIsEdited(true));
+              }
+            }, 200);
           }
         });
       };
@@ -21316,10 +21320,9 @@
         const docObj = frameRef.current && (frameRef.current.contentDocument || frameRef.current.contentWindow.document);
         if (docObj && docObj.body) {
           injectEditStyles(docObj);
-          if (isEditing) {
-            docObj.body.contentEditable = 'true';
-            docObj.designMode = 'on';
-          }
+          // Tự động bật chế độ chỉnh sửa trực tiếp để người dùng có thể nhấp chuột và gõ ngay
+          docObj.body.contentEditable = 'true';
+          docObj.body.addEventListener('input', () => setIsEdited(true));
         }
         if (autoPrint && !printed.current) {
           printed.current = true;
@@ -21335,12 +21338,12 @@
                 <h3 style={{ margin: 0 }}><i className="fas fa-file-signature" style={{ color: 'var(--navy-accent)' }}></i> {doc.title}</h3>
                 {isEditing && (
                   <span className="badge badge-warning" style={{ fontSize: 11, padding: '3px 8px' }}>
-                    <i className="fas fa-pen-to-square"></i> Đang chỉnh sửa
+                    <i className="fas fa-pen-to-square"></i> Soạn thảo trực tiếp
                   </span>
                 )}
                 {isEdited && (
                   <span className="badge badge-info" style={{ fontSize: 11, padding: '3px 8px' }}>
-                    <i className="fas fa-check"></i> Đã tùy biến
+                    <i className="fas fa-check"></i> Đã có thay đổi
                   </span>
                 )}
               </div>
@@ -21357,27 +21360,37 @@
                   title="Cho phép bấm trực tiếp vào văn bản để chỉnh sửa trước khi in"
                 >
                   <i className={'fas ' + (isEditing ? 'fa-lock-open' : 'fa-pen-to-square')}></i>
-                  {isEditing ? 'Đang bật sửa văn bản' : 'Chỉnh sửa trực tiếp'}
+                  {isEditing ? 'Đang mở khóa soạn thảo' : 'Khóa chỉnh sửa'}
                 </button>
 
                 {isEdited && (
-                  <button className="btn btn-secondary btn-sm" onClick={resetDoc} title="Đặt lại về văn bản gốc">
-                    <i className="fas fa-rotate-left"></i> Khôi phục gốc
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={resetDoc}
+                    title="Khôi phục lại nội dung ban đầu từ cơ sở dữ liệu"
+                  >
+                    <i className="fas fa-rotate-left"></i> Đặt lại bản gốc
                   </button>
                 )}
 
-                <button className="btn btn-primary btn-sm" onClick={doPrint} style={{ fontWeight: 700 }}>
-                  <i className="fas fa-print"></i> In văn bản (A4)
-                </button>
-
-                <button className="btn btn-secondary btn-sm" onClick={doPdf} disabled={busy}>
-                  <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-file-pdf')}></i> Tải tệp PDF
-                </button>
-
-                <div style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <i className="fas fa-circle-info" style={{ color: 'var(--navy-accent)' }}></i>
-                  <span>{isEditing ? 'Nhấp chuột vào bất kỳ chữ/số nào trên văn bản để sửa' : 'Chuẩn khổ in A4'}</span>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  <button className="btn btn-primary btn-sm" onClick={doPrint}>
+                    <i className="fas fa-print"></i> In văn bản (A4)
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={doPdf} disabled={busy}>
+                    <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-file-pdf')}></i>
+                    {busy ? 'Đang tạo PDF…' : 'Tải PDF'}
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={onClose}>
+                    Đóng
+                  </button>
                 </div>
+              </div>
+
+              {/* Hướng dẫn soạn thảo trực quan */}
+              <div style={{ fontSize: 12, color: '#475569', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6, padding: '6px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <i className="fas fa-circle-info" style={{ color: '#0284c7', fontSize: 14 }}></i>
+                <span><b>Mẹo:</b> Bạn có thể nhấp chuột trực tiếp vào bất kỳ dòng chữ, số tiền, tên người hoặc điều khoản nào trên trang A4 bên dưới để sửa đổi hoặc bổ sung thông tin trước khi in.</span>
               </div>
 
               {/* Editable Live A4 Preview Frame */}
@@ -21396,38 +21409,44 @@
       );
     }
 
+    const DEFAULT_CONTRACT_TEMPLATES_CATALOG = [
+      { key: 'rental', label: 'HĐ Thuê Bất Động Sản', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature', src: 'ten', hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn' },
+      { key: 'sale', label: 'HĐ Cọc Mua Bán', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract', src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc' },
+      { key: 'handover', label: 'Biên Bản Bàn Giao Hiện Trạng', shortLabel: 'Bàn Giao', icon: 'fa-clipboard-check', src: 'ten', hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị' },
+      { key: 'exclusive', label: 'HĐ Dịch Vụ Môi Giới Độc Quyền', shortLabel: 'MG Độc Quyền', icon: 'fa-handshake-angle', src: 'deal', hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông' },
+      { key: 'receipt', label: 'Phiếu Thu Giao Dịch', shortLabel: 'Phiếu Thu', icon: 'fa-receipt', src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại' },
+      { key: 'rentreceipt', label: 'Bảng Kê Tiền Thuê', shortLabel: 'Kê Tiền Thuê', icon: 'fa-file-invoice', src: 'ten', hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và tổng công nợ còn thiếu' },
+      { key: 'dues', label: 'Thông Báo Công Nợ', shortLabel: 'Báo Công Nợ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật' },
+      { key: 'invoice', label: 'Hóa Đơn Hoa Hồng', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất' }
+    ];
+
     // =========================================================================
     // MODAL QUẢN LÝ MẪU BIỂU MẪU & THẺ BIẾN THÔNG MINH (1-CLICK MERGE TAGS)
     // =========================================================================
     function ContractTemplatesManagerModal({ currentUser, onClose }) {
       const { data: tplRes, mutate } = useSWR('contractTemplates:all', () => gsRun('getContractTemplates', currentUser), SWR_LIVE);
-      const templates = (tplRes && tplRes.success && tplRes.data && tplRes.data.templates) || [
-        { key: 'rental', label: 'HĐ Thuê Bất Động Sản', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature', src: 'ten', hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn' },
-        { key: 'sale', label: 'HĐ Cọc Mua Bán', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract', src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc' },
-        { key: 'handover', label: 'Biên Bản Bàn Giao Hiện Trạng', shortLabel: 'Bàn Giao', icon: 'fa-clipboard-check', src: 'ten', hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị' },
-        { key: 'exclusive', label: 'HĐ Dịch Vụ Môi Giới Độc Quyền', shortLabel: 'MG Độc Quyền', icon: 'fa-handshake-angle', src: 'deal', hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông' },
-        { key: 'receipt', label: 'Phiếu Thu Giao Dịch', shortLabel: 'Phiếu Thu', icon: 'fa-receipt', src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại' },
-        { key: 'rentreceipt', label: 'Bảng Kê Tiền Thuê', shortLabel: 'Kê Tiền Thuê', icon: 'fa-file-invoice', src: 'ten', hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và tổng công nợ còn thiếu' },
-        { key: 'dues', label: 'Thông Báo Công Nợ', shortLabel: 'Báo Công Nợ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật' },
-        { key: 'invoice', label: 'Hóa Đơn Hoa Hồng', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất' }
-      ];
+      const templates = (tplRes && tplRes.success && tplRes.data && tplRes.data.templates) || DEFAULT_CONTRACT_TEMPLATES_CATALOG;
       const [selectedKey, setSelectedKey] = useState('rental');
       const [busy, setBusy] = useState(false);
-      const curTpl = templates.find((t) => t.key === selectedKey) || templates[0] || {};
-      const [title, setTitle] = useState('');
-      const [shortLabel, setShortLabel] = useState('');
-      const [hint, setHint] = useState('');
-      const [customTerms, setCustomTerms] = useState('');
+      
+      const curTpl = useMemo(() => {
+        return templates.find((t) => t.key === selectedKey) || templates[0] || {};
+      }, [templates, selectedKey]);
+
+      const [title, setTitle] = useState(curTpl.label || '');
+      const [shortLabel, setShortLabel] = useState(curTpl.shortLabel || '');
+      const [hint, setHint] = useState(curTpl.hint || '');
+      const [customTerms, setCustomTerms] = useState(curTpl.customTerms || '');
       const textareaRef = useRef(null);
 
+      // CHỈ cập nhật lại trường form khi người dùng CHUYỂN MẪU hoặc khi dữ liệu từ máy chủ tải về lần đầu
       useEffect(() => {
-        if (curTpl) {
-          setTitle(curTpl.label || '');
-          setShortLabel(curTpl.shortLabel || '');
-          setHint(curTpl.hint || '');
-          setCustomTerms(curTpl.customTerms || '');
-        }
-      }, [curTpl.key, curTpl]);
+        const found = templates.find((t) => t.key === selectedKey) || templates[0] || {};
+        setTitle(found.label || '');
+        setShortLabel(found.shortLabel || '');
+        setHint(found.hint || '');
+        setCustomTerms(found.customTerms || '');
+      }, [selectedKey, tplRes]);
 
       const MERGE_TAG_GROUPS = [
         {
