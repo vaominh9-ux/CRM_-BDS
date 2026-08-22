@@ -9489,6 +9489,232 @@
       body.dark-mode .mob-formula-usage {
         color: #94a3b8 !important;
       }
+
+      /* ===== PHÂN HỆ CHĂM SÓC TRÊN ĐIỆN THOẠI (FOLLOW-UPS UI) ===== */
+      .mob-followups-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .mob-followup-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        transition: all 0.2s ease !important;
+      }
+      body.dark-mode .mob-followup-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .mob-followup-card.is-overdue {
+        border-left: 4px solid #ef4444 !important;
+      }
+      .mob-followup-card.is-today {
+        border-left: 4px solid #f59e0b !important;
+      }
+      .mob-fu-head {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 8px !important;
+        gap: 8px !important;
+      }
+      .mob-fu-lead-info {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-width: 0 !important;
+        flex: 1 !important;
+        cursor: pointer !important;
+      }
+      .mob-fu-avatar {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #ffffff !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        flex-shrink: 0 !important;
+      }
+      .mob-fu-lead-text {
+        display: flex !important;
+        flex-direction: column !important;
+        min-width: 0 !important;
+      }
+      .mob-fu-lead-name {
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      body.dark-mode .mob-fu-lead-name {
+        color: #f1f5f9 !important;
+      }
+      .mob-fu-lead-phone {
+        font-size: 11.5px !important;
+        color: #64748b !important;
+      }
+      body.dark-mode .mob-fu-lead-phone {
+        color: #94a3b8 !important;
+      }
+      .mob-fu-badges {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+      }
+      .mob-fu-type-badge {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: #0284c7 !important;
+        background: #e0f2fe !important;
+        padding: 2px 7px !important;
+        border-radius: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      body.dark-mode .mob-fu-type-badge {
+        background: rgba(2, 132, 199, 0.2) !important;
+        color: #7dd3fc !important;
+      }
+      .mob-fu-meta-row {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        margin-bottom: 8px !important;
+        font-size: 11.5px !important;
+      }
+      .mob-fu-due-pill {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        color: #64748b !important;
+        background: #f1f5f9 !important;
+        padding: 2px 8px !important;
+        border-radius: 6px !important;
+        font-size: 11.5px !important;
+      }
+      body.dark-mode .mob-fu-due-pill {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #94a3b8 !important;
+      }
+      .mob-fu-due-pill.overdue {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+        font-weight: 700 !important;
+      }
+      body.dark-mode .mob-fu-due-pill.overdue {
+        background: rgba(220, 38, 38, 0.2) !important;
+        color: #fca5a5 !important;
+      }
+      .mob-fu-due-pill.today {
+        background: #fffbeb !important;
+        color: #d97706 !important;
+        font-weight: 700 !important;
+      }
+      body.dark-mode .mob-fu-due-pill.today {
+        background: rgba(217, 119, 6, 0.2) !important;
+        color: #fcd34d !important;
+      }
+      .mob-fu-overdue-tag {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        font-size: 9.5px !important;
+        padding: 1px 4px !important;
+        border-radius: 4px !important;
+        text-transform: uppercase !important;
+        margin-left: 4px !important;
+      }
+      .mob-fu-agent-pill {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        color: #64748b !important;
+        font-size: 11.5px !important;
+        margin-left: auto !important;
+      }
+      body.dark-mode .mob-fu-agent-pill {
+        color: #94a3b8 !important;
+      }
+      .mob-fu-notes-box {
+        background: #f8fafc !important;
+        border-radius: 8px !important;
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+        color: #334155 !important;
+        line-height: 1.4 !important;
+        margin-bottom: 10px !important;
+        display: flex !important;
+        gap: 6px !important;
+        border: 1px dashed #e2e8f0 !important;
+      }
+      body.dark-mode .mob-fu-notes-box {
+        background: rgba(15, 23, 42, 0.4) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .mob-fu-notes-box i {
+        color: #94a3b8 !important;
+        font-size: 10px !important;
+        margin-top: 2px !important;
+      }
+      .mob-fu-notes-box p {
+        margin: 0 !important;
+      }
+      .mob-fu-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .mob-fu-btn {
+        flex: 1 !important;
+        height: 34px !important;
+        border-radius: 8px !important;
+        border: none !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+      }
+      .mob-fu-btn.call {
+        background: #eff6ff !important;
+        color: #2563eb !important;
+      }
+      .mob-fu-btn.zalo {
+        background: #e0f2fe !important;
+        color: #0284c7 !important;
+      }
+      .mob-fu-btn.done {
+        background: #f0fdf4 !important;
+        color: #16a34a !important;
+      }
+      .mob-fu-btn.edit {
+        background: #f1f5f9 !important;
+        color: #475569 !important;
+      }
+      .mob-fu-btn.del {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+        flex: 0 0 34px !important;
+      }
+      body.dark-mode .mob-fu-btn.call { background: rgba(37, 99, 235, 0.2) !important; color: #93c5fd !important; }
+      body.dark-mode .mob-fu-btn.zalo { background: rgba(2, 132, 199, 0.2) !important; color: #7dd3fc !important; }
+      body.dark-mode .mob-fu-btn.done { background: rgba(22, 163, 74, 0.2) !important; color: #86efac !important; }
+      body.dark-mode .mob-fu-btn.edit { background: rgba(255, 255, 255, 0.08) !important; color: #cbd5e1 !important; }
+      body.dark-mode .mob-fu-btn.del { background: rgba(220, 38, 38, 0.2) !important; color: #fca5a5 !important; }
     }
   
   </style>
@@ -14856,25 +15082,33 @@
       const [editing, setEditing] = useState(null);
       const [viewingLead, setViewingLead] = useState(null);
       const [stage, setStage] = useState(all ? '' : 'Due Now'); // agents land on what needs action today
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '', type: '', agent: '' });
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
-      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
 
-      const FU_STAGES = ['Due Now', 'Upcoming', 'Completed', 'Cancelled'];
+      const FU_STAGES = [
+        { key: '', label: 'Tất cả' },
+        { key: 'Due Now', label: 'Cần làm ngay' },
+        { key: 'Upcoming', label: 'Sắp tới' },
+        { key: 'Completed', label: 'Đã xong' },
+        { key: 'Cancelled', label: 'Đã hủy' }
+      ];
       const stageOf = (f) => f.status === 'Cancelled' ? 'Cancelled' : f.status === 'Completed' ? 'Completed' : (isOverdue(f) || isDueToday(f) ? 'Due Now' : 'Upcoming');
 
       const base = useMemo(() => (rows || []).filter((f) =>
         (!filters.type || f.type === filters.type) &&
         (!filters.agent || f.assignedAgent === filters.agent)
       ), [rows, filters.type, filters.agent]);
-      const counts = useMemo(() => { const o = {}; base.forEach((f) => { const s = stageOf(f); o[s] = (o[s] || 0) + 1; }); return o; }, [base]);
+      const counts = useMemo(() => { const o = { '': base.length }; base.forEach((f) => { const s = stageOf(f); o[s] = (o[s] || 0) + 1; }); return o; }, [base]);
       const visible = useMemo(() => (stage ? base.filter((f) => stageOf(f) === stage) : base), [base, stage]);
+      const activeFiltersCount = (filters.search ? 1 : 0) + (filters.type ? 1 : 0) + (filters.agent ? 1 : 0) + (stage ? 1 : 0);
 
       const kpi = useMemo(() => { const r = rows || []; return [
-        [r.filter((f) => f.status === 'Pending').length, 'Pending', 'fa-hourglass-half', 'bg-navy'],
-        [r.filter(isOverdue).length, 'Overdue', 'fa-triangle-exclamation', 'bg-danger'],
-        [r.filter(isDueToday).length, 'Due Today', 'fa-clock', 'bg-warning'],
-        [r.filter((f) => f.status === 'Completed').length, 'Completed', 'fa-circle-check', 'bg-success']
+        [r.filter((f) => f.status === 'Pending').length, 'Chờ xử lý', 'fa-hourglass-half', 'bg-navy'],
+        [r.filter(isOverdue).length, 'Quá hạn', 'fa-triangle-exclamation', 'bg-danger'],
+        [r.filter(isDueToday).length, 'Hôm nay', 'fa-clock', 'bg-warning'],
+        [r.filter((f) => f.status === 'Completed').length, 'Hoàn tất', 'fa-circle-check', 'bg-success']
       ]; }, [rows]);
 
       const downloadTemplate = () => downloadCSV('followups_template.csv',
@@ -14897,16 +15131,16 @@
         if (action === 'wa') { const n = String(f.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
         else if (action === 'done') {
           gsRun('updateFollowUp', { id: f.id, status: 'Completed' }, currentUser).then((res) => {
-            if (res && res.success) { Swal.fire({ icon: 'success', title: 'Marked completed', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
-            else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' });
+            if (res && res.success) { Swal.fire({ icon: 'success', title: 'Đã hoàn tất lịch chăm sóc!', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
+            else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' });
           });
         }
         else if (action === 'edit') { setEditing(f); setShowModal(true); }
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Delete follow-up #' + f.id + '?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+          Swal.fire({ icon: 'warning', title: 'Xóa lịch chăm sóc #' + f.id + '?', text: 'Hành động này không thể hoàn tác!', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteFollowUp', f.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
-              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+              else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Không thể xóa' }); }); });
         }
       };
 
@@ -14914,56 +15148,237 @@
       const tableRef = useDataTable('fuTable', rows === undefined ? null : visible, () => ({
         search: { search: filters.search },
         columns: [
-          { data: 'leadName', title: 'Lead', render: (d, t, f) => '<strong>' + esc(d) + '</strong><br><small style="color:#789">' + esc(f.leadPhone || '') + '</small>' },
-          { data: 'type', title: 'Type', render: (d, t) => t === 'display' ? '<i class="fas ' + (FU_ICONS[d] || 'fa-circle') + '" style="color:var(--navy-accent);margin-right:6px"></i>' + esc(d) : d },
-          { data: 'notes', title: 'Notes', render: (d) => esc(String(d || '').substr(0, 70)) + (String(d || '').length > 70 ? '…' : '') },
-          { data: 'dueAt', title: 'Due', render: (d, t, f) => t === 'display'
-              ? (d ? fmtDT(d) + (isOverdue(f) ? ' ' + badge('Overdue') : '') : '<small style="color:#999">logged activity</small>') : (d || '') },
-          { data: 'status', title: 'Status', render: (d, t) => t === 'display' ? badge(d) : d },
-          { data: 'assignedAgent', title: 'Agent', render: (d) => esc(d || '—') },
-          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-4', width: '140px', render: (d, t, f) => `<div class="table-actions slots-4">
-            ${canEdit && f.status === 'Pending' ? '<button class="action-icon view-icon" data-action="done" title="Mark completed"><i class="fas fa-check"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+          { data: 'leadName', title: 'Khách hàng', render: (d, t, f) => '<strong>' + esc(d) + '</strong><br><small style="color:#789">' + esc(f.leadPhone || '') + '</small>' },
+          { data: 'type', title: 'Loại', render: (d, t) => t === 'display' ? '<i class="fas ' + (FU_ICONS[d] || 'fa-circle') + '" style="color:var(--navy-accent);margin-right:6px"></i>' + esc(viEnum(d) || d) : d },
+          { data: 'notes', title: 'Ghi chú', render: (d) => esc(String(d || '').substr(0, 70)) + (String(d || '').length > 70 ? '…' : '') },
+          { data: 'dueAt', title: 'Hạn chót', render: (d, t, f) => t === 'display'
+              ? (d ? fmtDT(d) + (isOverdue(f) ? ' ' + badge('Overdue') : '') : '<small style="color:#999">đã ghi nhận</small>') : (d || '') },
+          { data: 'status', title: 'Trạng thái', render: (d, t) => t === 'display' ? badge(d) : d },
+          { data: 'assignedAgent', title: 'Nhân viên', render: (d) => esc(d || '—') },
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-4', width: '140px', render: (d, t, f) => `<div class="table-actions slots-4">
+            ${canEdit && f.status === 'Pending' ? '<button class="action-icon view-icon" data-action="done" title="Đánh dấu hoàn tất"><i class="fas fa-check"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo khách hàng"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
-            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
-            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Sửa"><i class="fas fa-edit"></i></button>' : ''}
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
         createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ khách hàng'); },
         order: []
       }), onAction, [canEdit, canDel], (record) => setViewingLead(record));
-      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
+      useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]);
 
       return (
-        <>
+        <div className="followups-page-wrapper">
           <KpiRow items={kpi} />
-          <Pipeline stages={FU_STAGES} counts={counts} active={stage} onPick={setStage} total={base.length} />
-          <div className="filters-section">
+
+          {/* Dải viên thuốc phân nhóm lướt ngang */}
+          <div className="mob-pipeline-bar" style={{ marginBottom: 10 }}>
+            <div className="mob-pills-scroll">
+              {FU_STAGES.map((s) => (
+                <button
+                  key={s.key}
+                  className={'mob-pill ' + (stage === s.key ? 'active' : '')}
+                  onClick={() => setStage(s.key)}
+                >
+                  <span>{s.label}</span>
+                  <span className="mob-pill-count">{counts[s.key] || 0}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Thanh công cụ phụ di động (Mobile Sub-Toolbar) */}
+          <div className="mob-sub-toolbar">
+            <div className="mob-sub-toolbar-title">
+              <strong>{visible.length}</strong> Lịch chăm sóc {stage ? '· ' + (FU_STAGES.find((x) => x.key === stage)?.label || stage) : ''}
+            </div>
+            <div className="mob-sub-toolbar-actions">
+              <button
+                className={'btn btn-sm ' + (activeFiltersCount > 0 ? 'btn-primary' : 'btn-secondary')}
+                onClick={() => setShowFilterDrawer(!showFilterDrawer)}
+              >
+                <i className="fas fa-filter"></i> Bộ lọc {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+              </button>
+              {canAdd && (
+                <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowModal(true); }}>
+                  <i className="fas fa-plus"></i> Thêm
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Filters Section */}
+          <div className="filters-section desktop-only-filters">
             <div className="filters-header">
-              <h3><i className="fas fa-filter"></i> Filters</h3>
+              <h3><i className="fas fa-filter"></i> Bộ lọc lịch chăm sóc</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); }}>
-                <i className="fas fa-rotate-left"></i> Clear
+                <i className="fas fa-rotate-left"></i> Xóa lọc
               </button>
             </div>
             <div className="filters-grid">
               <div className="filter-group">
-                <label><i className="fas fa-magnifying-glass"></i> Search</label>
-                <input className="filter-input" value={filters.search} placeholder="Lead, notes, agent…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
+                <input className="filter-input" value={filters.search} placeholder="Khách hàng, ghi chú, nhân viên…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
               </div>
-              <SearchableDropdown label="Type" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="All Types" />
-              {all && <SearchableDropdown label="Agent" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="All Agents" />}
+              <SearchableDropdown label="Loại tương tác" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Tất cả loại" />
+              {all && <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
             </div>
           </div>
+
+          {/* Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="modal-overlay mob-filter-drawer-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-drawer" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-filter-drawer-header">
+                  <h3><i className="fas fa-sliders"></i> Bộ lọc chăm sóc</h3>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-filter-drawer-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Từ khóa tìm kiếm</label>
+                    <input
+                      className="filter-input"
+                      value={filters.search}
+                      placeholder="Tên khách, SĐT, ghi chú..."
+                      onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <SearchableDropdown label="Loại tương tác" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Tất cả loại" />
+                  </div>
+                  {all && (
+                    <div className="form-group" style={{ marginBottom: 12 }}>
+                      <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />
+                    </div>
+                  )}
+                </div>
+                <div className="mob-filter-drawer-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); setShowFilterDrawer(false); }}
+                  >
+                    Xóa lọc
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    Áp dụng ({visible.length})
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Data Section (Desktop DataTable + Mobile Luxury Cards) */}
           <div className="data-section">
             <input type="file" id="fuCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'LeadPhone', 'bulkImportFollowUps', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
-            {loading ? <TableSkeleton rows={8} columns={7} /> : <div style={{ overflowX: 'auto' }}><table id="fuTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table View */}
+            <div className="desktop-only-table">
+              {loading ? <TableSkeleton rows={8} columns={7} /> : <div style={{ overflowX: 'auto' }}><table id="fuTable" className="display" style={{ width: '100%' }}></table></div>}
+            </div>
+
+            {/* Mobile Luxury Cards View */}
+            <div className="mobile-only-cards">
+              {loading ? (
+                <div className="mob-cards-skeleton">
+                  {[1, 2, 3, 4].map((i) => <div key={i} className="mob-card-skeleton"></div>)}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-empty-state">
+                  <i className="fas fa-calendar-xmark"></i>
+                  <p>Không có lịch chăm sóc nào phù hợp</p>
+                </div>
+              ) : (
+                <div className="mob-followups-list">
+                  {visible.map((f) => {
+                    const overdue = isOverdue(f);
+                    const dueToday = isDueToday(f);
+                    const cleanPhone = String(f.leadPhone || '').replace(/\D/g, '');
+                    return (
+                      <div key={f.id} className={'mob-followup-card ' + (overdue ? 'is-overdue' : dueToday ? 'is-today' : '')}>
+                        {/* HÀNG 1: Avatar + Tên khách + Loại + Trạng thái */}
+                        <div className="mob-fu-head">
+                          <div className="mob-fu-lead-info" onClick={() => setViewingLead(f)}>
+                            <div className="mob-fu-avatar" style={{ background: getLeadAvatarColor(f.leadName || 'U') }}>
+                              {getLeadInitials(f.leadName || 'U')}
+                            </div>
+                            <div className="mob-fu-lead-text">
+                              <span className="mob-fu-lead-name">{f.leadName || 'Khách hàng #' + f.leadId}</span>
+                              <span className="mob-fu-lead-phone">{f.leadPhone || 'Chưa có SĐT'}</span>
+                            </div>
+                          </div>
+                          <div className="mob-fu-badges">
+                            <span className="mob-fu-type-badge">
+                              <i className={'fas ' + (FU_ICONS[f.type] || 'fa-circle')}></i> {viEnum(f.type) || f.type}
+                            </span>
+                            <Badge s={f.status} />
+                          </div>
+                        </div>
+
+                        {/* HÀNG 2: Thời hạn & Người phụ trách */}
+                        <div className="mob-fu-meta-row">
+                          <div className={'mob-fu-due-pill ' + (overdue ? 'overdue' : dueToday ? 'today' : '')}>
+                            <i className={'fas ' + (overdue ? 'fa-triangle-exclamation' : 'fa-clock')}></i>
+                            <span>{f.dueAt ? fmtDT(f.dueAt) : 'Đã ghi nhận hoạt động'}</span>
+                            {overdue && <span className="mob-fu-overdue-tag">Quá hạn</span>}
+                          </div>
+                          {f.assignedAgent && (
+                            <div className="mob-fu-agent-pill">
+                              <i className="fas fa-user-tie"></i> {f.assignedAgent}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* HÀNG 3: Nội dung ghi chú chăm sóc */}
+                        {f.notes && (
+                          <div className="mob-fu-notes-box">
+                            <i className="fas fa-quote-left"></i>
+                            <p>{f.notes}</p>
+                          </div>
+                        )}
+
+                        {/* HÀNG 4: Thanh nút hành động 1-chạm */}
+                        <div className="mob-fu-actions">
+                          {cleanPhone && (
+                            <a href={'tel:' + cleanPhone} className="mob-fu-btn call" title="Gọi điện">
+                              <i className="fas fa-phone"></i> <span>Gọi</span>
+                            </a>
+                          )}
+                          {cleanPhone && (
+                            <button className="mob-fu-btn zalo" onClick={() => onAction('wa', f)} title="Nhắn Zalo">
+                              <i className="fas fa-comment-dots"></i> <span>Zalo</span>
+                            </button>
+                          )}
+                          {canEdit && f.status === 'Pending' && (
+                            <button className="mob-fu-btn done" onClick={() => onAction('done', f)} title="Đánh dấu xong">
+                              <i className="fas fa-circle-check"></i> <span>Xong</span>
+                            </button>
+                          )}
+                          {canEdit && (
+                            <button className="mob-fu-btn edit" onClick={() => onAction('edit', f)} title="Chỉnh sửa">
+                              <i className="fas fa-pen"></i> <span>Sửa</span>
+                            </button>
+                          )}
+                          {canDel && (
+                            <button className="mob-fu-btn del" onClick={() => onAction('delete', f)} title="Xóa">
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
+
           {showModal && (
             <FollowUpModal fu={editing} currentUser={currentUser} role={role} lookups={lookups}
                            onClose={() => { setShowModal(false); setEditing(null); }}
                            onSaved={() => { setShowModal(false); setEditing(null); mutate(); swrMutate('dash:stats'); }} />
           )}
           {viewingLead && <CrossModuleLeadModal source={viewingLead} currentUser={currentUser} role={role} perms={perms} lookups={lookups} onClose={() => setViewingLead(null)} />}
-        </>
+        </div>
       );
     }
 

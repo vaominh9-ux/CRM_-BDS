@@ -5309,6 +5309,232 @@
       body.dark-mode .mob-formula-usage {
         color: #94a3b8 !important;
       }
+
+      /* ===== PHÂN HỆ CHĂM SÓC TRÊN ĐIỆN THOẠI (FOLLOW-UPS UI) ===== */
+      .mob-followups-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .mob-followup-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        transition: all 0.2s ease !important;
+      }
+      body.dark-mode .mob-followup-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .mob-followup-card.is-overdue {
+        border-left: 4px solid #ef4444 !important;
+      }
+      .mob-followup-card.is-today {
+        border-left: 4px solid #f59e0b !important;
+      }
+      .mob-fu-head {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 8px !important;
+        gap: 8px !important;
+      }
+      .mob-fu-lead-info {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-width: 0 !important;
+        flex: 1 !important;
+        cursor: pointer !important;
+      }
+      .mob-fu-avatar {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #ffffff !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        flex-shrink: 0 !important;
+      }
+      .mob-fu-lead-text {
+        display: flex !important;
+        flex-direction: column !important;
+        min-width: 0 !important;
+      }
+      .mob-fu-lead-name {
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      body.dark-mode .mob-fu-lead-name {
+        color: #f1f5f9 !important;
+      }
+      .mob-fu-lead-phone {
+        font-size: 11.5px !important;
+        color: #64748b !important;
+      }
+      body.dark-mode .mob-fu-lead-phone {
+        color: #94a3b8 !important;
+      }
+      .mob-fu-badges {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+      }
+      .mob-fu-type-badge {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: #0284c7 !important;
+        background: #e0f2fe !important;
+        padding: 2px 7px !important;
+        border-radius: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      body.dark-mode .mob-fu-type-badge {
+        background: rgba(2, 132, 199, 0.2) !important;
+        color: #7dd3fc !important;
+      }
+      .mob-fu-meta-row {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        margin-bottom: 8px !important;
+        font-size: 11.5px !important;
+      }
+      .mob-fu-due-pill {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        color: #64748b !important;
+        background: #f1f5f9 !important;
+        padding: 2px 8px !important;
+        border-radius: 6px !important;
+        font-size: 11.5px !important;
+      }
+      body.dark-mode .mob-fu-due-pill {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #94a3b8 !important;
+      }
+      .mob-fu-due-pill.overdue {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+        font-weight: 700 !important;
+      }
+      body.dark-mode .mob-fu-due-pill.overdue {
+        background: rgba(220, 38, 38, 0.2) !important;
+        color: #fca5a5 !important;
+      }
+      .mob-fu-due-pill.today {
+        background: #fffbeb !important;
+        color: #d97706 !important;
+        font-weight: 700 !important;
+      }
+      body.dark-mode .mob-fu-due-pill.today {
+        background: rgba(217, 119, 6, 0.2) !important;
+        color: #fcd34d !important;
+      }
+      .mob-fu-overdue-tag {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        font-size: 9.5px !important;
+        padding: 1px 4px !important;
+        border-radius: 4px !important;
+        text-transform: uppercase !important;
+        margin-left: 4px !important;
+      }
+      .mob-fu-agent-pill {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        color: #64748b !important;
+        font-size: 11.5px !important;
+        margin-left: auto !important;
+      }
+      body.dark-mode .mob-fu-agent-pill {
+        color: #94a3b8 !important;
+      }
+      .mob-fu-notes-box {
+        background: #f8fafc !important;
+        border-radius: 8px !important;
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+        color: #334155 !important;
+        line-height: 1.4 !important;
+        margin-bottom: 10px !important;
+        display: flex !important;
+        gap: 6px !important;
+        border: 1px dashed #e2e8f0 !important;
+      }
+      body.dark-mode .mob-fu-notes-box {
+        background: rgba(15, 23, 42, 0.4) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .mob-fu-notes-box i {
+        color: #94a3b8 !important;
+        font-size: 10px !important;
+        margin-top: 2px !important;
+      }
+      .mob-fu-notes-box p {
+        margin: 0 !important;
+      }
+      .mob-fu-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .mob-fu-btn {
+        flex: 1 !important;
+        height: 34px !important;
+        border-radius: 8px !important;
+        border: none !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+      }
+      .mob-fu-btn.call {
+        background: #eff6ff !important;
+        color: #2563eb !important;
+      }
+      .mob-fu-btn.zalo {
+        background: #e0f2fe !important;
+        color: #0284c7 !important;
+      }
+      .mob-fu-btn.done {
+        background: #f0fdf4 !important;
+        color: #16a34a !important;
+      }
+      .mob-fu-btn.edit {
+        background: #f1f5f9 !important;
+        color: #475569 !important;
+      }
+      .mob-fu-btn.del {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+        flex: 0 0 34px !important;
+      }
+      body.dark-mode .mob-fu-btn.call { background: rgba(37, 99, 235, 0.2) !important; color: #93c5fd !important; }
+      body.dark-mode .mob-fu-btn.zalo { background: rgba(2, 132, 199, 0.2) !important; color: #7dd3fc !important; }
+      body.dark-mode .mob-fu-btn.done { background: rgba(22, 163, 74, 0.2) !important; color: #86efac !important; }
+      body.dark-mode .mob-fu-btn.edit { background: rgba(255, 255, 255, 0.08) !important; color: #cbd5e1 !important; }
+      body.dark-mode .mob-fu-btn.del { background: rgba(220, 38, 38, 0.2) !important; color: #fca5a5 !important; }
     }
   
   
