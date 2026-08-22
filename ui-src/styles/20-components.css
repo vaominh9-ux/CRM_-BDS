@@ -1668,6 +1668,7 @@
       .mob-filter-sheet,
       .mob-hub-overlay,
       .mob-nav-bar,
+      .mob-reports-view,
       .mobile-only-cards,
       .mobile-only-section,
       .mobile-only-table,
@@ -1676,6 +1677,7 @@
       }
 
       /* Hiển thị chuẩn xác các thành phần máy tính */
+      .desk-reports-view,
       .desk-pipeline-block,
       .desk-filters-section,
       .desk-filters-grid,

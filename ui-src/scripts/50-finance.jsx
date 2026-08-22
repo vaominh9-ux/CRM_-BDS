@@ -2487,44 +2487,431 @@
 
       if (loading) return <KpiSkeleton />;
       return (
-        <>
-          <div className="filters-section">
-            <div className="filters-header"><h3><i className="fas fa-calendar-days"></i> Kỳ báo cáo</h3>
-              <div className="report-periods">
-                {reportPeriods.map(chip)}
+        <div className="reports-page-wrapper">
+          {/* =========================================================
+              1. GIAO DIỆN MÁY TÍNH (DESKTOP REPORTS VIEW)
+              ========================================================= */}
+          <div className="desk-reports-view">
+            <div className="filters-section">
+              <div className="filters-header"><h3><i className="fas fa-calendar-days"></i> Kỳ báo cáo</h3>
+                <div className="report-periods">
+                  {reportPeriods.map(chip)}
+                </div>
+              </div>
+              <div className="filters-grid">
+                <div className="filter-group"><label><i className="fas fa-play"></i> Từ ngày</label>
+                  <input type="date" className="filter-input" value={range.from} onChange={(e) => setRange({ ...range, from: e.target.value })} /></div>
+                <div className="filter-group"><label><i className="fas fa-stop"></i> Đến ngày</label>
+                  <input type="date" className="filter-input" value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} /></div>
               </div>
             </div>
-            <div className="filters-grid">
-              <div className="filter-group"><label><i className="fas fa-play"></i> Từ ngày</label>
-                <input type="date" className="filter-input" value={range.from} onChange={(e) => setRange({ ...range, from: e.target.value })} /></div>
-              <div className="filter-group"><label><i className="fas fa-stop"></i> Đến ngày</label>
-                <input type="date" className="filter-input" value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} /></div>
+
+            <div className="rep-tabs">
+              {REPORTS.map((r) => (
+                <button key={r.key} className={'rep-tab' + (r.key === active.key ? ' on' : '')} onClick={() => setTab(r.key)}>
+                  <i className={'fas ' + r.icon}></i> {r.label}
+                  <span className="rep-tab-n">{r.rows.length}</span>
+                </button>
+              ))}
+            </div>
+
+            {active.sum && (
+              <div className="lte-kpi-grid">
+                {active.sum.map(([label, value, icon, color], i) => <InfoBox key={i} value={value} label={label} icon={icon} color={color} />)}
+              </div>
+            )}
+
+            <div className="data-section">
+              <div className="section-header">
+                <h2><i className={'fas ' + active.icon}></i> {active.label}</h2>
+                <span className="rep-hint"><i className="fas fa-circle-info"></i> {active.hint}</span>
+              </div>
+              <div style={{ overflowX: 'auto' }}><table id="reportTable" className="display" style={{ width: '100%' }}></table></div>
             </div>
           </div>
 
-          <div className="rep-tabs">
-            {REPORTS.map((r) => (
-              <button key={r.key} className={'rep-tab' + (r.key === active.key ? ' on' : '')} onClick={() => setTab(r.key)}>
-                <i className={'fas ' + r.icon}></i> {r.label}
-                <span className="rep-tab-n">{r.rows.length}</span>
-              </button>
-            ))}
-          </div>
-
-          {active.sum && (
-            <div className="lte-kpi-grid">
-              {active.sum.map(([label, value, icon, color], i) => <InfoBox key={i} value={value} label={label} icon={icon} color={color} />)}
+          {/* =========================================================
+              2. GIAO DIỆN ĐIỆN THOẠI (MOBILE REPORTS VIEW)
+              ========================================================= */}
+          <div className="mob-reports-view mobile-only-section">
+            {/* Thanh chọn kỳ báo cáo lướt ngang (Mobile Period Pills) */}
+            <div className="mob-pipeline-bar" style={{ marginBottom: 10 }}>
+              <div className="mob-pills-scroll">
+                {reportPeriods.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    className={'mob-pill ' + (activePeriod && activePeriod.key === p.key ? 'active' : '')}
+                    onClick={() => setRange({ from: p.from, to: p.to })}
+                  >
+                    <i className="fas fa-calendar-days"></i>
+                    <span>{p.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
 
-          <div className="data-section">
-            <div className="section-header">
-              <h2><i className={'fas ' + active.icon}></i> {active.label}</h2>
-              <span className="rep-hint"><i className="fas fa-circle-info"></i> {active.hint}</span>
+            {/* Bộ chọn ngày tùy chỉnh di động (Mobile Custom Date Range) */}
+            <div className="mob-reports-date-box">
+              <div className="mob-date-field">
+                <span className="mob-date-lbl"><i className="fas fa-play"></i> Từ:</span>
+                <input
+                  type="date"
+                  className="mob-date-input"
+                  value={range.from}
+                  onChange={(e) => setRange({ ...range, from: e.target.value })}
+                />
+              </div>
+              <div className="mob-date-field">
+                <span className="mob-date-lbl"><i className="fas fa-stop"></i> Đến:</span>
+                <input
+                  type="date"
+                  className="mob-date-input"
+                  value={range.to}
+                  onChange={(e) => setRange({ ...range, to: e.target.value })}
+                />
+              </div>
             </div>
-            <div style={{ overflowX: 'auto' }}><table id="reportTable" className="display" style={{ width: '100%' }}></table></div>
+
+            {/* Thanh danh mục báo cáo lướt ngang (Mobile Report Tabs) */}
+            <div className="mob-pipeline-bar" style={{ marginBottom: 12 }}>
+              <div className="mob-pills-scroll">
+                {REPORTS.map((r) => (
+                  <button
+                    key={r.key}
+                    className={'mob-pill ' + (r.key === active.key ? 'active' : '')}
+                    onClick={() => setTab(r.key)}
+                  >
+                    <i className={'fas ' + r.icon}></i>
+                    <span>{r.label}</span>
+                    <span className="mob-pill-count">{r.rows.length}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tổng quan chỉ số KPI (Summary Boxes) */}
+            {active.sum && (
+              <div className="mob-reports-kpi-grid">
+                {active.sum.map(([label, value, icon, color], i) => (
+                  <div key={i} className={'mob-rep-kpi-card ' + color}>
+                    <div className="mob-rep-kpi-icon"><i className={'fas ' + icon}></i></div>
+                    <div className="mob-rep-kpi-info">
+                      <span className="mob-rep-kpi-val">{value}</span>
+                      <span className="mob-rep-kpi-lbl">{label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Thanh tiêu đề báo cáo phụ */}
+            <div className="mob-sub-toolbar mob-reports-sub-toolbar">
+              <div className="mob-sub-toolbar-left">
+                <span className="mob-sub-count">
+                  <strong>{active.rows.length}</strong> {active.label}
+                </span>
+              </div>
+              <div className="mob-sub-toolbar-right">
+                <span className="mob-reports-hint-btn" title={active.hint}>
+                  <i className="fas fa-circle-info"></i>
+                </span>
+              </div>
+            </div>
+
+            {/* Danh sách thẻ báo cáo di động (Mobile Report Cards List) */}
+            <div className="mob-reports-list">
+              {active.rows.length === 0 ? (
+                <div className="mob-leads-empty-state" style={{ padding: '32px 16px', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0' }}>
+                  <div className="empty-circle"><i className={'fas ' + active.icon}></i></div>
+                  <h3 style={{ margin: '10px 0 4px', fontSize: 15, fontWeight: 700 }}>Chưa có dữ liệu</h3>
+                  <p style={{ margin: 0, fontSize: 12.5, color: '#64748b' }}>Không có dữ liệu trong khoảng thời gian đã chọn.</p>
+                </div>
+              ) : (
+                active.rows.map((row, idx) => (
+                  <div key={idx} className="mob-report-card">
+                    {tab === 'sales' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-handshake"></i>
+                            <strong>{row.propertyRef || `Giao dịch #${row.id || idx + 1}`}</strong>
+                            <span className="mob-rep-type-badge">{viEnum(row.dealType) || row.dealType}</span>
+                          </div>
+                          <span className="mob-rep-date"><i className="fas fa-calendar-check"></i> {fmtDate(row.closedAt)}</span>
+                        </div>
+                        <div className="mob-rep-card-body">
+                          <div className="mob-rep-row">
+                            <span className="mob-rep-lbl"><i className="fas fa-user"></i> Khách mua:</span>
+                            <span className="mob-rep-val font-semibold">{row.buyerName || '—'}</span>
+                          </div>
+                          <div className="mob-rep-row">
+                            <span className="mob-rep-lbl"><i className="fas fa-user-tie"></i> Nhân viên:</span>
+                            <span className="mob-rep-val">{row.agent || '—'}</span>
+                          </div>
+                          <div className="mob-rep-footer-finance">
+                            <div className="mob-rep-fin-col">
+                              <span className="mob-rep-fin-lbl">Giá trị giao dịch</span>
+                              <span className="mob-rep-fin-val price">{fmtPKR(row.dealAmount)}</span>
+                            </div>
+                            <div className="mob-rep-fin-col">
+                              <span className="mob-rep-fin-lbl">Hoa hồng</span>
+                              <span className="mob-rep-fin-val comm">{fmtPKR(row.commissionAmt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'source' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-bullhorn"></i>
+                            <strong>{row.source}</strong>
+                          </div>
+                          <span className="mob-rep-badge-rate">{row.conv}% chuyển đổi</span>
+                        </div>
+                        <div className="mob-rep-grid-stats">
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Tổng khách</span>
+                            <span className="val">{row.total}</span>
+                          </div>
+                          <div className="mob-rep-stat-box won">
+                            <span className="lbl">Thành công</span>
+                            <span className="val">{row.won}</span>
+                          </div>
+                          <div className="mob-rep-stat-box lost">
+                            <span className="lbl">Thất bại</span>
+                            <span className="val">{row.lost}</span>
+                          </div>
+                          <div className="mob-rep-stat-box open">
+                            <span className="lbl">Đang xử lý</span>
+                            <span className="val">{row.open}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'agents' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-user-tie"></i>
+                            <strong>{row.agent}</strong>
+                          </div>
+                          <span className="mob-rep-badge-rate">{row.won} chốt</span>
+                        </div>
+                        <div className="mob-rep-grid-stats">
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Tiềm năng</span>
+                            <span className="val">{row.leads}</span>
+                          </div>
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Lịch xem</span>
+                            <span className="val">{row.viewings}</span>
+                          </div>
+                          <div className="mob-rep-stat-box" style={{ gridColumn: 'span 2' }}>
+                            <span className="lbl">Tổng doanh số</span>
+                            <span className="val price">{fmtPKR(row.value)}</span>
+                          </div>
+                        </div>
+                        <div className="mob-rep-row" style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f1f5f9' }}>
+                          <span className="mob-rep-lbl"><i className="fas fa-percent"></i> Hoa hồng mang về:</span>
+                          <span className="mob-rep-val font-semibold comm">{fmtPKR(row.commission)}</span>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'ageing' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-building"></i>
+                            <strong>{row.referenceCode}</strong>
+                          </div>
+                          <span className={'mob-ageing-badge ' + (row.days > 90 ? 'danger' : 'normal')}>
+                            {row.days > 90 ? <><i className="fas fa-triangle-exclamation"></i> {row.days} ngày</> : `${row.days} ngày`}
+                          </span>
+                        </div>
+                        <div className="mob-rep-title-row">{row.title}</div>
+                        <div className="mob-rep-row">
+                          <span className="mob-rep-lbl"><i className="fas fa-sack-dollar"></i> Giá:</span>
+                          <span className="mob-rep-val font-semibold price">{pkrShort(row.price)}</span>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'portal' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-globe"></i>
+                            <strong>{row.referenceCode}</strong>
+                          </div>
+                          <span className="mob-rep-badge-rate">{row.rate != null ? `${row.rate}%` : '0%'}</span>
+                        </div>
+                        <div className="mob-rep-title-row">{row.title}</div>
+                        <div className="mob-rep-grid-stats">
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl"><i className="fas fa-eye"></i> Lượt xem</span>
+                            <span className="val">{row.views}</span>
+                          </div>
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl"><i className="fas fa-comments"></i> Yêu cầu tư vấn</span>
+                            <span className="val">{row.enq}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'rentroll' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-house-user"></i>
+                            <strong>{row.propertyRef}</strong>
+                          </div>
+                          <span className={'mob-arrears-badge ' + (row.arrears > 0 ? 'danger' : 'ok')}>
+                            {row.arrears > 0 ? `Nợ: ${fmtPKR(row.arrears)}` : 'Đã thanh toán'}
+                          </span>
+                        </div>
+                        <div className="mob-rep-row">
+                          <span className="mob-rep-lbl"><i className="fas fa-user"></i> Khách thuê:</span>
+                          <span className="mob-rep-val font-semibold">{row.tenantName}</span>
+                        </div>
+                        <div className="mob-rep-grid-stats">
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Tiền thuê / tháng</span>
+                            <span className="val price">{fmtPKR(row.rent)}</span>
+                          </div>
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Đã thu ({mm})</span>
+                            <span className="val comm">{fmtPKR(row.collected)}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'payouts' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-user-tie"></i>
+                            <strong>{row.agent}</strong>
+                          </div>
+                          <span className={'mob-arrears-badge ' + (row.payable > 0 ? 'danger' : 'ok')}>
+                            {row.payable > 0 ? `Còn phải trả: ${fmtPKR(row.payable)}` : 'Đã tất toán'}
+                          </span>
+                        </div>
+                        <div className="mob-rep-grid-stats">
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Tổng hoa hồng</span>
+                            <span className="val">{fmtPKR(row.earned)}</span>
+                          </div>
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Phần nhân viên</span>
+                            <span className="val comm">{fmtPKR(row.share)}</span>
+                          </div>
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Đã thanh toán</span>
+                            <span className="val">{fmtPKR(row.paidOut)}</span>
+                          </div>
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Phần công ty</span>
+                            <span className="val price">{fmtPKR(row.agency)}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'offers' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-scale-balanced"></i>
+                            <strong>{row.lead}</strong>
+                          </div>
+                          <span className="mob-rep-type-badge">{viEnum(row.status) || row.status}</span>
+                        </div>
+                        <div className="mob-rep-row">
+                          <span className="mob-rep-lbl"><i className="fas fa-phone"></i> SĐT:</span>
+                          <span className="mob-rep-val">{row.phone || '—'}</span>
+                        </div>
+                        <div className="mob-rep-row">
+                          <span className="mob-rep-lbl"><i className="fas fa-user-tag"></i> Bên đưa giá:</span>
+                          <span className="mob-rep-val">{viEnum(row.by) || row.by}</span>
+                        </div>
+                        <div className="mob-rep-footer-finance">
+                          <div className="mob-rep-fin-col">
+                            <span className="mob-rep-fin-lbl">Số tiền chào giá</span>
+                            <span className="mob-rep-fin-val price">{fmtPKR(row.amount)}</span>
+                          </div>
+                          <div className="mob-rep-fin-col">
+                            <span className="mob-rep-fin-lbl">Ngày chào</span>
+                            <span className="mob-rep-fin-val"><i className="fas fa-clock"></i> {fmtDate(row.date)}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'targets' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-bullseye"></i>
+                            <strong>{row.agent}</strong>
+                          </div>
+                          <span className={'mob-rep-badge-rate ' + (row.progress >= 100 ? 'won' : '')}>{row.progress}%</span>
+                        </div>
+                        <div className="mob-progress-bar-wrap" style={{ margin: '8px 0' }}>
+                          <div
+                            className="mob-progress-bar-fill"
+                            style={{
+                              width: Math.min(100, row.progress) + '%',
+                              background: row.progress >= 100 ? '#16a34a' : row.progress >= 50 ? '#0284c7' : '#d97706',
+                              height: 8,
+                              borderRadius: 4
+                            }}
+                          ></div>
+                        </div>
+                        <div className="mob-rep-grid-stats">
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Mục tiêu tháng</span>
+                            <span className="val">{fmtPKR(row.target)}</span>
+                          </div>
+                          <div className="mob-rep-stat-box">
+                            <span className="lbl">Giá trị đã chốt</span>
+                            <span className="val price">{fmtPKR(row.value)}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {tab === 'dupes' && (
+                      <>
+                        <div className="mob-rep-card-head">
+                          <div className="mob-rep-card-code">
+                            <i className="fas fa-clone"></i>
+                            <strong>Nghi trùng: {row.aRef} & {row.bRef}</strong>
+                          </div>
+                          <span className={'mob-arrears-badge ' + (row.crossAgent === 'Yes' ? 'danger' : 'normal')}>
+                            {row.crossAgent === 'Yes' ? 'Khác NV ⚠' : 'Cùng NV'}
+                          </span>
+                        </div>
+                        <div className="mob-rep-title-row">Tin A: {row.aTitle} ({row.aAgent})</div>
+                        <div className="mob-rep-title-row">Tin B: {row.bTitle} ({row.bAgent})</div>
+                        <div className="mob-rep-row" style={{ marginTop: 6, fontSize: 11.5, color: '#64748b' }}>
+                          <i className="fas fa-circle-info"></i> Trùng theo: {row.why}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </>
+        </div>
       );
     }
 
