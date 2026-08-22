@@ -1087,7 +1087,7 @@
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving} />
-          <div className="modal" style={{ maxWidth: 560 }}>
+          <div className="modal modal-fu-form">
             <div className="modal-header">
               <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-headset')}></i> {editing ? 'Sửa lịch chăm sóc #' + fu.id : 'Tạo lịch chăm sóc mới'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
@@ -1095,12 +1095,12 @@
             <div className="modal-body">
               <form onSubmit={submit}>
                 {!editing && (
-                  <SearchableDropdown label="Khách hàng tiềm năng *" icon="fas fa-user-tag"
+                  <SearchableDropdown label="Tiềm năng" icon="fas fa-user-tag"
                     options={leads.map((l) => ({ value: String(l.id), label: (l.fullName || 'Khách #' + l.id) + ' (' + (l.phone || 'Không có SĐT') + ') · ' + (viEnum(l.status) || l.status) }))}
-                    value={form.leadId} onChange={set('leadId')} placeholder="Tìm kiếm và chọn khách hàng…" required={true} />
+                    value={form.leadId} onChange={set('leadId')} placeholder="Tìm kiếm và chọn tiềm năng…" required={true} />
                 )}
                 <div className="form-grid">
-                  <SearchableDropdown label="Hình thức chăm sóc *" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={form.type} onChange={set('type')} placeholder="Chọn hình thức…" required={true} />
+                  <SearchableDropdown label="Hình thức chăm sóc" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={form.type} onChange={set('type')} placeholder="Chọn hình thức…" required={true} />
                   <div className="form-group">
                     <label><i className="fas fa-clock"></i> Thời hạn thực hiện <small style={{ color: '#94a3b8', textTransform: 'none' }}>(để trống = ghi nhận đã tương tác)</small></label>
                     <input type="datetime-local" value={form.dueAt} onChange={(e) => setForm((f) => ({ ...f, dueAt: e.target.value }))} className="filter-input" />
