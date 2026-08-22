@@ -1630,9 +1630,10 @@
         color: #f1f5f9 !important;
       }
 
-      /* ===== HỒ SƠ KHÁCH HÀNG 360 DI ĐỘNG (LUXURY MOBILE LEAD 360 MODAL) ===== */
+      /* ===== MODAL & FORM DI ĐỘNG (LUXURY MOBILE BOTTOM-SHEET MODALS) ===== */
       .modal.modal-lead360,
-      .modal.modal-customer-quick {
+      .modal.modal-customer-quick,
+      .modal.modal-lead-form {
         width: 100% !important;
         max-width: 100% !important;
         height: 94vh !important;
@@ -1646,7 +1647,8 @@
         animation: slideUp 0.25s ease !important;
       }
       .modal-lead360 .modal-header,
-      .modal-customer-quick .modal-header {
+      .modal-customer-quick .modal-header,
+      .modal-lead-form .modal-header {
         padding: 14px 16px !important;
         flex-shrink: 0 !important;
         position: sticky !important;
@@ -1654,16 +1656,61 @@
         z-index: 10 !important;
       }
       .modal-lead360 .modal-header h3,
-      .modal-customer-quick .modal-header h3 {
+      .modal-customer-quick .modal-header h3,
+      .modal-lead-form .modal-header h3 {
         font-size: 15px !important;
         font-weight: 700 !important;
       }
       .modal-lead360 .modal-body,
-      .modal-customer-quick .modal-body {
-        padding: 12px 14px 28px 14px !important;
+      .modal-customer-quick .modal-body,
+      .modal-lead-form .modal-body {
+        padding: 14px 16px 28px 14px !important;
         flex: 1 !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
+      }
+      .modal-lead-form .form-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .modal-lead-form .form-group {
+        margin-bottom: 0 !important;
+      }
+      .modal-lead-form label {
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+        margin-bottom: 5px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+      }
+      .modal-lead-form input,
+      .modal-lead-form select,
+      .modal-lead-form textarea {
+        font-size: 14px !important;
+        border-radius: 10px !important;
+      }
+      .modal-lead-form .form-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1.5fr !important;
+        gap: 10px !important;
+        margin-top: 18px !important;
+        padding-top: 14px !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      body.dark-mode .modal-lead-form .form-actions {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .modal-lead-form .form-actions .btn {
+        height: 42px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
       }
 
       /* Banner định danh khách hàng 360 */

@@ -647,65 +647,65 @@
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving} />
-          <div className="modal">
+          <div className="modal modal-lead-form">
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Edit Lead #' + lead.id : 'Add Lead'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Chỉnh sửa khách hàng #' + lead.id : 'Thêm khách hàng tiềm năng'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 <div className="form-grid">
                   <div className="form-group">
-                    <label><i className="fas fa-user"></i> Full Name *</label>
-                    <input value={form.fullName} onChange={setEv('fullName')} required />
+                    <label><i className="fas fa-user"></i> Họ và tên *</label>
+                    <input value={form.fullName} onChange={setEv('fullName')} required placeholder="Ví dụ: Nguyễn Văn An" />
                   </div>
                   <div className="form-group">
-                    <label><i className="fas fa-phone"></i> Điện thoại * <small style={{ color: '#999', textTransform: 'none' }}>(khóa định danh)</small></label>
-                    <input value={form.phone} onChange={setEv('phone')} required placeholder="+92300…" />
+                    <label><i className="fas fa-phone"></i> Điện thoại * <small style={{ color: '#94a3b8', textTransform: 'none' }}>(khóa định danh)</small></label>
+                    <input value={form.phone} onChange={setEv('phone')} required placeholder="0901234567" />
                   </div>
                   <div className="form-group">
                     <label><i className="fas fa-envelope"></i> Email</label>
-                    <input type="email" value={form.email} onChange={setEv('email')} />
+                    <input type="email" value={form.email} onChange={setEv('email')} placeholder="email@domain.com" />
                   </div>
-                  <SearchableDropdown label="Source" icon="fas fa-bullhorn" options={opts(ENUMS.leadSource)} value={form.source} onChange={set('source')} placeholder="Source…" required={true} />
-                  <SearchableDropdown label="Interest" icon="fas fa-hand-holding-dollar" options={opts(ENUMS.interestType)} value={form.interestType} onChange={set('interestType')} placeholder="Interest…" required={true} />
-                  <SearchableDropdown label="Interested Property" icon="fas fa-building"
+                  <SearchableDropdown label="Nguồn khách hàng" icon="fas fa-bullhorn" options={opts(ENUMS.leadSource)} value={form.source} onChange={set('source')} placeholder="Chọn nguồn…" required={true} />
+                  <SearchableDropdown label="Nhu cầu" icon="fas fa-hand-holding-dollar" options={opts(ENUMS.interestType)} value={form.interestType} onChange={set('interestType')} placeholder="Chọn nhu cầu…" required={true} />
+                  <SearchableDropdown label="Bất động sản quan tâm" icon="fas fa-building"
                     options={props.map((p) => ({ value: String(p.id), label: (p.referenceCode || '#' + p.id) + ' — ' + p.title }))}
-                    value={form.propertyId} onChange={set('propertyId')} placeholder="None / search…" />
-                  <SearchableDropdown label="Preferred Location" icon="fas fa-map-location-dot"
+                    value={form.propertyId} onChange={set('propertyId')} placeholder="Không chọn / Tìm kiếm…" />
+                  <SearchableDropdown label="Khu vực mong muốn" icon="fas fa-map-location-dot"
                     options={(lookups.locations || []).map((l) => ({ value: String(l.id), label: pathOf(l.id) }))}
-                    value={form.preferredLocationId} onChange={set('preferredLocationId')} placeholder="Any location" />
+                    value={form.preferredLocationId} onChange={set('preferredLocationId')} placeholder="Mọi khu vực" />
                   <div className="form-group">
-                    <label><i className="fas fa-money-bill"></i> Budget Min (VNĐ)</label>
-                    <input type="number" min="0" step="any" value={form.budgetMin} onChange={setEv('budgetMin')} />
+                    <label><i className="fas fa-money-bill"></i> Ngân sách tối thiểu (VNĐ)</label>
+                    <input type="number" min="0" step="any" value={form.budgetMin} onChange={setEv('budgetMin')} placeholder="Ví dụ: 1000000000" />
                   </div>
                   <div className="form-group">
-                    <label><i className="fas fa-money-bill-trend-up"></i> Budget Max (VNĐ)</label>
-                    <input type="number" min="0" step="any" value={form.budgetMax} onChange={setEv('budgetMax')} />
+                    <label><i className="fas fa-money-bill-trend-up"></i> Ngân sách tối đa (VNĐ)</label>
+                    <input type="number" min="0" step="any" value={form.budgetMax} onChange={setEv('budgetMax')} placeholder="Ví dụ: 3000000000" />
                   </div>
                   {all && (
-                    <SearchableDropdown label="Assigned Agent" icon="fas fa-user-tie"
+                    <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie"
                       options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
-                      value={form.assignedAgent} onChange={set('assignedAgent')} placeholder="Unassigned queue" />
+                      value={form.assignedAgent} onChange={set('assignedAgent')} placeholder="Hàng đợi chưa phân công" />
                   )}
                   {editing && (
-                    <SearchableDropdown label="Pipeline Status" icon="fas fa-flag" options={opts(ENUMS.leadStatus)} value={form.status} onChange={set('status')} placeholder="Status…" />
+                    <SearchableDropdown label="Giai đoạn / Trạng thái" icon="fas fa-flag" options={opts(ENUMS.leadStatus)} value={form.status} onChange={set('status')} placeholder="Trạng thái…" />
                   )}
                 </div>
                 {editing && form.status === 'Lost' && (
                   <div className="form-group">
-                    <label><i className="fas fa-circle-question"></i> Lost Reason *</label>
-                    <textarea rows="2" value={form.lostReason} onChange={setEv('lostReason')} placeholder="e.g. Budget too high — bought elsewhere" required></textarea>
+                    <label><i className="fas fa-circle-question"></i> Lý do thất bại *</label>
+                    <textarea rows="2" value={form.lostReason} onChange={setEv('lostReason')} placeholder="Ví dụ: Giá quá cao — đã mua chỗ khác" required></textarea>
                   </div>
                 )}
                 <div className="form-group">
                   <label><i className="fas fa-message"></i> Ghi chú / Nội dung trao đổi</label>
-                  <textarea rows="3" value={form.message} onChange={setEv('message')}></textarea>
+                  <textarea rows="3" value={form.message} onChange={setEv('message')} placeholder="Nhu cầu cụ thể của khách hàng..."></textarea>
                 </div>
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update Lead' : 'Add Lead'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Lưu thay đổi' : 'Thêm khách hàng'}</>}
                   </button>
                 </div>
               </form>
@@ -732,20 +732,20 @@
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving} />
-          <div className="modal" style={{ maxWidth: 420 }}>
+          <div className="modal modal-lead-form" style={{ maxWidth: 460 }}>
             <div className="modal-header">
-              <h3><i className="fas fa-user-plus"></i> Assign "{lead.fullName}"</h3>
+              <h3><i className="fas fa-user-plus"></i> Phân công "{lead.fullName}"</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
-                <SearchableDropdown label="Agent" icon="fas fa-user-tie"
+                <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie"
                   options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
-                  value={agent} onChange={setAgent} placeholder="Pick an agent…" required={true} />
+                  value={agent} onChange={setAgent} placeholder="Chọn nhân viên…" required={true} />
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving || !agent}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Assigning…</> : <><i className="fas fa-check"></i> Assign</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang phân công…</> : <><i className="fas fa-check"></i> Xác nhận</>}
                   </button>
                 </div>
               </form>
