@@ -2482,19 +2482,24 @@
         { key: 'Property', label: 'BĐS', icon: 'fa-building' },
         { key: 'Lead', label: 'Khách hàng', icon: 'fa-user-tag' },
         { key: 'Appointment', label: 'Lịch hẹn', icon: 'fa-calendar-check' },
+        { key: 'FollowUp', label: 'Chăm sóc', icon: 'fa-bell' },
         { key: 'Deal', label: 'Giao dịch', icon: 'fa-handshake' },
         { key: 'Tenancy', label: 'HĐ Thuê', icon: 'fa-house-user' },
-        { key: 'Owner', label: 'Chủ sở hữu', icon: 'fa-user-tie' }
+        { key: 'Owner', label: 'Chủ sở hữu', icon: 'fa-user-tie' },
+        { key: 'Location', label: 'Khu vực', icon: 'fa-map-location-dot' },
+        { key: 'Amenity', label: 'Tiện ích', icon: 'fa-list-check' }
       ];
 
       const TYPE_ICONS = {
         Property: 'fa-building',
         Lead: 'fa-user-tag',
         Appointment: 'fa-calendar-check',
+        FollowUp: 'fa-bell',
         Deal: 'fa-handshake',
         Tenancy: 'fa-house-user',
         Owner: 'fa-user-tie',
-        FollowUp: 'fa-bell'
+        Location: 'fa-map-location-dot',
+        Amenity: 'fa-list-check'
       };
 
       const counts = useMemo(() => {

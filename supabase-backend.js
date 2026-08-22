@@ -1182,6 +1182,76 @@ async function agreementPdf(args, jwt) {
   return buildAgreement(args, jwt);
 }
 
+async function getTrash(jwt) {
+  const p = await currentProfile(jwt);
+  if (p.role_key !== 'Admin') return fail('Chỉ Quản trị viên mới có quyền xem Thùng rác');
+
+  const [properties, leads, followUps, appointments, deals, tenancies, owners, locations, amenities] = await Promise.all([
+    adminSelect('properties', 'id, reference_code, title, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('leads', 'id, full_name, phone, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('follow_ups', 'id, type, notes, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('appointments', 'id, scheduled_at, lead_id, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('deals', 'id, buyer_name, deal_amount_vnd, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('tenancies', 'id, tenant_name, monthly_rent_vnd, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('owners', 'id, name, phone, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('locations', 'id, name, level, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc'),
+    adminSelect('amenities', 'id, name, deleted_at, updated_at', '&deleted_at=not.is.null&order=deleted_at.desc')
+  ]);
+
+  const out = [];
+  (properties || []).forEach(x => out.push({ sheet: 'PROPERTIES', type: 'Property', id: x.id, updated: x.deleted_at || x.updated_at, title: x.title ? `${x.reference_code ? x.reference_code + ' - ' : ''}${x.title}` : `#${x.id}` }));
+  (leads || []).forEach(x => out.push({ sheet: 'LEADS', type: 'Lead', id: x.id, updated: x.deleted_at || x.updated_at, title: `${x.full_name || 'Khách hàng'} (${x.phone || 'Không có SĐT'})` }));
+  (followUps || []).forEach(x => out.push({ sheet: 'FOLLOWUPS', type: 'FollowUp', id: x.id, updated: x.deleted_at || x.updated_at, title: `Lịch chăm sóc: ${x.type || 'Chăm sóc'} - ${x.notes || ''}` }));
+  (appointments || []).forEach(x => out.push({ sheet: 'APPOINTMENTS', type: 'Appointment', id: x.id, updated: x.deleted_at || x.updated_at, title: `Lịch xem: ${x.scheduled_at || `#${x.id}`}` }));
+  (deals || []).forEach(x => out.push({ sheet: 'DEALS', type: 'Deal', id: x.id, updated: x.deleted_at || x.updated_at, title: `Giao dịch: ${x.buyer_name || `#${x.id}`}` }));
+  (tenancies || []).forEach(x => out.push({ sheet: 'TENANCIES', type: 'Tenancy', id: x.id, updated: x.deleted_at || x.updated_at, title: `HĐ Thuê: ${x.tenant_name || `#${x.id}`}` }));
+  (owners || []).forEach(x => out.push({ sheet: 'OWNERS', type: 'Owner', id: x.id, updated: x.deleted_at || x.updated_at, title: `Chủ sở hữu: ${x.name || `#${x.id}`} (${x.phone || ''})` }));
+  (locations || []).forEach(x => out.push({ sheet: 'LOCATIONS', type: 'Location', id: x.id, updated: x.deleted_at || x.updated_at, title: `Khu vực: ${x.name || `#${x.id}`} (${x.level || ''})` }));
+  (amenities || []).forEach(x => out.push({ sheet: 'AMENITIES', type: 'Amenity', id: x.id, updated: x.deleted_at || x.updated_at, title: `Tiện ích: ${x.name || `#${x.id}`}` }));
+
+  out.sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
+  return ok({ data: out });
+}
+
+async function restoreRecord(args, jwt) {
+  const [sheetKey, rawId] = args;
+  const id = Number(rawId);
+  const p = await currentProfile(jwt);
+  if (p.role_key !== 'Admin') return fail('Chỉ Quản trị viên mới có quyền khôi phục bản ghi');
+
+  const SHEET_TO_TABLE = {
+    PROPERTIES: 'properties', Property: 'properties', properties: 'properties',
+    LEADS: 'leads', Lead: 'leads', leads: 'leads',
+    FOLLOWUPS: 'follow_ups', FollowUp: 'follow_ups', follow_ups: 'follow_ups',
+    APPOINTMENTS: 'appointments', Appointment: 'appointments', appointments: 'appointments',
+    DEALS: 'deals', Deal: 'deals', deals: 'deals',
+    TENANCIES: 'tenancies', Tenancy: 'tenancies', tenancies: 'tenancies',
+    OWNERS: 'owners', Owner: 'owners', owners: 'owners',
+    LOCATIONS: 'locations', Location: 'locations', locations: 'locations',
+    AMENITIES: 'amenities', Amenity: 'amenities', amenities: 'amenities'
+  };
+
+  const table = SHEET_TO_TABLE[sheetKey];
+  if (!table) return fail('Phân hệ không hợp lệ');
+
+  const rows = await adminSelect(table, 'id, deleted_at', `&id=eq.${id}&limit=1`);
+  if (!rows.length || !rows[0].deleted_at) return fail('Bản ghi không tồn tại trong thùng rác');
+
+  const body = {
+    deleted_at: null,
+    deleted_by: null,
+    updated_at: new Date().toISOString()
+  };
+  if (!['locations', 'amenities'].includes(table)) {
+    body.updated_by = p.id;
+  }
+
+  await patchRow(table, id, body, jwt);
+  if (table === 'properties') invalidatePortalCache();
+  await audit(jwt, 'Record Restored', `${table} #${id}`);
+  return ok({ message: 'Đã khôi phục bản ghi thành công!' });
+}
+
 async function run(method,args=[],authorization=''){
   if(!enabled) throw new Error('Supabase chưa được cấu hình trên máy chủ');
   if(method==='authenticateUser') return authenticateUser(args);
@@ -1195,7 +1265,7 @@ async function run(method,args=[],authorization=''){
   if(method==='buildAgreement') return buildAgreement(args,jwt);
   if(method==='agreementPdf') return agreementPdf(args,jwt);
   const readHandlers={
-    getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getAgencyBranding,getRbacMatrix
+    getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getAgencyBranding,getRbacMatrix,getTrash
   };
   const mutationHandlers={
     updateUserSettings,uploadProfileImage,uploadFile,saveAgencyBranding,toggleRbac,setAppConfig,
@@ -1204,13 +1274,13 @@ async function run(method,args=[],authorization=''){
     addFollowUp,updateFollowUp,deleteFollowUp,addAppointment,updateAppointment,deleteAppointment,completeAppointment,
     addDeal,updateDeal,deleteDeal,addDealPayment,markAgentPaid,
     collectRent,renewTenancy,endTenancy,addMaintenance,updateMaintenance,
-    addOwner,updateOwner,deleteOwner,addLocation,updateLocation,deleteLocation,addAmenity,updateAmenity,deleteAmenity
+    addOwner,updateOwner,deleteOwner,addLocation,updateLocation,deleteLocation,addAmenity,updateAmenity,deleteAmenity,
+    restoreRecord
   };
   if(readHandlers[method]) return readHandlers[method](jwt);
   if(mutationHandlers[method]) return mutationHandlers[method](args,jwt);
   if(method==='getDefaultTheme') return ok({id:'',vars:''});
   if(method==='getAiConfig') return ok({configured:false});
-  if(method==='getTrash') return ok({data:[]});
   return fail(`Phân hệ ${method} đang được chuyển sang Supabase`);
 }
 
