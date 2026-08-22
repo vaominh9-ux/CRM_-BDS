@@ -3231,22 +3231,17 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                             />
                           </div>
                         </div>
-
-                        <div className="tpl-editor-footnote">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>💡 <b>Cơ chế tự động phân trang A4:</b> Khi nội dung dài vượt quá 1 trang in A4, hệ thống sẽ tự động phân trang khi in/xuất PDF, hoặc bạn có thể nhấp <b>✂️ Ngắt trang A4</b> trên thanh công cụ để chủ động chia trang theo ý muốn.</span>
-                            <span style={{ fontWeight: 700, color: 'var(--navy-primary)', whiteSpace: 'nowrap', marginLeft: 16 }}>
-                              <i className="fas fa-file-contract"></i> Ước tính: {pageCount} trang A4
-                            </span>
-                          </div>
-                        </div>
                       </div>
                     )}
                   </div>
 
                   {/* Footer Actions */}
                   <div className="tpl-studio-footer">
-                    <div className="tpl-studio-footer-btns" style={{ marginLeft: 'auto' }}>
+                    <div className="tpl-studio-footer-status">
+                      <i className="fas fa-file-invoice" style={{ color: '#0284c7' }}></i>
+                      <span>Khổ in A4 chuẩn · Ước tính: {pageCount} trang in</span>
+                    </div>
+                    <div className="tpl-studio-footer-btns">
                       <button className="btn btn-secondary" onClick={onClose}>
                         Đóng
                       </button>
