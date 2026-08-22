@@ -1617,6 +1617,11 @@
       text-transform: uppercase;
     }
 
+    /* SweetAlert2 Popup Global Z-Index Override */
+    .swal2-container {
+      z-index: 999999 !important;
+    }
+
     /* ===== AdminLTE dashboard — small-box KPIs, info-box, lte-card (squared to match template) ===== */
     .dash-desktop-kpis { display: block; }
     .dash-mobile-kpis { display: none; }
@@ -11773,7 +11778,7 @@
             <div className="sidebar-logout">
               <button onClick={onLogout}>
                 <i className="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+                <span>Đăng xuất</span>
               </button>
             </div>
           </div>
@@ -11883,7 +11888,13 @@
                   <i className={`fas fa-${themeMode === 'light' ? 'moon' : 'sun'}`}></i>
                   <span>Chế độ {themeMode === 'light' ? 'Tối (Dark)' : 'Sáng (Light)'}</span>
                 </button>
-                <button className="mob-hub-ctrl-btn logout" onClick={onLogout}>
+                <button
+                  className="mob-hub-ctrl-btn logout"
+                  onClick={() => {
+                    onClose();
+                    onLogout();
+                  }}
+                >
                   <i className="fas fa-sign-out-alt"></i>
                   <span>Đăng xuất tài khoản</span>
                 </button>
@@ -22191,11 +22202,13 @@
       const handleLogout = () => {
         Swal.fire({
           icon: 'question',
-          title: 'Logout?',
-          text: 'Are you sure you want to logout?',
+          title: 'Đăng xuất?',
+          text: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
           showCancelButton: true,
-          confirmButtonColor: 'var(--navy-primary)',
-          confirmButtonText: 'Yes, Logout'
+          confirmButtonColor: '#001f3f',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: 'Đăng xuất',
+          cancelButtonText: 'Hủy'
         }).then((result) => {
           if (result.isConfirmed) {
             localStorage.removeItem('userSession');
@@ -22213,8 +22226,8 @@
 
             Swal.fire({
               icon: 'success',
-              title: 'Logged Out',
-              text: 'You have been logged out successfully.',
+              title: 'Đã đăng xuất',
+              text: 'Bạn đã đăng xuất thành công khỏi hệ thống.',
               timer: 1500,
               showConfirmButton: false
             });

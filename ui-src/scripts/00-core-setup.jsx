@@ -938,7 +938,7 @@
             <div className="sidebar-logout">
               <button onClick={onLogout}>
                 <i className="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+                <span>Đăng xuất</span>
               </button>
             </div>
           </div>
@@ -1048,7 +1048,13 @@
                   <i className={`fas fa-${themeMode === 'light' ? 'moon' : 'sun'}`}></i>
                   <span>Chế độ {themeMode === 'light' ? 'Tối (Dark)' : 'Sáng (Light)'}</span>
                 </button>
-                <button className="mob-hub-ctrl-btn logout" onClick={onLogout}>
+                <button
+                  className="mob-hub-ctrl-btn logout"
+                  onClick={() => {
+                    onClose();
+                    onLogout();
+                  }}
+                >
                   <i className="fas fa-sign-out-alt"></i>
                   <span>Đăng xuất tài khoản</span>
                 </button>

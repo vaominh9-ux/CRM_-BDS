@@ -1485,4 +1485,9 @@
       text-transform: uppercase;
     }
 
+    /* SweetAlert2 Popup Global Z-Index Override */
+    .swal2-container {
+      z-index: 999999 !important;
+    }
+
     

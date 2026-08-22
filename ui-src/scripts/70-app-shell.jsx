@@ -370,11 +370,13 @@
       const handleLogout = () => {
         Swal.fire({
           icon: 'question',
-          title: 'Logout?',
-          text: 'Are you sure you want to logout?',
+          title: 'Đăng xuất?',
+          text: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
           showCancelButton: true,
-          confirmButtonColor: 'var(--navy-primary)',
-          confirmButtonText: 'Yes, Logout'
+          confirmButtonColor: '#001f3f',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: 'Đăng xuất',
+          cancelButtonText: 'Hủy'
         }).then((result) => {
           if (result.isConfirmed) {
             localStorage.removeItem('userSession');
@@ -392,8 +394,8 @@
 
             Swal.fire({
               icon: 'success',
-              title: 'Logged Out',
-              text: 'You have been logged out successfully.',
+              title: 'Đã đăng xuất',
+              text: 'Bạn đã đăng xuất thành công khỏi hệ thống.',
               timer: 1500,
               showConfirmButton: false
             });
