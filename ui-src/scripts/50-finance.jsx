@@ -2552,6 +2552,8 @@
 
     function AboutView({ role }) {
       const { branding } = useAgencyBranding();
+      const [activeTab, setActiveTab] = useState('overview');
+      const [searchRule, setSearchRule] = useState('');
       const Y = () => <i className="fas fa-check text-success"></i>;
       const N = () => <i className="fas fa-times text-danger"></i>;
       const RBAC_ROWS = [
@@ -2624,78 +2626,234 @@
         ['Xử lý tin trùng', 'Thêm/sửa bị chặn và trả về tin phù hợp; có thể ghi đè và được ghi nhật ký. Khi nhập, dòng trùng bị bỏ qua và báo cáo', 'Biểu mẫu bất động sản và nhập CSV'],
         ['Lịch sử thay đổi trường', 'Mỗi lần cập nhật, hệ thống chỉ ghi trường thực sự có mặt và khác giá trị cũ dưới dạng {field, before, after}; tiền hiển thị theo VNĐ, mảng theo số lượng', 'updateProperty/Lead/Deal/Appointment/FollowUp → Nhật ký hoạt động']
       ];
+
+      const filteredFormulas = useMemo(() => {
+        const q = String(searchRule || '').trim().toLowerCase();
+        if (!q) return FORMULAS;
+        return FORMULAS.filter(([t, f, u]) => t.toLowerCase().includes(q) || f.toLowerCase().includes(q) || u.toLowerCase().includes(q));
+      }, [searchRule]);
+
       return (
-        <div className="about-section">
-          <div className="about-header">
-            <div className="about-logo"><BrandLogo logo={branding.logo} /></div>
-            <div className="about-title">
-              <h1>CRM và cổng thông tin bất động sản</h1>
-              <div className="about-dev">Nền tảng hai lớp — cổng tin đăng công khai và CRM nội bộ cho công ty</div>
+        <div className="about-section mob-about-page">
+          {/* HERO CARD: Brand, System Title & Infrastructure Badges */}
+          <div className="mob-about-hero-card">
+            <div className="mob-about-logo-wrap">
+              <BrandLogo logo={branding.logo} />
+            </div>
+            <div className="mob-about-hero-info">
+              <h1 className="mob-about-hero-title">{branding.name || 'Hệ thống CRM Bất Động Sản'}</h1>
+              <p className="mob-about-hero-sub">Nền tảng kiến trúc hai lớp: Cổng thông tin công khai &amp; CRM nội bộ</p>
+              <div className="mob-about-tags">
+                <span className="mob-about-tag"><i className="fas fa-database"></i> Supabase Cloud</span>
+                <span className="mob-about-tag"><i className="fas fa-shield-halved"></i> RLS &amp; JWT</span>
+                <span className="mob-about-tag"><i className="fas fa-bolt"></i> SWR Live Sync</span>
+              </div>
             </div>
           </div>
 
-          <div className="about-card">
-            <h2><i className="fas fa-circle-info"></i> Chức năng của ứng dụng</h2>
-            <p>Nền tảng quản lý toàn diện cho công ty bất động sản: khách truy cập xem tin đã công khai và gửi yêu cầu tư vấn mà không cần đăng nhập; thông tin liên hệ nhân viên được bảo vệ và mỗi yêu cầu được tạo thành một khách hàng tiềm năng. Nhân viên quản lý kho tin, quy trình khách hàng, lịch chăm sóc và lịch xem trong CRM. Hệ thống tự gửi email nhắc việc đến hạn và lịch xem ngày hôm sau theo giờ.</p>
-          </div>
-
-          <div className="about-card">
-            <h2><i className="fas fa-star"></i> Tính năng chính</h2>
-            <ul className="about-features">
-              <li><i className="fas fa-building"></i> Kho tin bất động sản và thư viện ảnh</li>
-              <li><i className="fas fa-globe"></i> Cổng công khai và biểu mẫu yêu cầu tư vấn</li>
-              <li><i className="fas fa-user-tag"></i> Quy trình khách hàng theo trạng thái</li>
-              <li><i className="fas fa-bell"></i> Nhắc lịch chăm sóc</li>
-              <li><i className="fas fa-calendar-check"></i> Đặt lịch xem và kiểm tra trùng lịch</li>
-              <li><i className="fas fa-map-location-dot"></i> Cây Thành phố → Khu vực → Khu dân cư</li>
-              <li><i className="fas fa-list-check"></i> Danh mục tiện ích được chuẩn hóa</li>
-              <li><i className="fas fa-chart-line"></i> Tổng quan theo phạm vi vai trò</li>
-              <li><i className="fas fa-user-shield"></i> Phân quyền và phạm vi dữ liệu cá nhân/toàn bộ</li>
-              <li><i className="fas fa-file-csv"></i> Nhập và xuất CSV ở các phân hệ</li>
-              <li><i className="fas fa-clock-rotate-left"></i> Nhật ký hoạt động đầy đủ</li>
-              <li><i className="fas fa-mobile-screen"></i> Giao diện đáp ứng, ưu tiên thiết bị di động</li>
-            </ul>
-          </div>
-
-          <div className="about-card">
-            <h2><i className="fas fa-user-shield"></i> Vai trò và phân quyền</h2>
-            <div className="about-table-wrapper">
-              <table className="about-roles-table">
-                <thead>
-                  <tr>
-                    <th>Phân hệ</th>
-                    <th><span className="role-badge role-admin">Quản trị viên</span></th>
-                    <th><span className="role-badge role-manager">Quản lý</span></th>
-                    <th><span className="role-badge role-agent">Nhân viên</span></th>
-                    <th><span className="role-badge" style={{ background: '#e9ecef', color: '#495057' }}>Công khai</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {RBAC_ROWS.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{c === 'Không' ? <N /> : c}</td>)}</tr>)}
-                </tbody>
-              </table>
-            </div>
-            <p style={{ fontSize: 13 }}><Y /> Phạm vi dữ liệu cá nhân của nhân viên được áp dụng tại lớp truy vấn phía máy chủ, không phụ thuộc giao diện. Ma trận chỉnh sửa trực tiếp nằm trong <strong>Vai trò và phân quyền</strong> (chỉ Quản trị viên); bảng trên mô tả cấu hình mặc định.</p>
-          </div>
-
-          <div className="about-card">
-            <h2><i className="fas fa-calculator"></i> Công thức và logic nghiệp vụ</h2>
-            <div className="about-table-wrapper">
-              <table className="about-roles-table">
-                <thead><tr><th>Nội dung</th><th>Công thức / Logic</th><th>Nơi sử dụng</th></tr></thead>
-                <tbody>
-                  {FORMULAS.map((r, i) => <tr key={i}><td>{r[0]}</td><td style={{ textAlign: 'left' }}>{r[1]}</td><td style={{ textAlign: 'left' }}>{r[2]}</td></tr>)}
-                </tbody>
-              </table>
+          {/* Dải viên thuốc lướt ngang */}
+          <div className="mob-pipeline-bar" style={{ marginBottom: 14 }}>
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (activeTab === 'overview' ? 'active' : '')}
+                onClick={() => setActiveTab('overview')}
+              >
+                <i className="fas fa-circle-info"></i>
+                <span>Tổng quan</span>
+              </button>
+              <button
+                className={'mob-pill ' + (activeTab === 'features' ? 'active' : '')}
+                onClick={() => setActiveTab('features')}
+              >
+                <i className="fas fa-star"></i>
+                <span>Tính năng chính</span>
+              </button>
+              <button
+                className={'mob-pill ' + (activeTab === 'rbac' ? 'active' : '')}
+                onClick={() => setActiveTab('rbac')}
+              >
+                <i className="fas fa-user-shield"></i>
+                <span>Phân quyền</span>
+              </button>
+              <button
+                className={'mob-pill ' + (activeTab === 'formulas' ? 'active' : '')}
+                onClick={() => setActiveTab('formulas')}
+              >
+                <i className="fas fa-calculator"></i>
+                <span>Quy tắc nghiệp vụ</span>
+                <span className="mob-pill-count">{FORMULAS.length}</span>
+              </button>
+              <button
+                className={'mob-pill ' + (activeTab === 'storage' ? 'active' : '')}
+                onClick={() => setActiveTab('storage')}
+              >
+                <i className="fas fa-database"></i>
+                <span>Hạ tầng</span>
+              </button>
             </div>
           </div>
 
-          <div className="about-card">
-            <h2><i className="fas fa-database"></i> Lưu trữ dữ liệu</h2>
-            <p>Dữ liệu nghiệp vụ, tài khoản, phân quyền và cấu hình thương hiệu được lưu tập trung trong Supabase. Ảnh bất động sản được quản lý trong Supabase Storage; mọi thao tác quan trọng đều tuân theo phân quyền và được ghi nhật ký hoạt động.</p>
-          </div>
+          {/* TAB 1: TỔNG QUAN */}
+          {activeTab === 'overview' && (
+            <div className="mob-about-card">
+              <div className="mob-about-card-header">
+                <div className="mob-about-header-icon blue"><i className="fas fa-circle-info"></i></div>
+                <div>
+                  <h3>Mục tiêu &amp; Chức năng hệ thống</h3>
+                  <p>Tổng quan mô hình vận hành và kiến trúc nền tảng</p>
+                </div>
+              </div>
+              <p style={{ fontSize: 13.5, color: '#334155', lineHeight: 1.6, margin: '0 0 14px' }}>
+                Nền tảng quản lý toàn diện cho công ty bất động sản: khách truy cập xem tin đã công khai và gửi yêu cầu tư vấn mà không cần đăng nhập; thông tin liên hệ nhân viên được bảo vệ và mỗi yêu cầu được tạo thành một khách hàng tiềm năng. Nhân viên quản lý kho tin, quy trình khách hàng, lịch chăm sóc và lịch xem trong CRM. Hệ thống tự gửi email nhắc việc đến hạn và lịch xem ngày hôm sau theo giờ.
+              </p>
+              <div className="mob-about-meta-grid">
+                <div className="mob-about-meta-box">
+                  <i className="fas fa-building"></i>
+                  <b>Sàn BĐS</b>
+                  <span>{branding.name || 'Công ty BĐS'}</span>
+                </div>
+                <div className="mob-about-meta-box">
+                  <i className="fas fa-phone"></i>
+                  <b>Hotline</b>
+                  <span>{branding.phone || '0901 234 567'}</span>
+                </div>
+                <div className="mob-about-meta-box">
+                  <i className="fas fa-location-dot"></i>
+                  <b>Trụ sở</b>
+                  <span>{branding.address || 'Việt Nam'}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
-          <div className="about-footer"><strong>{branding.name || 'Hệ thống CRM'}</strong><br /><span style={{ fontSize: 12, color: '#999' }}>CRM và cổng thông tin bất động sản</span></div>
+          {/* TAB 2: TÍNH NĂNG CHÍNH */}
+          {activeTab === 'features' && (
+            <div className="mob-about-card">
+              <div className="mob-about-card-header">
+                <div className="mob-about-header-icon amber"><i className="fas fa-star"></i></div>
+                <div>
+                  <h3>Tính năng nổi bật</h3>
+                  <p>12 mô-đun chức năng đồng bộ toàn diện</p>
+                </div>
+              </div>
+              <div className="mob-about-features-grid">
+                {[
+                  ['fa-building', 'Kho tin Bất động sản', 'Quản lý kho tin, hình ảnh HD, tiện ích và vị trí'],
+                  ['fa-globe', 'Cổng thông tin công khai', 'Đăng tải tin tức, tiếp nhận yêu cầu từ khách truy cập web'],
+                  ['fa-user-tag', 'Phễu khách hàng 360°', 'Quy trình từ Mới đến Thành công / Thất bại'],
+                  ['fa-bell', 'Nhắc lịch chăm sóc', 'Tự động thông báo và theo dõi lịch chăm sóc khách hàng'],
+                  ['fa-calendar-check', 'Đặt lịch xem BĐS', 'Kiểm tra trùng lịch thông minh và thông báo cho môi giới'],
+                  ['fa-map-location-dot', 'Khu vực 3 cấp', 'Thành phố → Quận/Huyện → Khu đô thị'],
+                  ['fa-list-check', 'Tiện ích chuẩn hóa', 'Hệ thống tiện ích phân loại trực quan'],
+                  ['fa-chart-line', 'Báo cáo & Tổng quan', 'Chỉ số tài chính, biểu đồ doanh thu thời gian thực'],
+                  ['fa-user-shield', 'Phân quyền nâng cao', 'Ma trận quyền hạn chi tiết đến từng hành động'],
+                  ['fa-file-csv', 'Nhập / Xuất Excel', 'Dễ dàng sao lưu và đồng bộ dữ liệu'],
+                  ['fa-clock-rotate-left', 'Nhật ký kiểm toán', 'Ghi vết 100% các thay đổi và người thực hiện'],
+                  ['fa-mobile-screen', 'Chuẩn giao diện di động', 'Trải nghiệm mượt mà, tối ưu cảm ứng trên Smartphone']
+                ].map(([ic, tit, desc], i) => (
+                  <div key={i} className="mob-feature-item">
+                    <div className="mob-feature-icon"><i className={'fas ' + ic}></i></div>
+                    <div className="mob-feature-text">
+                      <b>{tit}</b>
+                      <p>{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: PHÂN QUYỀN VAI TRÒ */}
+          {activeTab === 'rbac' && (
+            <div className="mob-about-card">
+              <div className="mob-about-card-header">
+                <div className="mob-about-header-icon purple"><i className="fas fa-user-shield"></i></div>
+                <div>
+                  <h3>Vai trò &amp; Ma trận phân quyền</h3>
+                  <p>Quyền hạn mặc định của Quản trị viên, Quản lý và Nhân viên</p>
+                </div>
+              </div>
+              <div className="mob-about-rbac-list">
+                {RBAC_ROWS.map((r, i) => (
+                  <div key={i} className="mob-rbac-card">
+                    <div className="mob-rbac-module-name">{r[0]}</div>
+                    <div className="mob-rbac-roles-grid">
+                      <div className="mob-rbac-role-col">
+                        <span className="mob-rbac-role-label admin">Quản trị viên</span>
+                        <div className="mob-rbac-role-val">{r[1]}</div>
+                      </div>
+                      <div className="mob-rbac-role-col">
+                        <span className="mob-rbac-role-label manager">Quản lý</span>
+                        <div className="mob-rbac-role-val">{r[2]}</div>
+                      </div>
+                      <div className="mob-rbac-role-col">
+                        <span className="mob-rbac-role-label agent">Nhân viên</span>
+                        <div className="mob-rbac-role-val">{r[3]}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: QUY TẮC & CÔNG THỨC NGHIỆP VỤ */}
+          {activeTab === 'formulas' && (
+            <div className="mob-about-card">
+              <div className="mob-about-card-header">
+                <div className="mob-about-header-icon emerald"><i className="fas fa-calculator"></i></div>
+                <div>
+                  <h3>Công thức &amp; Quy tắc nghiệp vụ</h3>
+                  <p>{FORMULAS.length} quy tắc bất biến đảm bảo tính toàn vẹn dữ liệu</p>
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 12 }}>
+                <input
+                  type="text"
+                  value={searchRule}
+                  onChange={(e) => setSearchRule(e.target.value)}
+                  placeholder="Tìm kiếm công thức, quy tắc nghiệp vụ..."
+                  className="filter-input"
+                />
+              </div>
+
+              <div className="mob-about-formulas-list">
+                {filteredFormulas.map(([t, f, u], i) => (
+                  <div key={i} className="mob-formula-card">
+                    <div className="mob-formula-title">
+                      <i className="fas fa-code"></i> {t}
+                    </div>
+                    <div className="mob-formula-code">{f}</div>
+                    <div className="mob-formula-usage">
+                      <i className="fas fa-location-arrow"></i> {u}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: LƯU TRỮ & HẠ TẦNG */}
+          {activeTab === 'storage' && (
+            <div className="mob-about-card">
+              <div className="mob-about-card-header">
+                <div className="mob-about-header-icon sky"><i className="fas fa-database"></i></div>
+                <div>
+                  <h3>Hạ tầng &amp; Cơ sở dữ liệu</h3>
+                  <p>Kiến trúc Supabase Cloud &amp; Bảo mật</p>
+                </div>
+              </div>
+              <p style={{ fontSize: 13.5, color: '#334155', lineHeight: 1.6 }}>
+                Dữ liệu nghiệp vụ, tài khoản, phân quyền và cấu hình thương hiệu được lưu tập trung trong <b>Supabase PostgreSQL</b>. Ảnh bất động sản được quản lý trong <b>Supabase Storage</b>; mọi thao tác quan trọng đều tuân theo phân quyền <b>Row Level Security (RLS)</b> và được ghi nhật ký hoạt động kiểm toán đầy đủ.
+              </p>
+            </div>
+          )}
+
+          <div className="about-footer">
+            <strong>{branding.name || 'Hệ thống CRM Bất Động Sản'}</strong><br />
+            <span style={{ fontSize: 12, color: '#94a3b8' }}>CRM và Cổng thông tin BĐS chuyên nghiệp</span>
+          </div>
         </div>
       );
     }
