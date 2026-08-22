@@ -2606,7 +2606,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
       const MERGE_TAG_GROUPS = [
         {
           key: 'partyA',
-          group: '👤 Bên A (Chủ sở hữu / Bên Bán)',
+          group: 'Bên A (Chủ sở hữu / Bên Bán)',
           icon: 'fa-user-tie',
           color: '#0284c7',
           tags: [
@@ -2618,7 +2618,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
         },
         {
           key: 'partyB',
-          group: '👥 Bên B (Khách thuê / Khách Mua)',
+          group: 'Bên B (Khách thuê / Khách Mua)',
           icon: 'fa-users',
           color: '#7c3aed',
           tags: [
@@ -2630,7 +2630,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
         },
         {
           key: 'property',
-          group: '🏠 Bất Động Sản',
+          group: 'Bất Động Sản',
           icon: 'fa-building',
           color: '#059669',
           tags: [
@@ -2643,7 +2643,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
         },
         {
           key: 'financial',
-          group: '💰 Tài Chính & Tiền Tệ',
+          group: 'Tài Chính & Tiền Tệ',
           icon: 'fa-coins',
           color: '#d97706',
           tags: [
@@ -2656,7 +2656,7 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
         },
         {
           key: 'company',
-          group: '🗓️ Thời Gian & Sàn Giao Dịch',
+          group: 'Thời Gian & Sàn Giao Dịch',
           icon: 'fa-calendar-check',
           color: '#4f46e5',
           tags: [
