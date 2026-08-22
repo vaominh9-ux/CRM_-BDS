@@ -101,7 +101,7 @@
         <div className="modal-overlay">
           <div className="modal modal-txn">
             <div className="modal-header">
-              <h3><i className="fas fa-handshake"></i> {editing ? 'Deal #' + deal.id + ' — ' + (deal.propertyRef || '') : 'New Deal'}</h3>
+              <h3><i className="fas fa-handshake"></i> {editing ? 'Giao dịch #' + deal.id + ' — ' + (deal.propertyRef || '') : 'Mở giao dịch mới'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
@@ -110,90 +110,90 @@
                   <div className="txn-form">
                     <div className="form-grid">
                       {!editing && (
-                        <SearchableDropdown label="Property" icon="fas fa-building"
+                        <SearchableDropdown label="Bất động sản giao dịch" icon="fas fa-building"
                           options={props.filter((p) => ['Available','Reserved'].indexOf(p.status) !== -1 && !openProp[p.id]).map((p) => ({ value: String(p.id), label: (p.referenceCode || '#' + p.id) + ' — ' + p.title }))}
-                          value={form.propertyId} onChange={set('propertyId')} placeholder="Live listings only…" required={true} />
+                          value={form.propertyId} onChange={set('propertyId')} placeholder="Chọn BĐS đang mở bán/thuê…" required={true} />
                       )}
                       <div className="form-group">
-                        <label><i className="fas fa-user"></i> Buyer / Tenant Name *</label>
-                        <input value={form.buyerName} onChange={setEv('buyerName')} disabled={closed} required />
+                        <label><i className="fas fa-user"></i> Người mua / Khách thuê *</label>
+                        <input value={form.buyerName} onChange={setEv('buyerName')} disabled={closed} required placeholder="Ví dụ: Nguyễn Văn An" />
                       </div>
                       <div className="form-group">
-                        <label><i className="fas fa-phone"></i> Buyer Phone *</label>
-                        <input value={form.buyerPhone} onChange={setEv('buyerPhone')} disabled={closed} required placeholder="+92300…" />
+                        <label><i className="fas fa-phone"></i> Số điện thoại *</label>
+                        <input value={form.buyerPhone} onChange={setEv('buyerPhone')} disabled={closed} required placeholder="0901234567" />
                       </div>
                       <div className="form-group">
                         <label><i className="fas fa-money-bill-wave"></i> Giá trị giao dịch (VNĐ) *{dealType === 'Rent' ? ' — tiền thuê tháng' : ''}</label>
-                        <input type="number" min="1" step="any" value={form.dealAmount} onChange={setEv('dealAmount')} disabled={closed} required />
+                        <input type="number" min="1" step="any" value={form.dealAmount} onChange={setEv('dealAmount')} disabled={closed} required placeholder="Ví dụ: 2500000000" />
                       </div>
                       <div className="form-group">
-                        <label><i className="fas fa-percent"></i> Tỷ lệ hoa hồng <small style={{ color: '#999', textTransform: 'none' }}>(mặc định {dealType === 'Rent' ? cfg.commissionPctRent : cfg.commissionPctSale}%)</small></label>
+                        <label><i className="fas fa-percent"></i> Tỷ lệ hoa hồng <small style={{ color: '#94a3b8', textTransform: 'none' }}>(mặc định {dealType === 'Rent' ? cfg.commissionPctRent : cfg.commissionPctSale}%)</small></label>
                         <input type="number" min="0" step="any" value={form.commissionPct} onChange={setEv('commissionPct')} disabled={closed} placeholder={String(dealType === 'Rent' ? cfg.commissionPctRent : cfg.commissionPctSale)} />
                       </div>
                       <div className="form-group">
-                        <label><i className="fas fa-user-tie"></i> Tỷ lệ nhân viên <small style={{ color: '#999', textTransform: 'none' }}>(mặc định {cfg.agentSharePct}%)</small></label>
+                        <label><i className="fas fa-user-tie"></i> Tỷ lệ nhân viên <small style={{ color: '#94a3b8', textTransform: 'none' }}>(mặc định {cfg.agentSharePct}%)</small></label>
                         <input type="number" min="0" max="100" step="any" value={form.agentSharePct} onChange={setEv('agentSharePct')} disabled={closed} placeholder={String(cfg.agentSharePct)} />
                       </div>
                       {!editing && (
                         <div className="form-group">
-                          <label><i className="fas fa-coins"></i> Token Money (VNĐ)</label>
-                          <input type="number" min="0" step="any" value={form.tokenAmount} onChange={setEv('tokenAmount')} />
+                          <label><i className="fas fa-coins"></i> Tiền đặt cọc ban đầu (VNĐ)</label>
+                          <input type="number" min="0" step="any" value={form.tokenAmount} onChange={setEv('tokenAmount')} placeholder="Ví dụ: 50000000" />
                         </div>
                       )}
                       {!editing && r2(form.tokenAmount) > 0 && (
-                        <SearchableDropdown label="Token Method" icon="fas fa-wallet" options={opts(ENUMS.paymentMethod)} value={form.tokenMethod} onChange={set('tokenMethod')} placeholder="Method…" />
+                        <SearchableDropdown label="Hình thức cọc" icon="fas fa-wallet" options={opts(ENUMS.paymentMethod)} value={form.tokenMethod} onChange={set('tokenMethod')} placeholder="Hình thức thanh toán…" />
                       )}
                       {all && (
-                        <SearchableDropdown label="Agent" icon="fas fa-user-tie"
-                          options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
-                          value={form.agent} onChange={set('agent')} placeholder="Agent…" />
+                        <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie"
+                          options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + viEnum(a.role) + ')' }))}
+                          value={form.agent} onChange={set('agent')} placeholder="Chọn nhân viên…" />
                       )}
                       {editing && !closed && (
-                        <SearchableDropdown label="Status" icon="fas fa-flag"
+                        <SearchableDropdown label="Trạng thái giao dịch" icon="fas fa-flag"
                           options={opts(all ? ENUMS.dealStatus : ['Token', 'Agreement'])}
-                          value={form.status} onChange={set('status')} placeholder="Status…" />
+                          value={form.status} onChange={set('status')} placeholder="Trạng thái…" />
                       )}
                     </div>
                     {editing && form.status === 'Cancelled' && deal.status !== 'Cancelled' && (
                       <div className="form-group">
-                        <label><i className="fas fa-circle-question"></i> Cancellation Reason *</label>
-                        <textarea rows="2" value={form.cancellationReason} onChange={setEv('cancellationReason')} required></textarea>
+                        <label><i className="fas fa-circle-question"></i> Lý do hủy giao dịch *</label>
+                        <textarea rows="2" value={form.cancellationReason} onChange={setEv('cancellationReason')} required placeholder="Ghi rõ lý do hủy hợp đồng/giao dịch…"></textarea>
                       </div>
                     )}
                     {completing && dealType === 'Rent' && (
                       <div className="form-grid">
                         <div className="form-group">
-                          <label><i className="fas fa-shield-halved"></i> Security Deposit (VNĐ)</label>
+                          <label><i className="fas fa-shield-halved"></i> Tiền đặt cọc bảo đảm (VNĐ)</label>
                           <input type="number" min="0" step="any" value={form.securityDeposit} onChange={setEv('securityDeposit')} />
                         </div>
                         <div className="form-group">
-                          <label><i className="fas fa-calendar-day"></i> Contract End Date</label>
+                          <label><i className="fas fa-calendar-day"></i> Ngày kết thúc hợp đồng</label>
                           <input type="date" value={form.endDate} onChange={setEv('endDate')} />
                         </div>
                         <div className="form-group">
-                          <label><i className="fas fa-calendar-check"></i> Ngày đến hạn thuê (1–28)</label>
+                          <label><i className="fas fa-calendar-check"></i> Ngày đến hạn tiền thuê (1–28)</label>
                           <input type="number" min="1" max="28" value={form.rentDueDay} onChange={setEv('rentDueDay')} />
                         </div>
                       </div>
                     )}
                     <div className="form-group">
-                      <label><i className="fas fa-align-left"></i> Ghi chú</label>
-                      <textarea rows="2" value={form.notes} onChange={setEv('notes')}></textarea>
+                      <label><i className="fas fa-align-left"></i> Ghi chú giao dịch</label>
+                      <textarea rows="2" value={form.notes} onChange={setEv('notes')} placeholder="Điều khoản thanh toán, thỏa thuận đặc biệt…"></textarea>
                     </div>
                   </div>
                   <div className="txn-preview">
-                    <div className="txn-h"><i className="fas fa-calculator"></i> Tính toán trực tiếp</div>
-                    <div className="txn-line"><span className="f">Giá trị giao dịch</span><span className="v">{fmtPKR(amt)}</span></div>
-                    <div className="txn-line"><span className="f">Σ thanh toán{!editing ? ' (đặt cọc)' : ''}</span><span className="v">{fmtPKR(paid)}</span></div>
-                    <div className={'txn-line' + (balance < 0 ? ' bad' : '')}><span className="f">Số dư</span><span className="v">{fmtPKR(balance)}</span></div>
+                    <div className="txn-h"><i className="fas fa-calculator"></i> Bảng tính tài chính trực tiếp</div>
+                    <div className="txn-line"><span className="f">Tổng giá trị giao dịch</span><span className="v">{fmtPKR(amt)}</span></div>
+                    <div className="txn-line"><span className="f">Tổng đã thanh toán{!editing ? ' (tiền cọc)' : ''}</span><span className="v">{fmtPKR(paid)}</span></div>
+                    <div className={'txn-line' + (balance < 0 ? ' bad' : '')}><span className="f">Số dư còn lại</span><span className="v">{fmtPKR(balance)}</span></div>
                     <div className="txn-line"><span className="f">Hoa hồng {cPct}% × giá trị</span><span className="v">{fmtPKR(commission)}</span></div>
                     <div className="txn-line"><span className="f">Phần nhân viên {sPct}% × hoa hồng</span><span className="v">{fmtPKR(agentShare)}</span></div>
-                    <div className="txn-line total"><span className="f">Phần công ty</span><span className="v">{fmtPKR(r2(commission - agentShare))}</span></div>
+                    <div className="txn-line total"><span className="f">Doanh thu công ty</span><span className="v">{fmtPKR(r2(commission - agentShare))}</span></div>
                     {editing && (deal.payments || []).length > 0 && (
                       <>
-                        <div className="txn-h" style={{ marginTop: 12 }}><i className="fas fa-receipt"></i> Các khoản thanh toán</div>
+                        <div className="txn-h" style={{ marginTop: 12 }}><i className="fas fa-receipt"></i> Lịch sử các đợt thanh toán</div>
                         {(deal.payments || []).map((q, i) => (
-                          <div key={i} className="txn-pay-row"><span>{fmtDate(q.date)} · {q.method}{q.ref ? ' · ' + q.ref : ''}</span><span>{fmtPKR(q.amount)}</span></div>
+                          <div key={i} className="txn-pay-row"><span>{fmtDate(q.date)} · {viEnum(q.method)}{q.ref ? ' · ' + q.ref : ''}</span><span>{fmtPKR(q.amount)}</span></div>
                         ))}
                       </>
                     )}
@@ -201,12 +201,12 @@
                       <i className="fas fa-arrow-right-arrow-left"></i>{' '}
                       {!editing && <>Bất động sản {prop ? viEnum(prop.status) : '—'} → <b>Đã giữ chỗ</b></>}
                       {completing && <>Bất động sản → <b>{dealType === 'Rent' ? 'Đã cho thuê (tự tạo hợp đồng thuê)' : 'Đã bán'}</b>{deal.leadId ? <> · Khách hàng → <b>Thành công</b></> : null}</>}
-                      {editing && form.status === 'Cancelled' && deal.status !== 'Cancelled' && <>Bất động sản Đã giữ chỗ → <b>Còn trống</b></>}
+                      {editing && form.status === 'Cancelled' && deal.status !== 'Cancelled' && <>Bất động sản Đã giữ chỗ → <b>Có sẵn</b></>}
                       {editing && !completing && form.status !== 'Cancelled' && <>Trạng thái: <b>{viEnum(form.status)}</b></>}
                     </div>
                     {err && <div className="txn-err"><i className="fas fa-triangle-exclamation"></i> {err}</div>}
                     <div className="form-actions" style={{ marginTop: 14 }}>
-                      <button type="button" className="btn btn-secondary" onClick={onClose}>Đóng</button>
+                      <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                       {!closed && (
                         <button type="submit" className="btn btn-primary" disabled={saving || !!err}>
                           {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật giao dịch' : 'Mở giao dịch'}</>}
@@ -229,7 +229,7 @@
       const paid = r2((deal.payments || []).reduce((s, q) => s + (q.amount || 0), 0));
       const amt = r2(form.amount);
       const after = r2(deal.dealAmount - paid - amt);
-      const err = !(amt > 0) ? 'Enter the amount' : after < -0.01 ? 'Overpay — balance is only ' + fmtPKR(r2(deal.dealAmount - paid)) : '';
+      const err = !(amt > 0) ? 'Nhập số tiền cần thu' : after < -0.01 ? 'Thu vượt mức — số dư chỉ còn ' + fmtPKR(r2(deal.dealAmount - paid)) : '';
       const submit = (e) => {
         e.preventDefault();
         if (err) return;
@@ -237,14 +237,14 @@
         gsRun('addDealPayment', deal.id, form, currentUser).then((r) => {
           setSaving(false);
           if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 1800, showConfirmButton: false }); onSaved(); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
         }).catch(() => setSaving(false));
       };
       return (
         <div className="modal-overlay">
           <div className="modal modal-txn" style={{ maxWidth: 860 }}>
             <div className="modal-header">
-              <h3><i className="fas fa-money-bill-wave"></i> Payment — {deal.propertyRef} · {deal.buyerName}</h3>
+              <h3><i className="fas fa-money-bill-wave"></i> Thu tiền giao dịch — {deal.propertyRef} · {deal.buyerName}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
@@ -253,31 +253,31 @@
                   <div className="txn-form">
                     <div className="form-grid">
                       <div className="form-group">
-                        <label><i className="fas fa-money-bill"></i> Amount (VNĐ) *</label>
-                        <input type="number" min="1" step="any" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required autoFocus />
+                        <label><i className="fas fa-money-bill"></i> Số tiền thu (VNĐ) *</label>
+                        <input type="number" min="1" step="any" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required autoFocus placeholder="Nhập số tiền..." />
                       </div>
-                      <SearchableDropdown label="Method" icon="fas fa-wallet" options={opts(ENUMS.paymentMethod)} value={form.method} onChange={(v) => setForm({ ...form, method: v })} placeholder="Method…" />
+                      <SearchableDropdown label="Hình thức thanh toán" icon="fas fa-wallet" options={opts(ENUMS.paymentMethod)} value={form.method} onChange={(v) => setForm({ ...form, method: v })} placeholder="Chọn hình thức…" />
                       <div className="form-group">
-                        <label><i className="fas fa-hashtag"></i> Reference</label>
-                        <input value={form.ref} onChange={(e) => setForm({ ...form, ref: e.target.value })} placeholder="Cheque / TT no." />
+                        <label><i className="fas fa-hashtag"></i> Mã giao dịch / Số tham chiếu</label>
+                        <input value={form.ref} onChange={(e) => setForm({ ...form, ref: e.target.value })} placeholder="Số ủy nhiệm chi, số hóa đơn..." />
                       </div>
                       <div className="form-group">
-                        <label><i className="fas fa-align-left"></i> Notes</label>
-                        <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                        <label><i className="fas fa-align-left"></i> Ghi chú thu tiền</label>
+                        <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Đợt thanh toán số 2, tiền mặt..." />
                       </div>
                     </div>
                   </div>
                   <div className="txn-preview">
-                    <div className="txn-h"><i className="fas fa-calculator"></i> Impact</div>
-                    <div className="txn-line"><span className="f">Deal amount</span><span className="v">{fmtPKR(deal.dealAmount)}</span></div>
-                    <div className="txn-line"><span className="f">Paid so far</span><span className="v">{fmtPKR(paid)}</span></div>
-                    <div className="txn-line"><span className="f">This payment</span><span className="v">{fmtPKR(amt)}</span></div>
-                    <div className={'txn-line total' + (after < 0 ? ' bad' : '')}><span className="f">Balance after</span><span className="v">{fmtPKR(after)}</span></div>
+                    <div className="txn-h"><i className="fas fa-calculator"></i> Tác động số dư</div>
+                    <div className="txn-line"><span className="f">Tổng giá trị giao dịch</span><span className="v">{fmtPKR(deal.dealAmount)}</span></div>
+                    <div className="txn-line"><span className="f">Đã thu trước đợt này</span><span className="v">{fmtPKR(paid)}</span></div>
+                    <div className="txn-line"><span className="f">Số tiền thu đợt này</span><span className="v">{fmtPKR(amt)}</span></div>
+                    <div className={'txn-line total' + (after < 0 ? ' bad' : '')}><span className="f">Số dư còn lại sau thu</span><span className="v">{fmtPKR(after)}</span></div>
                     {err && <div className="txn-err"><i className="fas fa-triangle-exclamation"></i> {err}</div>}
                     <div className="form-actions" style={{ marginTop: 14 }}>
-                      <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                      <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                       <button type="submit" className="btn btn-primary" disabled={saving || !!err}>
-                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> Record Payment</>}
+                        {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> Xác nhận thu tiền</>}
                       </button>
                     </div>
                   </div>
@@ -302,24 +302,31 @@
       const [paying, setPaying] = useState(null);
       const [viewingLead, setViewingLead] = useState(null);
       const [stage, setStage] = useState('');
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '', type: '', agent: '' });
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
-      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
 
       const base = useMemo(() => (rows || []).filter((x) =>
         (!filters.type || x.dealType === filters.type) && (!filters.agent || x.agent === filters.agent)
       ), [rows, filters.type, filters.agent]);
       const counts = useMemo(() => { const o = {}; base.forEach((x) => { o[x.status] = (o[x.status] || 0) + 1; }); return o; }, [base]);
-      const visible = useMemo(() => (stage ? base.filter((x) => x.status === stage) : base), [base, stage]);
+      const visible = useMemo(() => {
+        const q = String(filters.search || '').trim().toLowerCase();
+        return (stage ? base.filter((x) => x.status === stage) : base).filter((x) => !q || [
+          x.buyerName, x.buyerPhone, x.propertyRef, x.propertyTitle, x.agent, x.status, x.notes
+        ].some((val) => String(val || '').toLowerCase().includes(q)));
+      }, [base, stage, filters.search]);
+      const activeFiltersCount = (filters.search ? 1 : 0) + (filters.type ? 1 : 0) + (filters.agent ? 1 : 0);
 
       const mm = ymNow();
       const kpi = useMemo(() => { const r = rows || [];
         const closedM = r.filter((x) => x.status === 'Completed' && String(x.closedAt || '').substr(0, 7) === mm);
         return [
-          [r.filter((x) => ['Token', 'Agreement'].indexOf(x.status) !== -1).length, 'Open Deals', 'fa-handshake', 'bg-navy'],
-          [pkrShort(closedM.reduce((s, x) => s + x.dealAmount, 0)), 'Closed Value (month)', 'fa-sack-dollar', 'bg-success'],
-          [pkrShort(closedM.reduce((s, x) => s + (x.commissionAmt || 0), 0)), 'Commission (month)', 'fa-percent', 'bg-info'],
-          [pkrShort(r.filter((x) => ['Token', 'Agreement'].indexOf(x.status) !== -1).reduce((s, x) => s + (x.balance || 0), 0)), 'Outstanding', 'fa-hourglass-half', 'bg-warning']
+          [r.filter((x) => ['Token', 'Agreement'].indexOf(x.status) !== -1).length, 'Giao dịch đang mở', 'fa-handshake', 'bg-navy'],
+          [pkrShort(closedM.reduce((s, x) => s + x.dealAmount, 0)), 'Giá trị hoàn thành (tháng)', 'fa-sack-dollar', 'bg-success'],
+          [pkrShort(closedM.reduce((s, x) => s + (x.commissionAmt || 0), 0)), 'Hoa hồng (tháng)', 'fa-percent', 'bg-info'],
+          [pkrShort(r.filter((x) => ['Token', 'Agreement'].indexOf(x.status) !== -1).reduce((s, x) => s + (x.balance || 0), 0)), 'Số dư chưa thu', 'fa-hourglass-half', 'bg-warning']
         ]; }, [rows, mm]);
 
       const downloadTemplate = () => downloadCSV('deals_template.csv',
@@ -341,42 +348,45 @@
 
       const refetch = () => { mutate(); ['props:all', 'leads:all', 'tenancies:all', 'dash:stats'].forEach((k) => swrMutate(k)); };
       const onAction = (action, x) => {
-        if (action === 'wa') waOpen(x.buyerPhone);
+        if (action === 'wa') {
+          const msg = 'Xin chào ' + (x.buyerName || 'Quý khách') + ', tôi là ' + (x.agent || 'chuyên viên') + ' phụ trách giao dịch BĐS ' + (x.propertyRef || '') + '. Tổng giá trị: ' + fmtPKR(x.dealAmount) + ', Đã thanh toán: ' + fmtPKR(x.paid) + ', Số dư còn lại: ' + fmtPKR(x.balance) + '.';
+          waOpen(x.buyerPhone, msg);
+        }
         else if (action === 'pay') setPaying(x);
         else if (action === 'edit') { setEditing(x); setShowModal(true); }
         else if (action === 'paidout') {
-          Swal.fire({ icon: 'question', title: 'Mark agent share paid?', text: x.agent + ' · ' + fmtPKR(x.agentShareAmt), showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Mark Paid' })
+          Swal.fire({ icon: 'question', title: 'Xác nhận đã chi hoa hồng?', text: x.agent + ' · ' + fmtPKR(x.agentShareAmt), showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Đã chi' })
             .then((r) => { if (r.isConfirmed) gsRun('markAgentPaid', x.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); refetch(); }
-              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+              else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' }); }); });
         }
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Delete deal #' + x.id + '?', text: 'The property goes back to Available.', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+          Swal.fire({ icon: 'warning', title: 'Xóa giao dịch #' + x.id + '?', text: 'BĐS sẽ trở lại trạng thái Có sẵn.', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteDeal', x.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); refetch(); }
-              else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
+              else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' }); }); });
         }
       };
 
       const tableRef = useDataTable('dealsTable', rows === undefined ? null : visible, () => ({
         search: { search: filters.search },
         columns: [
-          { data: 'propertyRef', title: 'Property', render: (d, t, x) => '<span class="prop-ref">' + esc(d || '—') + '</span><br><small style="color:#789">' + esc(String(x.propertyTitle || '').substr(0, 34)) + '</small>' },
-          { data: 'buyerName', title: 'Buyer', render: (d, t, x) => '<strong>' + esc(d) + '</strong><br><small style="color:#789">' + esc(x.buyerPhone || '') + '</small>' },
-          { data: 'dealType', title: 'Type', render: (d, t) => t === 'display' ? badge(d) : d },
-          { data: 'dealAmount', title: 'Amount', render: (d, t) => t === 'display' ? '<strong>' + esc(pkrShort(d)) + '</strong>' : d },
-          { data: 'paid', title: 'Paid', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
-          { data: 'balance', title: 'Balance', render: (d, t) => t === 'display' ? '<span style="color:' + (d > 0 ? '#c0392b' : '#2e7d32') + ';font-weight:700">' + esc(pkrShort(d)) + '</span>' : d },
-          { data: 'commissionAmt', title: 'Commission', render: (d, t, x) => t === 'display'
-              ? esc(pkrShort(d)) + '<br>' + (x.status === 'Completed' ? badge(x.agentPaidAt ? 'Paid' : 'Payable') : '<small style="color:#789">' + esc(pkrShort(x.agentShareAmt || 0)) + ' agent</small>') : d },
-          { data: 'agent', title: 'Agent' },
-          { data: 'status', title: 'Status', render: (d, t) => t === 'display' ? badge(d) : d },
-          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, x) => `<div class="table-actions slots-5">
-            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit deal"><i class="fas fa-pen-to-square"></i></button>' : ''}
-            ${canEdit && ['Token','Agreement'].indexOf(x.status) !== -1 ? '<button class="action-icon assign-icon" data-action="pay" title="Add payment"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+          { data: 'propertyRef', title: 'Bất động sản', render: (d, t, x) => '<span class="prop-ref">' + esc(d || '—') + '</span><br><small style="color:#789">' + esc(String(x.propertyTitle || '').substr(0, 34)) + '</small>' },
+          { data: 'buyerName', title: 'Người mua / Thuê', render: (d, t, x) => '<strong>' + esc(d) + '</strong><br><small style="color:#789">' + esc(x.buyerPhone || '') + '</small>' },
+          { data: 'dealType', title: 'Loại hình', render: (d, t) => t === 'display' ? badge(d) : d },
+          { data: 'dealAmount', title: 'Giá trị giao dịch', render: (d, t) => t === 'display' ? '<strong>' + esc(pkrShort(d)) + '</strong>' : d },
+          { data: 'paid', title: 'Đã thu', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
+          { data: 'balance', title: 'Số dư', render: (d, t) => t === 'display' ? '<span style="color:' + (d > 0 ? '#c0392b' : '#2e7d32') + ';font-weight:700">' + esc(pkrShort(d)) + '</span>' : d },
+          { data: 'commissionAmt', title: 'Hoa hồng', render: (d, t, x) => t === 'display'
+              ? esc(pkrShort(d)) + '<br>' + (x.status === 'Completed' ? badge(x.agentPaidAt ? 'Paid' : 'Payable') : '<small style="color:#789">' + esc(pkrShort(x.agentShareAmt || 0)) + ' NV</small>') : d },
+          { data: 'agent', title: 'Nhân viên' },
+          { data: 'status', title: 'Trạng thái', render: (d, t) => t === 'display' ? badge(d) : d },
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, x) => `<div class="table-actions slots-5">
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa giao dịch"><i class="fas fa-pen-to-square"></i></button>' : ''}
+            ${canEdit && ['Token','Agreement'].indexOf(x.status) !== -1 ? '<button class="action-icon assign-icon" data-action="pay" title="Ghi nhận thanh toán"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo người mua"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
-            ${all && x.status === 'Completed' && !x.agentPaidAt ? '<button class="action-icon edit-icon" data-action="paidout" title="Mark agent paid"><i class="fas fa-hand-holding-dollar"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
-            ${canDel && x.status !== 'Completed' ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}</div>` }
+            ${all && x.status === 'Completed' && !x.agentPaidAt ? '<button class="action-icon edit-icon" data-action="paidout" title="Chi hoa hồng nhân viên"><i class="fas fa-hand-holding-dollar"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
+            ${canDel && x.status !== 'Completed' ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}</div>` }
         ],
         createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để mở hồ sơ khách hàng'); },
         order: []
@@ -386,8 +396,62 @@
       return (
         <>
           <KpiRow items={kpi} />
-          <Pipeline stages={ENUMS.dealStatus} counts={counts} active={stage} onPick={setStage} total={base.length} />
-          <div className="filters-section">
+
+          {/* 1. Desktop Pipeline */}
+          <div className="desk-pipeline-block">
+            <Pipeline stages={ENUMS.dealStatus} counts={counts} active={stage} onPick={setStage} total={base.length} />
+          </div>
+
+          {/* 2. Mobile Horizontally Scrollable Pipeline Pills */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (!stage ? 'active' : '')}
+                onClick={() => setStage('')}
+              >
+                <span>Tất cả</span>
+                <span className="mob-pill-badge">{base.length}</span>
+              </button>
+              {ENUMS.dealStatus.map((st) => {
+                const count = counts[st] || 0;
+                const col = STAGE_COLORS[st] || '#64748b';
+                return (
+                  <button
+                    key={st}
+                    className={'mob-pill ' + (stage === st ? 'active' : '') + (count === 0 ? ' empty' : '')}
+                    onClick={() => setStage(stage === st ? '' : st)}
+                  >
+                    <span className="mob-pill-dot" style={{ background: col }}></span>
+                    <span>{viEnum(st)}</span>
+                    <span className="mob-pill-badge">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Mobile Sub-Toolbar */}
+          <div className="mob-deals-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Giao dịch {stage ? `· ${viEnum(stage)}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              {canAdd && (
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditing(null); setShowModal(true); }} title="Giao dịch mới">
+                  <i className="fas fa-plus"></i>
+                </button>
+              )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc giao dịch">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Filters</h3>
               <button className="btn btn-secondary btn-sm" onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); }}>
@@ -403,11 +467,190 @@
               {all && <SearchableDropdown label="Agent" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="All Agents" />}
             </div>
           </div>
+
+          {/* 5. Data Section: Desktop Table & Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="dealsCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'PropertyRef', 'bulkImportDeals', currentUser, refetch); e.target.value = ''; }} />
-            {loading ? <TableSkeleton rows={8} columns={10} /> : <div style={{ overflowX: 'auto' }}><table id="dealsTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table View */}
+            <div className="desk-deals-table-wrap">
+              {loading ? <TableSkeleton rows={8} columns={10} /> : <div style={{ overflowX: 'auto' }}><table id="dealsTable" className="display" style={{ width: '100%' }}></table></div>}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-deals-cards-container">
+              {loading ? (
+                <div className="mob-deals-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-deal-card-skeleton">
+                      <div className="sk-line w50"></div>
+                      <div className="sk-line w80"></div>
+                      <div className="sk-line w40"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-deals-empty-state">
+                  <div className="empty-circle"><i className="fas fa-handshake-slash"></i></div>
+                  <h4>Chưa có giao dịch phù hợp</h4>
+                  <p>Thử đổi bộ lọc hoặc tạo hợp đồng giao dịch mới</p>
+                  {canAdd && (
+                    <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditing(null); setShowModal(true); }}>
+                      <i className="fas fa-plus"></i> Giao dịch mới
+                    </button>
+                  )}
+                </div>
+              ) : (
+                visible.map((x) => {
+                  const initial = (x.buyerName || 'K').trim().charAt(0).toUpperCase();
+                  const isRent = x.dealType === 'Rent';
+                  return (
+                    <div key={x.id} className={'mob-deal-card status-' + (x.status || '').toLowerCase()}>
+                      {/* HÀNG 1: Mã BĐS, Loại hình & Trạng thái */}
+                      <div className="mob-deal-header-row">
+                        <div className="mob-deal-ref-box">
+                          <span className="prop-ref">{x.propertyRef || '#' + (x.propertyId || '—')}</span>
+                          <span className={'mob-deal-type-badge ' + (isRent ? 'rent' : 'sale')}>
+                            {isRent ? 'Thuê' : 'Bán'}
+                          </span>
+                        </div>
+                        <Badge s={x.status} />
+                      </div>
+
+                      {/* HÀNG 2: Khách hàng mua/thuê & Tiêu đề BĐS */}
+                      <div className="mob-deal-parties-row">
+                        <div className="mob-deal-buyer-box" onClick={() => setViewingLead(x)}>
+                          <div className="mob-lead-avatar">{initial}</div>
+                          <div className="mob-deal-buyer-info">
+                            <div className="mob-deal-buyer-name">
+                              <strong>{x.buyerName || 'Chưa có tên'}</strong>
+                              <span className="mob-view-profile-hint"><i className="fas fa-address-card"></i> Hồ sơ</span>
+                            </div>
+                            <div className="mob-deal-buyer-phone">{x.buyerPhone || 'Chưa có SĐT'}</div>
+                          </div>
+                        </div>
+
+                        <div className="mob-deal-prop-title">
+                          <i className="fas fa-building"></i>
+                          <span>{x.propertyTitle || 'Bất động sản giao dịch'}</span>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 3: Bảng 4 chỉ số tài chính (Financial KPI Tiles) */}
+                      <div className="mob-deal-financial-grid">
+                        <div className="mob-deal-fin-tile">
+                          <span className="fin-label">Tổng giá trị</span>
+                          <span className="fin-val main-val">{pkrShort(x.dealAmount)}</span>
+                        </div>
+                        <div className="mob-deal-fin-tile">
+                          <span className="fin-label">Đã thanh toán</span>
+                          <span className="fin-val paid-val">{pkrShort(x.paid)}</span>
+                        </div>
+                        <div className="mob-deal-fin-tile">
+                          <span className="fin-label">Số dư còn lại</span>
+                          <span className={'fin-val balance-val ' + (x.balance > 0 ? 'bad' : 'good')}>
+                            {pkrShort(x.balance)}
+                          </span>
+                        </div>
+                        <div className="mob-deal-fin-tile">
+                          <span className="fin-label">Hoa hồng (HH)</span>
+                          <span className="fin-val comm-val">
+                            {pkrShort(x.commissionAmt || 0)}
+                            {x.status === 'Completed' && (
+                              <small className={'comm-status ' + (x.agentPaidAt ? 'paid' : 'due')}>
+                                {x.agentPaidAt ? 'Đã chi NV' : 'Chưa chi NV'}
+                              </small>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* HÀNG 4: Nhân viên & Ghi chú */}
+                      <div className="mob-deal-meta-info">
+                        <div className="mob-deal-agent">
+                          <i className="fas fa-user-tie"></i> Phụ trách: <strong>{x.agent || 'Chưa phân công'}</strong>
+                          <span className="agent-share-tag">({x.agentSharePct || 40}% = {pkrShort(x.agentShareAmt || 0)})</span>
+                        </div>
+                        {x.notes ? (
+                          <div className="mob-deal-notes">
+                            <i className="fas fa-note-sticky"></i> {x.notes}
+                          </div>
+                        ) : null}
+                        {x.status === 'Cancelled' && x.cancellationReason ? (
+                          <div className="mob-deal-cancel-reason">
+                            <i className="fas fa-triangle-exclamation"></i> Lý do hủy: {x.cancellationReason}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* HÀNG 5: Các nút hành động 1-chạm */}
+                      <div className="mob-deal-actions">
+                        {canEdit && ['Token', 'Agreement'].indexOf(x.status) !== -1 && (
+                          <button className="mob-btn mob-btn-pay" onClick={() => onAction('pay', x)} title="Thu tiền / Ghi nhận thanh toán">
+                            <i className="fas fa-money-bill-wave"></i> Thu tiền
+                          </button>
+                        )}
+                        <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', x)} title="Nhắn Zalo người mua/thuê">
+                          <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
+                            <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
+                            <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
+                            <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+                          </svg>
+                          Zalo
+                        </button>
+                        {all && x.status === 'Completed' && !x.agentPaidAt && (
+                          <button className="mob-btn mob-btn-paidout" onClick={() => onAction('paidout', x)} title="Chi hoa hồng nhân viên">
+                            <i className="fas fa-hand-holding-dollar"></i> Chi HH
+                          </button>
+                        )}
+                        {canEdit && (
+                          <button className="mob-btn mob-btn-edit" onClick={() => onAction('edit', x)} title="Chỉnh sửa giao dịch">
+                            <i className="fas fa-pen-to-square"></i>
+                          </button>
+                        )}
+                        {canDel && x.status !== 'Completed' && (
+                          <button className="mob-btn mob-btn-del" onClick={() => onAction('delete', x)} title="Xóa giao dịch">
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
+
+          {/* 6. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc giao dịch</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm giao dịch</label>
+                    <input className="filter-input" value={filters.search} placeholder="Người mua, mã BĐS, nhân viên…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                  <SearchableDropdown label="Hình thức giao dịch" icon="fas fa-tags" options={opts(ENUMS.listingType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Bán & Cho thuê" />
+                  {all && <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Giao dịch)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showModal && (
             <DealModal deal={editing} currentUser={currentUser} role={role} lookups={lookups}
                        onClose={() => { setShowModal(false); setEditing(null); }}

@@ -2524,5 +2524,374 @@
       .mob-calendar-wrapper .cal-wrap {
         min-width: 600px !important;
       }
+
+      /* ===== PHÂN HỆ GIAO DỊCH TRÊN ĐIỆN THOẠI (LUXURY DEALS UI) ===== */
+      .desk-deals-table-wrap {
+        display: none !important;
+      }
+      .mob-deals-sub-toolbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 2px 0 10px 0 !important;
+        padding: 0 2px !important;
+      }
+      .mob-deals-cards-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      .mob-deal-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 13px 14px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+      }
+      .mob-deal-card:active {
+        transform: scale(0.99) !important;
+      }
+      body.dark-mode .mob-deal-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      /* Hàng 1: Header Mã BĐS, Loại hình & Trạng thái */
+      .mob-deal-header-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 10px !important;
+      }
+      .mob-deal-ref-box {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+      .mob-deal-type-badge {
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
+        padding: 2px 6px !important;
+        border-radius: 6px !important;
+        text-transform: uppercase !important;
+      }
+      .mob-deal-type-badge.sale {
+        background: #ecfdf5 !important;
+        color: #059669 !important;
+        border: 1px solid #a7f3d0 !important;
+      }
+      .mob-deal-type-badge.rent {
+        background: #eff6ff !important;
+        color: #2563eb !important;
+        border: 1px solid #bfdbfe !important;
+      }
+      body.dark-mode .mob-deal-type-badge.sale {
+        background: rgba(5, 150, 105, 0.15) !important;
+        color: #6ee7b7 !important;
+        border-color: rgba(5, 150, 105, 0.3) !important;
+      }
+      body.dark-mode .mob-deal-type-badge.rent {
+        background: rgba(37, 99, 235, 0.15) !important;
+        color: #93c5fd !important;
+        border-color: rgba(37, 99, 235, 0.3) !important;
+      }
+
+      /* Hàng 2: Khách hàng & BĐS */
+      .mob-deal-parties-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+      }
+      .mob-deal-buyer-box {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 2px 0 !important;
+        cursor: pointer !important;
+      }
+      .mob-deal-buyer-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+      }
+      .mob-deal-buyer-name {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        font-size: 13.5px !important;
+        color: #1e293b !important;
+      }
+      body.dark-mode .mob-deal-buyer-name {
+        color: #f1f5f9 !important;
+      }
+      .mob-deal-buyer-phone {
+        font-size: 12px !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+      }
+      body.dark-mode .mob-deal-buyer-phone {
+        color: #94a3b8 !important;
+      }
+      .mob-deal-prop-title {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #334155 !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        padding: 6px 8px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      body.dark-mode .mob-deal-prop-title {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+      }
+      .mob-deal-prop-title i {
+        color: var(--navy-accent, #0284c7) !important;
+        flex-shrink: 0 !important;
+      }
+
+      /* Hàng 3: 4 Khối Chỉ số tài chính (Financial Grid) */
+      .mob-deal-financial-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+        margin: 10px 0 8px 0 !important;
+      }
+      .mob-deal-fin-tile {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        padding: 6px 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+      }
+      body.dark-mode .mob-deal-fin-tile {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.06) !important;
+      }
+      .mob-deal-fin-tile .fin-label {
+        font-size: 9.5px !important;
+        color: #64748b !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+      }
+      body.dark-mode .mob-deal-fin-tile .fin-label {
+        color: #94a3b8 !important;
+      }
+      .mob-deal-fin-tile .fin-val {
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+      }
+      .mob-deal-fin-tile .main-val {
+        color: #0f172a !important;
+      }
+      body.dark-mode .mob-deal-fin-tile .main-val {
+        color: #f8fafc !important;
+      }
+      .mob-deal-fin-tile .paid-val {
+        color: #16a34a !important;
+      }
+      .mob-deal-fin-tile .balance-val.bad {
+        color: #dc2626 !important;
+      }
+      .mob-deal-fin-tile .balance-val.good {
+        color: #16a34a !important;
+      }
+      .mob-deal-fin-tile .comm-val {
+        color: #0284c7 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 4px !important;
+      }
+      .mob-deal-fin-tile .comm-status {
+        font-size: 9px !important;
+        font-weight: 700 !important;
+        padding: 1px 5px !important;
+        border-radius: 4px !important;
+      }
+      .mob-deal-fin-tile .comm-status.paid {
+        background: #dcfce7 !important;
+        color: #15803d !important;
+      }
+      .mob-deal-fin-tile .comm-status.due {
+        background: #fef3c7 !important;
+        color: #b45309 !important;
+      }
+
+      /* Hàng 4: Nhân viên & Ghi chú */
+      .mob-deal-meta-info {
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        padding-top: 8px !important;
+        border-top: 1px dashed #e2e8f0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+      }
+      body.dark-mode .mob-deal-meta-info {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+      }
+      .mob-deal-agent {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+      }
+      .mob-deal-agent .agent-share-tag {
+        font-size: 11px !important;
+        color: #0284c7 !important;
+        font-weight: 600 !important;
+      }
+      body.dark-mode .mob-deal-agent .agent-share-tag {
+        color: #38bdf8 !important;
+      }
+      .mob-deal-notes {
+        color: #64748b !important;
+        font-style: italic !important;
+      }
+      .mob-deal-cancel-reason {
+        color: #ef4444 !important;
+        font-weight: 600 !important;
+      }
+
+      /* Hàng 5: Nút thao tác */
+      .mob-deal-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+      }
+      .mob-deal-actions .mob-btn {
+        flex: 1 1 auto !important;
+        height: 34px !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+        border: none !important;
+      }
+      .mob-btn-pay {
+        background: #f0fdf4 !important;
+        color: #16a34a !important;
+        border: 1px solid #bbf7d0 !important;
+      }
+      .mob-btn-paidout {
+        background: #fefce8 !important;
+        color: #ca8a04 !important;
+        border: 1px solid #fef08a !important;
+      }
+      .mob-btn-edit {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0 !important;
+        flex: 0 0 34px !important;
+      }
+      body.dark-mode .mob-btn-pay {
+        background: rgba(22, 163, 74, 0.15) !important;
+        color: #86efac !important;
+        border-color: rgba(22, 163, 74, 0.3) !important;
+      }
+      body.dark-mode .mob-btn-paidout {
+        background: rgba(202, 138, 4, 0.15) !important;
+        color: #fde047 !important;
+        border-color: rgba(202, 138, 4, 0.3) !important;
+      }
+      body.dark-mode .mob-btn-edit {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+
+      /* Modal Giao dịch (Deal Modal & Payment Modal) dạng Bottom-Sheet trên mobile */
+      .modal.modal-txn {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 94vh !important;
+        max-height: 94vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin: auto 0 0 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border: none !important;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
+        animation: slideUp 0.25s ease !important;
+      }
+      .modal-txn .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+      }
+      .modal-txn .modal-body {
+        padding: 14px 16px 28px 14px !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .modal-txn .txn-split {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+      }
+      .modal-txn .txn-form,
+      .modal-txn .txn-preview {
+        width: 100% !important;
+        flex: none !important;
+      }
+      .modal-txn .txn-preview {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
+      }
+      body.dark-mode .modal-txn .txn-preview {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .modal-txn .txn-form .form-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .modal-txn .form-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1.5fr !important;
+        gap: 10px !important;
+        margin-top: 14px !important;
+        padding-top: 12px !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      body.dark-mode .modal-txn .form-actions {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .modal-txn .form-actions .btn {
+        height: 42px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+      }
     }
   
