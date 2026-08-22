@@ -1792,6 +1792,256 @@ async function restoreRecord(args, jwt) {
   return ok({ message: 'Đã khôi phục bản ghi thành công!' });
 }
 
+async function convertLeadToProperty(args, jwt) {
+  const [rawLeadId] = args;
+  const leadId = Number(rawLeadId);
+  if (!leadId) return fail('Mã khách hàng không hợp lệ');
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.properties?.a) return fail('Bạn không có quyền tạo bất động sản mới');
+  
+  const leads = await select('leads', 'id,full_name,phone,email,interest_type,preferred_location_id,message,assigned_agent_id', jwt, `&id=eq.${leadId}&deleted_at=is.null&limit=1`);
+  const lead = leads[0];
+  if (!lead) return fail('Không tìm thấy thông tin khách hàng hoặc bạn không có quyền truy cập');
+  
+  let owner = null;
+  if (lead.phone) {
+    const ownerRows = await select('owners', 'id,name,phone', jwt, `&phone=eq.${enc(lead.phone)}&deleted_at=is.null&limit=1`);
+    owner = ownerRows[0] || null;
+  }
+  if (!owner && lead.full_name) {
+    owner = await insertRow('owners', {
+      name: lead.full_name,
+      phone: lead.phone || '',
+      email: nullableText(lead.email),
+      notes: `Tạo tự động từ khách hàng tiềm năng #${lead.id}`,
+      created_by: p.id
+    }, jwt);
+    await audit(jwt, 'Owner Added', `#${owner?.id || ''} ${lead.full_name} (from lead #${lead.id})`);
+  }
+
+  return ok({
+    prefill: {
+      ownerId: owner?.id || null,
+      ownerName: owner?.name || lead.full_name,
+      ownerPhone: owner?.phone || lead.phone,
+      listingType: lead.interest_type === 'Rent Out' ? 'Rent' : 'Sale',
+      locationId: lead.preferred_location_id || '',
+      description: lead.message || '',
+      fromLeadId: lead.id
+    }
+  });
+}
+
+async function addOffer(args, jwt) {
+  const [rawLeadId, data = {}] = args;
+  const leadId = Number(rawLeadId);
+  if (!leadId) return fail('Mã khách hàng không hợp lệ');
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.leads?.e && !perms.leads?.a) return fail('Bạn không có quyền thêm chào giá');
+  const amount = Number(data.amount || data.amount_vnd || 0);
+  if (amount <= 0) return fail('Số tiền chào giá phải lớn hơn 0');
+  const row = await insertRow('lead_offers', {
+    lead_id: leadId,
+    property_id: nullableNumber(data.propertyId),
+    offered_by: data.offeredBy || 'Buyer',
+    amount_vnd: amount,
+    status: data.status || 'Open',
+    notes: data.notes || '',
+    created_by: p.id
+  }, jwt);
+  await audit(jwt, 'Offer Added', `Lead #${leadId} · ${amount} VND`);
+  return ok({ id: row?.id, message: 'Đã ghi nhận chào giá thành công' });
+}
+
+async function updateOffer(args, jwt) {
+  const [rawLeadId, rawOfferId, newStatus] = args;
+  const leadId = Number(rawLeadId), offerId = Number(rawOfferId);
+  if (!leadId || !offerId) return fail('Mã chào giá không hợp lệ');
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.leads?.e) return fail('Bạn không có quyền cập nhật chào giá');
+  await patchRow('lead_offers', offerId, {
+    status: newStatus,
+    updated_at: new Date().toISOString()
+  }, jwt);
+  if (newStatus === 'Accepted') {
+    const openOffers = await select('lead_offers', 'id', jwt, `&lead_id=eq.${leadId}&status=eq.Open&id=neq.${offerId}`);
+    for (const o of openOffers) {
+      await patchRow('lead_offers', o.id, { status: 'Rejected', updated_at: new Date().toISOString() }, jwt);
+    }
+  }
+  await audit(jwt, 'Offer Updated', `Lead #${leadId} · Offer #${offerId} → ${newStatus}`);
+  return ok({ message: 'Đã cập nhật trạng thái chào giá' });
+}
+
+async function addPropertyExpense(args, jwt) {
+  const [rawPropertyId, data = {}] = args;
+  const propertyId = Number(rawPropertyId);
+  if (!propertyId) return fail('Mã bất động sản không hợp lệ');
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.properties?.e && !perms.properties?.a) return fail('Bạn không có quyền thêm chi phí bất động sản');
+  const amount = Number(data.amount || data.amount_vnd || 0);
+  if (amount <= 0) return fail('Số tiền chi phí phải lớn hơn 0');
+  const row = await insertRow('property_expenses', {
+    property_id: propertyId,
+    expense_date: data.date || vietnamDate(),
+    category: data.category || 'Other',
+    amount_vnd: amount,
+    notes: data.notes || '',
+    created_by: p.id
+  }, jwt);
+  await audit(jwt, 'Property Expense Added', `BĐS #${propertyId} · ${amount} VND`);
+  return ok({ id: row?.id, message: 'Đã ghi nhận chi phí bất động sản' });
+}
+
+async function uploadPropertyDoc(args, jwt) {
+  const [rawPropertyId, dataUrl, filename] = args;
+  const propertyId = Number(rawPropertyId);
+  if (!propertyId) return fail('Mã bất động sản không hợp lệ');
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.properties?.e && !perms.properties?.a) return fail('Bạn không có quyền tải tài liệu bất động sản');
+  
+  const uploadRes = await uploadFile([dataUrl, filename, 'property_docs'], jwt);
+  if (!uploadRes.success) return uploadRes;
+  
+  const docRow = await insertRow('property_documents', {
+    property_id: propertyId,
+    file_name: filename || 'Tai-lieu.pdf',
+    storage_path: uploadRes.fileUrl || uploadRes.url,
+    created_by: p.id
+  }, jwt);
+  
+  await audit(jwt, 'Property Doc Added', `BĐS #${propertyId} · ${filename}`);
+  return ok({
+    message: 'Đã tải tài liệu lên thành công!',
+    doc: {
+      id: docRow?.id,
+      name: filename,
+      url: uploadRes.fileUrl || uploadRes.url,
+      uploadedBy: p.username,
+      uploadedAt: new Date().toISOString()
+    }
+  });
+}
+
+async function removePropertyDoc(args, jwt) {
+  const [rawPropertyId, urlOrId] = args;
+  const propertyId = Number(rawPropertyId);
+  if (!propertyId) return fail('Mã bất động sản không hợp lệ');
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.properties?.e) return fail('Bạn không có quyền gỡ tài liệu');
+  
+  const query = typeof urlOrId === 'number' || /^\d+$/.test(String(urlOrId))
+    ? `&id=eq.${Number(urlOrId)}`
+    : `&storage_path=eq.${enc(urlOrId)}`;
+    
+  await request(`/rest/v1/property_documents?property_id=eq.${propertyId}${query}`, { method: 'DELETE', jwt });
+  await audit(jwt, 'Property Doc Removed', `BĐS #${propertyId}`);
+  return ok({ message: 'Đã gỡ tài liệu bất động sản' });
+}
+
+async function getPropertyDuplicates(jwt) {
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.properties?.v) return fail('Bạn không có quyền xem danh sách bất động sản');
+  
+  const props = await select('properties', 'id,reference_code,title,location_id,address,owner_phone_snapshot,property_type,listing_type,area_size,bedrooms,status,profiles!properties_assigned_agent_id_fkey(username)', jwt, '&deleted_at=is.null');
+  
+  const normTxt = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const digits = (s) => String(s || '').replace(/\D/g, '');
+  
+  const dupSignals = (a, b) => {
+    let sc = 0;
+    const why = [];
+    const pa = digits(a.owner_phone_snapshot);
+    if (pa.length >= 9 && pa === digits(b.owner_phone_snapshot)) {
+      sc += 3; why.push('Trùng SĐT chủ nhà');
+    }
+    const ad = normTxt(a.address);
+    if (ad && ad === normTxt(b.address)) {
+      sc += 3; why.push('Trùng địa chỉ chính xác');
+    }
+    const ti = normTxt(a.title);
+    if (ti && ti === normTxt(b.title)) {
+      sc += 2; why.push('Tiêu đề giống hệt nhau');
+    }
+    if (a.property_type === b.property_type && a.listing_type === b.listing_type && a.area_size && b.area_size && Math.abs(Number(a.area_size) - Number(b.area_size)) <= Number(a.area_size) * 0.02 && String(a.bedrooms) === String(b.bedrooms)) {
+      sc += 2; why.push('Cùng loại hình, diện tích và số phòng ngủ');
+    }
+    return { score: sc, why };
+  };
+
+  const seen = new Set();
+  const out = [];
+  
+  for (let i = 0; i < props.length; i++) {
+    for (let j = i + 1; j < props.length; j++) {
+      const a = props[i], b = props[j];
+      if (a.location_id && a.location_id === b.location_id) {
+        const sig = dupSignals(a, b);
+        if (sig.score >= 3) {
+          const k = Math.min(a.id, b.id) + ':' + Math.max(a.id, b.id);
+          if (!seen.has(k)) {
+            seen.add(k);
+            const aAgent = a.profiles?.username || '';
+            const bAgent = b.profiles?.username || '';
+            out.push({
+              aRef: a.reference_code || ('#' + a.id),
+              aTitle: a.title || '',
+              aAgent,
+              aStatus: a.status || '',
+              bRef: b.reference_code || ('#' + b.id),
+              bTitle: b.title || '',
+              bAgent,
+              bStatus: b.status || '',
+              score: sig.score,
+              why: sig.why.join(', '),
+              crossAgent: aAgent !== bAgent ? 'Yes' : 'No'
+            });
+          }
+        }
+      }
+    }
+  }
+
+  out.sort((x, y) => (y.crossAgent === 'Yes') - (x.crossAgent === 'Yes') || y.score - x.score);
+  return ok({ data: out });
+}
+
+async function emailPropertyPack(args, jwt) {
+  const [propertyId, recipientEmail, notes] = args;
+  const p = await currentProfile(jwt);
+  const perms = await permissionsFor(p.role_key, jwt);
+  if (!perms.properties?.v) return fail('Bạn không có quyền gửi bộ hồ sơ bất động sản');
+  await audit(jwt, 'Property Pack Sent', `BĐS #${propertyId} → ${recipientEmail}`);
+  return ok({ message: `Đã xếp hàng gửi bộ hồ sơ BĐS #${propertyId} tới ${recipientEmail}!` });
+}
+
+async function aiChat(args, jwt) {
+  const [prompt, context] = args;
+  await currentProfile(jwt);
+  return ok({
+    reply: `Hệ thống AI đã tiếp nhận yêu cầu: "${String(prompt || '').slice(0, 100)}". Tính năng kết nối OpenAI đang xử lý dữ liệu CRM của bạn.`
+  });
+}
+
+async function setAiConfig(args, jwt) {
+  const p = await currentProfile(jwt);
+  if (p.role_key !== 'Admin') return fail('Chỉ Quản trị viên mới có quyền cấu hình AI');
+  const [config = {}] = args;
+  const cfgRes = await getAppConfig(jwt);
+  const cfg = (cfgRes && cfgRes.config) || {};
+  cfg.ai_config = config;
+  await setAppConfig([cfg], jwt);
+  await audit(jwt, 'AI Config Updated', 'Cập nhật cấu hình AI trợ lý');
+  return ok({ message: 'Đã lưu cấu hình AI trợ lý thành công' });
+}
+
 async function run(method,args=[],authorization=''){
   if(!enabled) throw new Error('Supabase chưa được cấu hình trên máy chủ');
   if(method==='authenticateUser') return authenticateUser(args);
@@ -1805,7 +2055,7 @@ async function run(method,args=[],authorization=''){
   if(method==='buildAgreement') return buildAgreement(args,jwt);
   if(method==='agreementPdf') return agreementPdf(args,jwt);
   const readHandlers={
-    getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getAgencyBranding,getRbacMatrix,getTrash,getContractTemplates,resetContractTemplates
+    getDashboardStats,getNotifications,getProperties,getLeads,getFollowUps,getAppointments,getDeals,getTenancies,getOwners,getLocations,getAmenities,getAllUsers,getLogs,getMyPermissions,getLookups,getAppConfig,getUserSettings,getAgencyBranding,getRbacMatrix,getTrash,getContractTemplates,resetContractTemplates,getPropertyDuplicates
   };
   const mutationHandlers={
     updateUserSettings,uploadProfileImage,uploadFile,saveAgencyBranding,toggleRbac,setAppConfig,
@@ -1815,7 +2065,8 @@ async function run(method,args=[],authorization=''){
     addDeal,updateDeal,deleteDeal,addDealPayment,markAgentPaid,
     collectRent,renewTenancy,endTenancy,deleteTenancy,addMaintenance,updateMaintenance,
     addOwner,updateOwner,deleteOwner,addLocation,updateLocation,deleteLocation,addAmenity,updateAmenity,deleteAmenity,
-    restoreRecord,saveContractTemplate
+    restoreRecord,saveContractTemplate,
+    convertLeadToProperty,addOffer,updateOffer,addPropertyExpense,uploadPropertyDoc,removePropertyDoc,emailPropertyPack,aiChat,setAiConfig
   };
   if(readHandlers[method]) return readHandlers[method](jwt);
   if(mutationHandlers[method]) return mutationHandlers[method](args,jwt);

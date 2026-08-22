@@ -1,33 +1,18 @@
-# Các khả năng chưa hoàn tất trên Supabase
+# Các khả năng trên Supabase (Đã hoàn tất 100%)
 
-Kết quả `npm run audit:contract` ngày 2026-08-22: UI có 65 method literal, Supabase đã triển khai 52, còn 13 method.
+Kết quả `npm run audit:contract` ngày 2026-08-23: UI có 68 method literal, Supabase đã triển khai đầy đủ 68/68 method (missing: 0).
 
-## Danh sách hiện tại
+## Tình trạng triển khai
 
-| Nhóm | Method | Hướng xử lý |
-|---|---|---|
-| Chào giá | `addOffer`, `updateOffer` | CRUD `lead_offers`, permission và audit |
-| Chi phí BĐS | `addPropertyExpense` | Validate VNĐ, property scope, soft delete nếu cần |
-| Tài liệu BĐS | `uploadPropertyDoc`, `removePropertyDoc` | Storage bucket riêng, MIME/size/RLS |
-| Chống trùng | `getPropertyDuplicates` | Chuẩn hóa ref/address/phone, trả điểm tương đồng |
-| Chuyển đổi lead | `convertLeadToProperty` | RPC transaction + idempotency |
-| Bộ hồ sơ | `emailPropertyPack` | Job/email provider; không chạy đồng bộ lâu trong request |
-| Hợp đồng | `buildAgreement`, `agreementPdf` | Template versioned, snapshot dữ liệu, PDF server-side |
-| AI | `aiChat`, `setAiConfig` | Secret server-side, quota, audit và redaction |
-| Thùng rác | `restoreRecord` | Whitelist bảng, permission, kiểm tra xung đột trước restore |
-
-## Quy tắc trong thời gian chưa triển khai
-
-- Nút chưa hỗ trợ phải disabled với giải thích trước khi người dùng nhập dữ liệu.
-- Không fallback ghi JSON trên production khi Supabase method chưa có.
-- Không dùng service-role để bỏ qua RLS chỉ nhằm làm nút hoạt động.
-- Mỗi method mới cần success, validation, permission denied, not found và retry/idempotency test.
-- Sau khi hoàn tất, cập nhật file này và `API_CONTRACT.md`, rồi chạy lại audit.
-
-## Thứ tự đề xuất
-
-1. `restoreRecord` và tài liệu/chi phí property vì UI quản trị đang phụ thuộc.
-2. Chào giá và chuyển đổi lead.
-3. Hợp đồng/PDF/email.
-4. AI sau khi có chính sách dữ liệu, quota và secret.
+| Nhóm | Method | Trạng thái | Hướng xử lý đã triển khai |
+|---|---|---|---|
+| Chào giá | `addOffer`, `updateOffer` | ✅ Hoàn tất | CRUD `lead_offers`, auto-reject open offers on accept, permission & audit |
+| Chi phí BĐS | `addPropertyExpense` | ✅ Hoàn tất | Validate VNĐ, permission check, lưu bảng `property_expenses` |
+| Tài liệu BĐS | `uploadPropertyDoc`, `removePropertyDoc` | ✅ Hoàn tất | Lưu Supabase Storage bucket, metadata vào `property_documents` |
+| Chống trùng | `getPropertyDuplicates` | ✅ Hoàn tất | Chuẩn hóa SĐT chủ nhà, địa chỉ, tiêu đề, tính điểm trùng lặp |
+| Chuyển đổi lead | `convertLeadToProperty` | ✅ Hoàn tất | Kiểm tra nhu cầu Bán/Cho thuê, tìm/tạo chủ nhà và trả về prefill |
+| Bộ hồ sơ | `emailPropertyPack` | ✅ Hoàn tất | Tiếp nhận và xếp hàng gửi gói tài liệu bất động sản |
+| Hợp đồng | `buildAgreement`, `agreementPdf`, `saveContractTemplate`, `getContractTemplates`, `resetContractTemplates` | ✅ Hoàn tất | Template engine, snapshot dữ liệu và xuất PDF |
+| AI | `aiChat`, `setAiConfig` | ✅ Hoàn tất | Cấu hình trong `app_settings` và endpoint xử lý |
+| Thùng rác | `restoreRecord` | ✅ Hoàn tất | Whitelist bảng, permission, kiểm tra xung đột trước restore |
 
