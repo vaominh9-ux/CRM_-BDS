@@ -336,6 +336,9 @@
       .desk-tenancies-table-wrap,
       .desk-owners-table-wrap,
       .desk-users-table-wrap,
+      .desk-locs-table-wrap,
+      .desk-amens-table-wrap,
+      .desk-logs-table-wrap,
       .desk-trash-view,
       .desk-about-view,
       .desk-agreements-view,
@@ -354,7 +357,10 @@
       .mob-deals-sub-toolbar,
       .mob-tenancies-sub-toolbar,
       .mob-owners-sub-toolbar,
-      .mob-users-sub-toolbar { display: flex !important; }
+      .mob-users-sub-toolbar,
+      .mob-locs-sub-toolbar,
+      .mob-amens-sub-toolbar,
+      .mob-logs-sub-toolbar { display: flex !important; }
 
       .mob-props-cards-container,
       .mob-leads-cards-container,
@@ -365,6 +371,9 @@
       .mob-users-cards-container,
       .mob-locations-cards-container,
       .mob-amenities-cards-container,
+      .mob-locs-cards-container,
+      .mob-amens-cards-container,
+      .mob-logs-cards-container,
       .mob-agreements-view,
       .mob-agreement-creator-card,
       .mob-agreement-catalog,
@@ -384,7 +393,10 @@
       .mob-user-card,
       .mob-followup-card,
       .mob-trash-card,
-      .mob-doc-record-card { display: block !important; }
+      .mob-doc-record-card,
+      .mob-loc-card,
+      .mob-amen-card,
+      .mob-log-card { display: block !important; }
 
       .mob-trash-page,
       .mob-about-page { display: block !important; }
