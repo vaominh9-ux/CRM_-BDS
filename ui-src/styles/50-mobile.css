@@ -338,6 +338,8 @@
       .desk-users-table-wrap,
       .desk-trash-view,
       .desk-about-view,
+      .desk-agreements-view,
+      .desk-agreements-catalog,
       .desktop-only-table,
       .desktop-only-filters {
         display: none !important;
@@ -347,6 +349,7 @@
       .mob-sub-toolbar,
       .mob-props-sub-toolbar,
       .mob-leads-sub-toolbar,
+      .mob-followups-sub-toolbar,
       .mob-appts-sub-toolbar,
       .mob-deals-sub-toolbar,
       .mob-tenancies-sub-toolbar,
@@ -362,7 +365,11 @@
       .mob-users-cards-container,
       .mob-locations-cards-container,
       .mob-amenities-cards-container,
-      .mobile-only-cards { display: block !important; }
+      .mob-agreements-view,
+      .mob-agreement-creator-card,
+      .mob-agreement-catalog,
+      .mobile-only-cards,
+      .mobile-only-section { display: block !important; }
 
       .mob-followups-list,
       .mob-trash-list,

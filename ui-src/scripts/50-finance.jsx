@@ -2164,92 +2164,153 @@
         <div className="agreements-page-wrapper">
           <KpiRow items={kpi} />
 
-          {/* Dải viên thuốc loại biểu mẫu lướt ngang */}
-          <div className="mob-pipeline-bar" style={{ marginBottom: 12 }}>
-            <div className="mob-pills-scroll">
-              {DOC_TYPES.map((x) => {
-                const count = eligibleFor(x.value).length;
-                return (
-                  <button
-                    key={x.value}
-                    className={'mob-pill ' + (docType === x.value ? 'active' : '')}
-                    onClick={() => setDocType(x.value)}
-                  >
-                    <i className={'fas ' + x.icon}></i>
-                    <span>{x.shortLabel || x.label}</span>
-                    <span className="mob-pill-count">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Khối Tạo Văn Bản Mẫu */}
-          <div className="filters-section mob-agreement-creator-card">
-            <div className="filters-header">
-              <h3><i className={'fas ' + meta.icon}></i> {meta.label}</h3>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setListOpen(true)}
-                disabled={!records.length}
-              >
-                <i className="fas fa-list-check"></i> Xem {records.length} hồ sơ
-              </button>
-            </div>
-            <div className="filters-grid">
-              <SearchableDropdown label="Loại tài liệu" icon={'fas ' + meta.icon}
-                options={DOC_TYPES.map((x) => ({ value: x.value, label: x.label }))}
-                value={docType} onChange={setDocType} placeholder="Loại tài liệu…" />
-              <SearchableDropdown label={meta.src === 'ten' ? 'Hợp đồng thuê' : 'Giao dịch'} icon={meta.src === 'ten' ? 'fas fa-house-user' : 'fas fa-handshake'}
-                options={records.map((r) => ({ value: String(r.id), label: recLabel(r) }))}
-                value={recId} onChange={setRecId}
-                placeholder={records.length ? 'Chọn hồ sơ…' : 'Chưa có hồ sơ phù hợp'} />
-              <div className="filter-group filter-action">
-                <label>&nbsp;</label>
-                <button className="btn btn-primary mob-agreement-gen-btn" onClick={generate} disabled={busy || !records.length}>
-                  <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles')}></i> {busy ? 'Đang tạo…' : 'Tạo văn bản A4'}
-                </button>
+          {/* =========================================================
+              1. GIAO DIỆN MÁY TÍNH (DESKTOP AGREEMENTS VIEW)
+              ========================================================= */}
+          <div className="desk-agreements-view">
+            {/* Khối Bộ Lọc & Tạo Tài Liệu Trên Máy Tính */}
+            <div className="filters-section desk-filters-section">
+              <div className="filters-header">
+                <h3><i className="fas fa-file-contract"></i> Tạo tài liệu</h3>
               </div>
+              <div className="filters-grid">
+                <SearchableDropdown label="Loại tài liệu" icon={'fas ' + meta.icon}
+                  options={DOC_TYPES.map((x) => ({ value: x.value, label: x.label }))}
+                  value={docType} onChange={setDocType} placeholder="Loại tài liệu…" />
+                <SearchableDropdown label={meta.src === 'ten' ? 'Hợp đồng thuê' : 'Giao dịch'} icon={meta.src === 'ten' ? 'fas fa-house-user' : 'fas fa-handshake'}
+                  options={records.map((r) => ({ value: String(r.id), label: recLabel(r) }))}
+                  value={recId} onChange={setRecId}
+                  placeholder={records.length ? 'Chọn hồ sơ…' : 'Chưa có hồ sơ phù hợp'} />
+                <div className="filter-group filter-action">
+                  <label>&nbsp;</label>
+                  <button className="btn btn-primary" onClick={generate} disabled={busy || !records.length}>
+                    <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles')}></i> {busy ? 'Đang tạo…' : 'Tạo tài liệu'}
+                  </button>
+                </div>
+              </div>
+              <p style={{ fontSize: 12.5, color: '#64748b', margin: '6px 2px 0' }}>
+                <i className="fas fa-circle-info"></i> {meta.hint}. Xem trước bản in chuẩn A4 — có thể in trực tiếp hoặc tải về.
+              </p>
             </div>
-            <p style={{ fontSize: 12, color: '#64748b', margin: '6px 2px 0' }}>
-              <i className="fas fa-circle-info"></i> {meta.hint}.
-            </p>
-          </div>
 
-          {/* Danh mục tài liệu trực quan */}
-          <div className="data-section mob-agreement-catalog">
-            <div className="section-header">
-              <h2><i className="fas fa-folder-open"></i> Danh mục biểu mẫu chuẩn</h2>
-            </div>
-            <div className="mob-doc-types-grid">
-              {DOC_TYPES.map((x) => {
-                const n = eligibleFor(x.value).length;
-                return (
-                  <div
-                    key={x.value}
-                    className={'mob-doc-type-card' + (docType === x.value ? ' selected' : '')}
-                    onClick={() => setDocType(x.value)}
-                  >
-                    <div className="mob-doc-type-icon">
+            {/* Danh Mục Tài Liệu Chuẩn Trên Máy Tính */}
+            <div className="data-section desk-agreements-catalog">
+              <div className="section-header">
+                <h2><i className="fas fa-list-check"></i> Danh mục tài liệu</h2>
+              </div>
+              <div className="desk-doc-types-list">
+                {DOC_TYPES.map((x) => {
+                  const n = eligibleFor(x.value).length;
+                  return (
+                    <div key={x.value} className={'tl-item' + (docType === x.value ? ' selected' : '')} style={{ cursor: 'pointer' }} onClick={() => setDocType(x.value)}>
                       <i className={'fas ' + x.icon}></i>
-                    </div>
-                    <div className="mob-doc-type-info">
-                      <div className="mob-doc-type-title">{x.label}</div>
-                      <div className="mob-doc-type-desc">{x.hint}</div>
-                    </div>
-                    <div className="mob-doc-type-action">
-                      <button
-                        className={'btn btn-sm elig-btn ' + (n ? 'btn-primary' : 'btn-secondary')}
-                        disabled={!n}
-                        title={n ? 'Mở ' + n + ' hồ sơ phù hợp' : 'Chưa có hồ sơ phù hợp'}
-                        onClick={(e) => { e.stopPropagation(); setDocType(x.value); setListOpen(true); }}
-                      >
-                        <i className="fas fa-list-check"></i> {n} hồ sơ
+                      <div style={{ flex: 1 }}>
+                        <div className="w"><b>{x.label}</b></div>
+                        <div className="m">{x.hint}</div>
+                      </div>
+                      <button className={'btn btn-sm elig-btn ' + (n ? 'btn-primary' : 'btn-secondary')} disabled={!n}
+                              title={n ? 'Mở ' + n + ' hồ sơ phù hợp' : 'Chưa có hồ sơ phù hợp'}
+                              onClick={(e) => { e.stopPropagation(); setDocType(x.value); setListOpen(true); }}>
+                        <i className="fas fa-list-check"></i> {n} hồ sơ phù hợp
                       </button>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* =========================================================
+              2. GIAO DIỆN ĐIỆN THOẠI (MOBILE AGREEMENTS VIEW)
+              ========================================================= */}
+          <div className="mob-agreements-view mobile-only-section">
+            {/* Dải viên thuốc loại biểu mẫu lướt ngang */}
+            <div className="mob-pipeline-bar" style={{ marginBottom: 12 }}>
+              <div className="mob-pills-scroll">
+                {DOC_TYPES.map((x) => {
+                  const count = eligibleFor(x.value).length;
+                  return (
+                    <button
+                      key={x.value}
+                      className={'mob-pill ' + (docType === x.value ? 'active' : '')}
+                      onClick={() => setDocType(x.value)}
+                    >
+                      <i className={'fas ' + x.icon}></i>
+                      <span>{x.shortLabel || x.label}</span>
+                      <span className="mob-pill-count">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Khối Tạo Văn Bản Mẫu */}
+            <div className="filters-section mob-agreement-creator-card">
+              <div className="filters-header">
+                <h3><i className={'fas ' + meta.icon}></i> {meta.label}</h3>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setListOpen(true)}
+                  disabled={!records.length}
+                >
+                  <i className="fas fa-list-check"></i> Xem {records.length} hồ sơ
+                </button>
+              </div>
+              <div className="filters-grid">
+                <SearchableDropdown label="Loại tài liệu" icon={'fas ' + meta.icon}
+                  options={DOC_TYPES.map((x) => ({ value: x.value, label: x.label }))}
+                  value={docType} onChange={setDocType} placeholder="Loại tài liệu…" />
+                <SearchableDropdown label={meta.src === 'ten' ? 'Hợp đồng thuê' : 'Giao dịch'} icon={meta.src === 'ten' ? 'fas fa-house-user' : 'fas fa-handshake'}
+                  options={records.map((r) => ({ value: String(r.id), label: recLabel(r) }))}
+                  value={recId} onChange={setRecId}
+                  placeholder={records.length ? 'Chọn hồ sơ…' : 'Chưa có hồ sơ phù hợp'} />
+                <div className="filter-group filter-action">
+                  <label>&nbsp;</label>
+                  <button className="btn btn-primary mob-agreement-gen-btn" onClick={generate} disabled={busy || !records.length}>
+                    <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles')}></i> {busy ? 'Đang tạo…' : 'Tạo văn bản A4'}
+                  </button>
+                </div>
+              </div>
+              <p style={{ fontSize: 12, color: '#64748b', margin: '6px 2px 0' }}>
+                <i className="fas fa-circle-info"></i> {meta.hint}.
+              </p>
+            </div>
+
+            {/* Danh mục tài liệu trực quan */}
+            <div className="data-section mob-agreement-catalog">
+              <div className="section-header">
+                <h2><i className="fas fa-folder-open"></i> Danh mục biểu mẫu chuẩn</h2>
+              </div>
+              <div className="mob-doc-types-grid">
+                {DOC_TYPES.map((x) => {
+                  const n = eligibleFor(x.value).length;
+                  return (
+                    <div
+                      key={x.value}
+                      className={'mob-doc-type-card' + (docType === x.value ? ' selected' : '')}
+                      onClick={() => setDocType(x.value)}
+                    >
+                      <div className="mob-doc-type-icon">
+                        <i className={'fas ' + x.icon}></i>
+                      </div>
+                      <div className="mob-doc-type-info">
+                        <div className="mob-doc-type-title">{x.label}</div>
+                        <div className="mob-doc-type-desc">{x.hint}</div>
+                      </div>
+                      <div className="mob-doc-type-action">
+                        <button
+                          className={'btn btn-sm elig-btn ' + (n ? 'btn-primary' : 'btn-secondary')}
+                          disabled={!n}
+                          title={n ? 'Mở ' + n + ' hồ sơ phù hợp' : 'Chưa có hồ sơ phù hợp'}
+                          onClick={(e) => { e.stopPropagation(); setDocType(x.value); setListOpen(true); }}
+                        >
+                          <i className="fas fa-list-check"></i> {n} hồ sơ
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
