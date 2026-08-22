@@ -425,29 +425,13 @@
                 ) : (
                   visible.map((l) => (
                     <div key={l.id} className="mob-lead-card" onClick={() => onAction('view', l)}>
-                      {/* Header Block: Avatar (Trái) | Cột Tên & SĐT/Nguồn (Giữa) | Dropdown Trạng Thái (Phải) */}
-                      <div className="mob-lead-header-block">
+                      {/* HÀNG 1: Avatar + Tên khách hàng + Tag trạng thái */}
+                      <div className="mob-lead-row1">
                         <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(l.fullName) }}>
                           {getLeadInitial(l.fullName)}
                         </div>
-                        <div className="mob-lead-info-col">
-                          <div className="mob-lead-name-row">
-                            <span className="mob-lead-name">{l.fullName}</span>
-                          </div>
-                          <div className="mob-lead-sub-row">
-                            {l.phone ? (
-                              <span className="mob-lead-phone-text">
-                                <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
-                              </span>
-                            ) : (
-                              <span className="mob-lead-no-phone">Chưa có SĐT</span>
-                            )}
-                            {l.source && (
-                              <span className="mob-lead-source-tag">
-                                <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
-                              </span>
-                            )}
-                          </div>
+                        <div className="mob-lead-name-box">
+                          <span className="mob-lead-name">{l.fullName}</span>
                         </div>
                         <div className="mob-lead-stage-wrap" onClick={(e) => e.stopPropagation()}>
                           <select
@@ -470,8 +454,26 @@
                         </div>
                       </div>
 
-                      {/* Middle Body: Chips Nhu cầu, Ngân sách, Vị trí */}
-                      <div className="mob-lead-card-body">
+                      {/* HÀNG 2: SĐT + Nguồn khách (Trải đều cùng một hàng) */}
+                      <div className="mob-lead-row2">
+                        {l.phone ? (
+                          <span className="mob-lead-phone-text">
+                            <i className="fas fa-phone-volume"></i> {fmtLeadPhone(l.phone)}
+                          </span>
+                        ) : (
+                          <span className="mob-lead-no-phone">
+                            <i className="fas fa-phone-slash"></i> Chưa có SĐT
+                          </span>
+                        )}
+                        {l.source && (
+                          <span className="mob-lead-source-tag">
+                            <i className={'fas ' + getLeadSourceIcon(l.source)}></i> {viEnum(l.source)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* HÀNG 3: Nhu cầu (Mua/Thuê/Bán) + Số tiền (Ngân sách) + Vị trí */}
+                      <div className="mob-lead-row3">
                         <div className="mob-lead-chips">
                           {l.interestType && (
                             <span className="mob-chip chip-interest">
@@ -489,25 +491,29 @@
                             </span>
                           )}
                         </div>
-
-                        {l.propertyRef && (
-                          <div className="mob-lead-prop-box">
-                            <i className="fas fa-building"></i>
-                            <span className="prop-code">{l.propertyRef}</span>
-                            <span className="prop-title">{l.propertyTitle || ''}</span>
-                          </div>
-                        )}
-
-                        {l.message && (
-                          <div className="mob-lead-note-box">
-                            <i className="fas fa-comment-dots"></i>
-                            <span>{l.message}</span>
-                          </div>
-                        )}
                       </div>
 
-                      {/* Row 4: Meta Sale & Ngày tạo */}
-                      <div className="mob-lead-meta-row">
+                      {/* HÀNG 4: BĐS quan tâm & Ghi chú */}
+                      {(l.propertyRef || l.message) && (
+                        <div className="mob-lead-row4">
+                          {l.propertyRef && (
+                            <div className="mob-lead-prop-box">
+                              <i className="fas fa-building"></i>
+                              <span className="prop-code">{l.propertyRef}</span>
+                              <span className="prop-title">{l.propertyTitle || ''}</span>
+                            </div>
+                          )}
+                          {l.message && (
+                            <div className="mob-lead-note-box">
+                              <i className="fas fa-comment-dots"></i>
+                              <span>{l.message}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* HÀNG 5: Nhân viên phụ trách & Ngày tạo */}
+                      <div className="mob-lead-row5 mob-lead-meta-row">
                         <span className="mob-meta-agent">
                           <i className="fas fa-user-tie"></i> {l.assignedAgent || 'Chưa phân công'}
                         </span>
@@ -516,8 +522,8 @@
                         </span>
                       </div>
 
-                      {/* Row 5: 1-Tap Quick Action Bar */}
-                      <div className="mob-lead-action-bar" onClick={(e) => e.stopPropagation()}>
+                      {/* HÀNG 6: 4 Nút hành động 1-chạm */}
+                      <div className="mob-lead-row6 mob-lead-action-bar" onClick={(e) => e.stopPropagation()}>
                         <a href={'tel:' + String(l.phone || '').replace(/\D/g, '')} className={'mob-btn mob-btn-call' + (!l.phone ? ' disabled' : '')} title="Gọi điện">
                           <i className="fas fa-phone"></i> Gọi ngay
                         </a>
