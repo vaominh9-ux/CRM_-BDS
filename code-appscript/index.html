@@ -4663,7 +4663,7 @@
       .theme-menu-btn,
       .notif-btn,
       .clear-cache-btn,
-      .hdr-act-btn {
+      .hdr-act-btn.primary {
         width: 32px !important;
         height: 32px !important;
         min-width: 32px !important;
@@ -4676,6 +4676,16 @@
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
+      }
+      .hdr-act-btn.primary {
+        background: var(--navy-primary, #001f3f) !important;
+        color: #ffffff !important;
+        border: none !important;
+      }
+      /* Ẩn toàn bộ nút xuất file (CSV, PDF, Print, Nhập, Tải mẫu) và phân cách trên điện thoại */
+      .hdr-act-btn:not(.primary),
+      .hdr-sep {
+        display: none !important;
       }
       .notif-badge {
         top: -1px !important;
