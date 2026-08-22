@@ -6105,32 +6105,7 @@
               </button>
             </div>
 
-            {/* Pinned Quick Strip */}
-            <div className="mob-hub-pinned-section">
-              <div className="mob-hub-section-title">
-                <span><i className="fas fa-thumbtack" style={{ color: '#d97706' }}></i> Phân hệ đã ghim trên thanh đáy ({pinnedTabs.length}/4)</span>
-                <span className="mob-hub-pinned-hint">Chạm 📌 để ghim</span>
-              </div>
-              <div className="mob-hub-pinned-chips">
-                {pinnedTabs.map((k) => {
-                  const meta = PAGE_META[k];
-                  if (!meta) return null;
-                  return (
-                    <div className="mob-hub-pinned-chip" key={k} onClick={() => go(k)}>
-                      <i className={`fas ${meta.icon}`}></i>
-                      <span>{meta.label}</span>
-                      <button
-                        className="mob-hub-unpin-btn"
-                        onClick={(e) => { e.stopPropagation(); onTogglePin(k); }}
-                        title="Bỏ ghim"
-                      >
-                        <i className="fas fa-times"></i>
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+
 
             {/* All Modules Grouped */}
             <div className="mob-hub-modules-scroll">
