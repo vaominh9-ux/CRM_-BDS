@@ -5873,6 +5873,7 @@
     function DashboardView({ currentUser, setActiveMenu }) {
       const { data, error, isLoading, mutate } = useSWR('dash:stats', () => gsRun('getDashboardStats', currentUser), SWR_LIVE);
       const [leadDays, setLeadDays] = useState(30); // leads-trend range chips — hook stays above the early returns
+      const [kpiTab, setKpiTab] = useState('finance'); // Hook kpiTab đặt ở đầu component để tuân thủ Rules of Hooks
       const stats = data && data.success ? data.data : null;
       const go = (p) => setActiveMenu && setActiveMenu(p);
 
@@ -5898,8 +5899,6 @@
         [stats.todayAppointments || 0, 'Lịch xem nhà hôm nay', 'fa-calendar-check', 'bg-success', 'appointments']
       ];
       const viewAll = (p) => <button className="card-link" onClick={() => go(p)}>Xem tất cả <i className="fas fa-arrow-right" style={{ fontSize: 10 }}></i></button>;
-
-      const [kpiTab, setKpiTab] = useState('finance'); // 'finance' | 'leads' | 'ops'
 
       return (
         <>
