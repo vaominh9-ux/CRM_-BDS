@@ -544,9 +544,9 @@ async function syncPropertyRelations(propertyId,data,jwt) {
     if(normalized.length)await request('/rest/v1/property_images',{method:'POST',jwt,body:normalized.map((image,index)=>({property_id:id,storage_path:String(image.url||''),sort_order:index,created_by:p.id}))});
   }
 }
-async function patchRow(table,id,body,jwt) {
+async function patchRow(table,id,body,jwt,admin=false) {
   const queryId = table === 'profiles' || (typeof id === 'string' && id.includes('-')) ? enc(id) : Number(id);
-  const rows = await request(`/rest/v1/${table}?id=eq.${queryId}`,{method:'PATCH',jwt,body:clean(body),headers:{Prefer:'return=representation'}});
+  const rows = await request(`/rest/v1/${table}?id=eq.${queryId}`,{method:'PATCH',jwt:admin?undefined:jwt,admin:Boolean(admin||!jwt),body:clean(body),headers:{Prefer:'return=representation'}});
   return Array.isArray(rows)?rows[0]:null;
 }
 async function softDelete(table,id,jwt,label) {
@@ -843,15 +843,16 @@ async function updateUser(args,jwt){
   if(!rows.length)return fail('Không tìm thấy người dùng');
   const targetUser=rows[0];
   const updateAuthBody={};
-  const newEmail=data.Email?String(data.Email).trim().toLowerCase():'';
+  const newEmail=data.Email?String(data.Email).trim().toLowerCase():(data.email?String(data.email).trim().toLowerCase():'');
   if(newEmail&&newEmail!==targetUser.email){
     const emailCheck=await adminSelect('profiles','id',`&email=eq.${enc(newEmail)}&id=neq.${targetUser.id}&limit=1`);
     if(emailCheck.length)return fail('Email đã được sử dụng bởi tài khoản khác');
     updateAuthBody.email=newEmail;
     updateAuthBody.email_confirm=true;
   }
-  if(data.Password&&String(data.Password).trim().length>=6){
-    updateAuthBody.password=String(data.Password).trim();
+  const password = data.Password || data.password;
+  if(password&&String(password).trim().length>=6){
+    updateAuthBody.password=String(password).trim();
   }
   if(Object.keys(updateAuthBody).length>0){
     await request(`/auth/v1/admin/users/${targetUser.id}`,{
@@ -860,27 +861,35 @@ async function updateUser(args,jwt){
   }
   const profilePatch={updated_at:new Date().toISOString(),updated_by:profile.id};
   if(newEmail)profilePatch.email=newEmail;
-  if(data.Role&&['Admin','Manager','Agent'].includes(data.Role))profilePatch.role_key=data.Role;
-  if(data.Status&&['Active','Inactive'].includes(data.Status))profilePatch.status=data.Status;
-  if(data.MonthlyTarget!==undefined)profilePatch.monthly_target_vnd=Math.max(0,Math.round(Number(data.MonthlyTarget||0)));
-  await patchRow('profiles',targetUser.id,profilePatch,jwt);
+  const role = data.Role || data.role;
+  if(role&&['Admin','Manager','Agent'].includes(role))profilePatch.role_key=role;
+  const status = data.Status || data.status;
+  if(status&&['Active','Inactive'].includes(status))profilePatch.status=status;
+  const target = data.MonthlyTarget !== undefined ? data.MonthlyTarget : data.monthlyTarget;
+  if(target!==undefined)profilePatch.monthly_target_vnd=Math.max(0,Math.round(Number(target||0)));
+  await patchRow('profiles',targetUser.id,profilePatch,null,true);
   await audit(jwt,'User Updated',`Cập nhật người dùng: ${targetUsername}`);
   return ok({message:'Đã cập nhật thông tin người dùng thành công'});
 }
 
 async function deleteUser(args,jwt){
   const profile=await currentProfile(jwt);
-  if(profile.role_key!=='Admin')return fail('Chỉ Quản trị viên mới có quyền vô hiệu hóa người dùng');
+  if(profile.role_key!=='Admin')return fail('Chỉ Quản trị viên mới có quyền thay đổi trạng thái người dùng');
   const targetUsername=args[0];
-  if(!targetUsername)return fail('Không xác định được người dùng cần xóa');
+  if(!targetUsername)return fail('Không xác định được người dùng cần sửa');
   if(targetUsername===profile.username)return fail('Không thể tự vô hiệu hóa tài khoản của chính mình');
-  const rows=await adminSelect('profiles','id,username',`&username=eq.${enc(targetUsername)}&limit=1`);
+  const rows=await adminSelect('profiles','id,username,status',`&username=eq.${enc(targetUsername)}&limit=1`);
   if(!rows.length)return fail('Không tìm thấy người dùng');
   const targetId=rows[0].id;
-  await patchRow('profiles',targetId,{status:'Inactive',updated_at:new Date().toISOString(),updated_by:profile.id},jwt);
-  const openLeads=await select('leads','id',jwt,`&assigned_agent_id=eq.${targetId}&status=not.in.(Won,Lost)&deleted_at=is.null`);
-  await audit(jwt,'User Deactivated',`Vô hiệu hóa tài khoản: ${targetUsername}`);
-  return ok({message:'Đã vô hiệu hóa tài khoản thành công',openLeads:openLeads.length});
+  const isCurrentlyActive = rows[0].status === 'Active';
+  const newStatus = isCurrentlyActive ? 'Inactive' : 'Active';
+  await patchRow('profiles',targetId,{status:newStatus,updated_at:new Date().toISOString(),updated_by:profile.id},null,true);
+  const openLeads = isCurrentlyActive ? await select('leads','id',jwt,`&assigned_agent_id=eq.${targetId}&status=not.in.(Won,Lost)&deleted_at=is.null`) : [];
+  await audit(jwt, isCurrentlyActive ? 'User Deactivated' : 'User Activated', `${isCurrentlyActive ? 'Vô hiệu hóa' : 'Kích hoạt'} tài khoản: ${targetUsername}`);
+  return ok({
+    message: isCurrentlyActive ? 'Đã vô hiệu hóa tài khoản thành công' : 'Đã kích hoạt lại tài khoản thành công',
+    openLeads: openLeads.length
+  });
 }
 
 async function updateMyAccount(args,jwt){
