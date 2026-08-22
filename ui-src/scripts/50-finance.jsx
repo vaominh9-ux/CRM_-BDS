@@ -2546,8 +2546,13 @@
       const [title, setTitle] = useState(curTpl.label || '');
       const [shortLabel, setShortLabel] = useState(curTpl.shortLabel || '');
       const [hint, setHint] = useState(curTpl.hint || '');
+      const [templateMode, setTemplateMode] = useState(curTpl.templateMode || 'terms');
       const [customTerms, setCustomTerms] = useState(curTpl.customTerms || '');
+      const [fullTemplateHtml, setFullTemplateHtml] = useState(curTpl.fullTemplateHtml || '');
+      
       const textareaRef = useRef(null);
+      const richEditorRef = useRef(null);
+      const fileInputRef = useRef(null);
 
       // CHỈ cập nhật lại trường form khi người dùng CHUYỂN MẪU hoặc khi dữ liệu từ máy chủ tải về lần đầu
       useEffect(() => {
@@ -2555,7 +2560,12 @@
         setTitle(found.label || '');
         setShortLabel(found.shortLabel || '');
         setHint(found.hint || '');
+        setTemplateMode(found.templateMode || 'terms');
         setCustomTerms(found.customTerms || '');
+        setFullTemplateHtml(found.fullTemplateHtml || '');
+        if (richEditorRef.current) {
+          richEditorRef.current.innerHTML = found.fullTemplateHtml || '';
+        }
       }, [selectedKey, tplRes]);
 
       const MERGE_TAG_GROUPS = [
@@ -2598,41 +2608,153 @@
           ]
         },
         {
-          group: '🗓️ Thời Gian & Pháp Lý',
+          group: '🗓️ Thời Gian & Doanh Nghiệp',
           tags: [
             { tag: '{{NGAY_KY}}', label: 'Ngày ký kết' },
             { tag: '{{NGAY_BAT_DAU}}', label: 'Ngày bắt đầu' },
             { tag: '{{NGAY_KET_THUC}}', label: 'Ngày kết thúc' },
-            { tag: '{{NGAY_DONG_TIEN}}', label: 'Hạn đóng tiền' }
+            { tag: '{{NGAY_DONG_TIEN}}', label: 'Hạn đóng tiền' },
+            { tag: '{{TEN_CONG_TY}}', label: 'Tên sàn / công ty' },
+            { tag: '{{HOTLINE_CONG_TY}}', label: 'Hotline sàn' }
           ]
         }
       ];
 
-      const insertTag = (tag) => {
-        const el = textareaRef.current;
-        if (!el) {
-          setCustomTerms((prev) => (prev ? prev + '\n' + tag : tag));
-          return;
+      // Thực thi lệnh định dạng Rich Text
+      const execCmd = (command, value = null) => {
+        if (richEditorRef.current) {
+          richEditorRef.current.focus();
         }
-        const start = el.selectionStart;
-        const end = el.selectionEnd;
-        const val = el.value;
-        const newVal = val.substring(0, start) + ' ' + tag + ' ' + val.substring(end);
-        setCustomTerms(newVal);
-        setTimeout(() => {
-          el.focus();
-          el.setSelectionRange(start + tag.length + 2, start + tag.length + 2);
-        }, 50);
+        document.execCommand(command, false, value);
+        if (richEditorRef.current) {
+          setFullTemplateHtml(richEditorRef.current.innerHTML);
+        }
+      };
+
+      // Chèn bảng mẫu vào trình soạn thảo Rich Text
+      const insertTable = (cols = 2) => {
+        let tableHtml = '';
+        if (cols === 2) {
+          tableHtml = '<table class="tb" style="width:100%;border-collapse:collapse;margin:12px 0;">' +
+            '<tr><th style="width:50%;background:#f1f5f9;padding:6px 8px;border:1px solid #94a3b8;"><b>ĐẠI DIỆN BÊN A</b></th><th style="width:50%;background:#f1f5f9;padding:6px 8px;border:1px solid #94a3b8;"><b>ĐẠI DIỆN BÊN B</b></th></tr>' +
+            '<tr><td style="padding:14px 8px;border:1px solid #94a3b8;vertical-align:top;"><p>Họ tên: {{TEN_BEN_A}}</p><p>SĐT: {{SDT_BEN_A}}</p></td><td style="padding:14px 8px;border:1px solid #94a3b8;vertical-align:top;"><p>Họ tên: {{TEN_BEN_B}}</p><p>SĐT: {{SDT_BEN_B}}</p></td></tr>' +
+            '</table><p><br/></p>';
+        } else {
+          tableHtml = '<table class="tb" style="width:100%;border-collapse:collapse;margin:12px 0;">' +
+            '<tr><th style="width:8%;background:#f1f5f9;padding:6px 8px;border:1px solid #94a3b8;">STT</th><th style="background:#f1f5f9;padding:6px 8px;border:1px solid #94a3b8;">Hạng mục / Trang thiết bị</th><th style="width:25%;background:#f1f5f9;padding:6px 8px;border:1px solid #94a3b8;">Tình trạng</th></tr>' +
+            '<tr><td style="text-align:center;border:1px solid #94a3b8;padding:6px 8px;">1</td><td style="border:1px solid #94a3b8;padding:6px 8px;">Hệ thống khóa cửa chính & thẻ từ</td><td style="border:1px solid #94a3b8;padding:6px 8px;">Hoạt động tốt</td></tr>' +
+            '<tr><td style="text-align:center;border:1px solid #94a3b8;padding:6px 8px;">2</td><td style="border:1px solid #94a3b8;padding:6px 8px;">Máy điều hòa không khí</td><td style="border:1px solid #94a3b8;padding:6px 8px;">Mới 100%, có remote</td></tr>' +
+            '</table><p><br/></p>';
+        }
+        execCmd('insertHTML', tableHtml);
+      };
+
+      // Chèn ngắt trang A4
+      const insertPageBreak = () => {
+        const pageBreakHtml = '<div class="tpl-page-break-tag" contenteditable="false" style="page-break-after:always;break-after:page;border-top:2px dashed #0284c7;margin:18px 0;text-align:center;color:#0284c7;font-size:11px;font-weight:bold;">✂️ [ NGẮT SANG TRANG A4 MỚI ]</div><p><br/></p>';
+        execCmd('insertHTML', pageBreakHtml);
+      };
+
+      // Chèn thẻ biến 1-chạm vào con trỏ
+      const insertTag = (tag) => {
+        if (templateMode === 'full') {
+          if (richEditorRef.current) {
+            richEditorRef.current.focus();
+            execCmd('insertHTML', ' <b style="color:#0284c7">' + tag + '</b> ');
+          }
+        } else {
+          const el = textareaRef.current;
+          if (!el) {
+            setCustomTerms((prev) => (prev ? prev + '\n' + tag : tag));
+            return;
+          }
+          const start = el.selectionStart || 0;
+          const end = el.selectionEnd || 0;
+          const val = customTerms;
+          const newVal = val.substring(0, start) + ' ' + tag + ' ' + val.substring(end);
+          setCustomTerms(newVal);
+          setTimeout(() => {
+            el.focus();
+            const nextPos = start + tag.length + 2;
+            el.setSelectionRange(nextPos, nextPos);
+          }, 50);
+        }
+      };
+
+      // Xử lý tải lên file mẫu (.html, .htm, .docx, .txt)
+      const handleFileUpload = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        const reader = new FileReader();
+
+        if (ext === 'html' || ext === 'htm' || ext === 'txt') {
+          reader.onload = (event) => {
+            let resText = event.target.result;
+            if (ext === 'txt') {
+              resText = resText.split('\n').map((line) => '<p>' + (line.trim() || '<br/>') + '</p>').join('');
+            }
+            setTemplateMode('full');
+            setFullTemplateHtml(resText);
+            if (richEditorRef.current) {
+              richEditorRef.current.innerHTML = resText;
+            }
+            Swal.fire({
+              icon: 'success',
+              title: 'Đã nạp file mẫu thành công!',
+              text: 'File ' + file.name + ' đã được tải vào trình soạn thảo. Định dạng in đậm, in nghiêng và ngắt dòng được bảo toàn trọn vẹn.',
+              timer: 2500,
+              showConfirmButton: false
+            });
+          };
+          reader.readAsText(file);
+        } else if (ext === 'docx') {
+          reader.onload = (event) => {
+            try {
+              const arrayBuffer = event.target.result;
+              const uintArray = new Uint8Array(arrayBuffer);
+              let text = '';
+              for (let i = 0; i < uintArray.length; i++) {
+                if (uintArray[i] >= 32 && uintArray[i] <= 126) {
+                  text += String.fromCharCode(uintArray[i]);
+                }
+              }
+              const lines = text.split(/[\r\n]+/).filter((l) => l.trim().length > 3);
+              const formattedHtml = lines.map((line) => '<p>' + line.trim() + '</p>').join('');
+              setTemplateMode('full');
+              setFullTemplateHtml(formattedHtml);
+              if (richEditorRef.current) {
+                richEditorRef.current.innerHTML = formattedHtml;
+              }
+              Swal.fire({
+                icon: 'info',
+                title: 'Đã nạp nội dung tệp Word',
+                text: 'Nội dung tệp Word đã được đưa vào trình soạn thảo. Bạn có thể định dạng in đậm, in nghiêng hoặc chèn thêm thẻ biến.',
+                confirmButtonText: 'Đã hiểu'
+              });
+            } catch (err) {
+              Swal.fire({ icon: 'error', title: 'Lỗi nạp Word', text: 'Bạn có thể Copy nội dung trong Word và Dán (Paste) trực tiếp vào khung soạn thảo để giữ nguyên 100% định dạng.' });
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        } else {
+          Swal.fire({ icon: 'warning', title: 'Định dạng chưa hỗ trợ', text: 'Vui lòng chọn file .html, .txt hoặc .docx, hoặc copy/paste trực tiếp từ Word vào khung soạn thảo.' });
+        }
+        e.target.value = '';
       };
 
       const handleSave = () => {
         setBusy(true);
+        const currentHtml = richEditorRef.current ? richEditorRef.current.innerHTML : fullTemplateHtml;
         const payload = {
           ...curTpl,
           label: title,
           shortLabel: shortLabel,
           hint: hint,
-          customTerms: customTerms
+          templateMode: templateMode,
+          customTerms: customTerms,
+          fullTemplateHtml: currentHtml
         };
         gsRun('saveContractTemplate', curTpl.key, payload, currentUser).then((res) => {
           setBusy(false);
@@ -2679,16 +2801,19 @@
       return (
         <div className="modal-overlay">
           <div className="modal modal-template-manager">
-            <div className="modal-header">
-              <h3><i className="fas fa-sliders"></i> Quản lý & Tùy biến Mẫu Hợp đồng</h3>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h3 style={{ margin: 0 }}><i className="fas fa-sliders" style={{ color: 'var(--navy-accent)' }}></i> Quản lý Mẫu Biểu mẫu & Trình Soạn Thảo Đa Năng</h3>
+              </div>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
-            <div className="modal-body" style={{ padding: '16px 20px' }}>
+            
+            <div className="modal-body" style={{ padding: '14px 18px' }}>
               <div className="tpl-mgr-layout">
                 {/* Cột Trái: Danh sách 8 mẫu hợp đồng */}
                 <div className="tpl-mgr-sidebar">
                   <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', padding: '4px 6px', letterSpacing: '.5px' }}>
-                    Chọn mẫu để chỉnh sửa
+                    Chọn mẫu để cấu hình
                   </div>
                   {templates.map((t) => (
                     <div
@@ -2713,10 +2838,11 @@
                   </div>
                 </div>
 
-                {/* Cột Phải: Trình biên soạn & Thư viện Merge Tags 1-Chạm */}
+                {/* Cột Phải: Trình biên soạn Rich Text & Thư viện Merge Tags 1-Chạm */}
                 <div className="tpl-mgr-editor">
                   <div className="tpl-edit-card">
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 12 }}>
+                    {/* Header thông tin cơ bản của mẫu */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 10 }}>
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
                           Tiêu đề văn bản in (In hoa trên trang A4)
@@ -2741,7 +2867,7 @@
                       </div>
                     </div>
 
-                    <div style={{ marginBottom: 14 }}>
+                    <div style={{ marginBottom: 12 }}>
                       <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
                         Mô tả tóm tắt mục đích
                       </label>
@@ -2753,17 +2879,35 @@
                       />
                     </div>
 
+                    {/* Bộ chuyển đổi chế độ soạn thảo mẫu */}
+                    <div className="tpl-mode-tabs">
+                      <button
+                        type="button"
+                        className={'tpl-mode-tab' + (templateMode === 'terms' ? ' active' : '')}
+                        onClick={() => setTemplateMode('terms')}
+                      >
+                        <i className="fas fa-file-pen"></i> Chế độ 1: Thêm điều khoản bổ sung
+                      </button>
+                      <button
+                        type="button"
+                        className={'tpl-mode-tab' + (templateMode === 'full' ? ' active' : '')}
+                        onClick={() => setTemplateMode('full')}
+                      >
+                        <i className="fas fa-file-word"></i> Chế độ 2: Toàn văn mẫu hợp đồng riêng (Rich Text / Word Upload)
+                      </button>
+                    </div>
+
                     {/* Dải Thẻ Biến Thông Minh 1-Chạm (Merge Tags Chips) */}
-                    <div className="tpl-tags-panel">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div className="tpl-tags-panel" style={{ marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy-primary)' }}>
-                          <i className="fas fa-tags"></i> Thư viện thẻ biến tự động điền (Bấm để chèn nhanh)
+                          <i className="fas fa-tags"></i> Thư viện thẻ biến tự động điền (Bấm để chèn vào văn bản)
                         </span>
-                        <small style={{ color: '#64748b' }}>Nhấp vào thẻ để chèn vào vị trí con trỏ</small>
+                        <small style={{ color: '#64748b' }}>Nhấp vào thẻ để chèn ngay tại con trỏ</small>
                       </div>
 
                       {MERGE_TAG_GROUPS.map((grp, idx) => (
-                        <div key={idx} style={{ marginBottom: 8 }}>
+                        <div key={idx} style={{ marginBottom: 6 }}>
                           <div className="tpl-tag-group-title">{grp.group}</div>
                           <div className="tpl-tag-chips">
                             {grp.tags.map((t) => (
@@ -2783,22 +2927,87 @@
                       ))}
                     </div>
 
-                    {/* Ô Soạn Thảo Điều Khoản Bổ Sung */}
-                    <div style={{ marginTop: 14 }}>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span><i className="fas fa-file-pen"></i> Các điều khoản thỏa thuận hoặc ghi chú riêng của biểu mẫu:</span>
-                        <small style={{ color: '#64748b' }}>Hỗ trợ chèn các thẻ biến <code>{'{{...}}'}</code></small>
-                      </label>
-                      <textarea
-                        ref={textareaRef}
-                        className="filter-input"
-                        rows={6}
-                        style={{ width: '100%', fontFamily: 'Consolas, monospace', fontSize: 12.5, lineHeight: 1.6 }}
-                        value={customTerms}
-                        onChange={(e) => setCustomTerms(e.target.value)}
-                        placeholder="Nhập thêm các điều khoản riêng của công ty hoặc chèn các thẻ biến tự động bên trên..."
-                      />
-                    </div>
+                    {/* Khung Soạn Thảo Tùy Theo Chế Độ */}
+                    {templateMode === 'terms' ? (
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span><i className="fas fa-file-pen"></i> Các điều khoản thỏa thuận hoặc ghi chú bổ sung:</span>
+                          <small style={{ color: '#64748b' }}>Sẽ tự động gắn vào mẫu chuẩn của hệ thống</small>
+                        </label>
+                        <textarea
+                          ref={textareaRef}
+                          className="filter-input"
+                          rows={6}
+                          style={{ width: '100%', fontFamily: 'Consolas, monospace', fontSize: 12.5, lineHeight: 1.6 }}
+                          value={customTerms}
+                          onChange={(e) => setCustomTerms(e.target.value)}
+                          placeholder="Nhập thêm các điều khoản riêng của công ty hoặc chèn các thẻ biến tự động bên trên..."
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        {/* Thanh công cụ định dạng Rich Text */}
+                        <div className="tpl-rich-toolbar">
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('bold')} title="In đậm (Ctrl+B)"><b>B</b></button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('italic')} title="In nghiêng (Ctrl+I)"><i>I</i></button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('underline')} title="Gạch chân (Ctrl+U)"><u>U</u></button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('strikeThrough')} title="Gạch ngang"><s>S</s></button>
+                          
+                          <div className="tpl-tool-sep"></div>
+                          
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('formatBlock', '<h2>')} title="Tiêu đề lớn">H2</button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('formatBlock', '<h3>')} title="Tiêu đề vừa">H3</button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('formatBlock', '<p>')} title="Đoạn văn">P</button>
+                          
+                          <div className="tpl-tool-sep"></div>
+                          
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('justifyLeft')} title="Căn trái"><i className="fas fa-align-left"></i></button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('justifyCenter')} title="Căn giữa"><i className="fas fa-align-center"></i></button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('justifyRight')} title="Căn phải"><i className="fas fa-align-right"></i></button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('justifyFull')} title="Căn đều hai bên"><i className="fas fa-align-justify"></i></button>
+                          
+                          <div className="tpl-tool-sep"></div>
+
+                          <button type="button" className="tpl-btn-tool" onClick={() => insertTable(2)} title="Chèn bảng chữ ký 2 bên"><i className="fas fa-table-columns"></i> Bảng 2 cột</button>
+                          <button type="button" className="tpl-btn-tool" onClick={() => insertTable(3)} title="Chèn bảng thiết bị 3 cột"><i className="fas fa-table-cells"></i> Bảng 3 cột</button>
+                          <button type="button" className="tpl-btn-tool" onClick={insertPageBreak} title="Chèn ngắt sang trang A4 mới" style={{ color: '#0284c7' }}><i className="fas fa-scissors"></i> Ngắt trang A4</button>
+                          
+                          <div className="tpl-tool-sep"></div>
+
+                          <button
+                            type="button"
+                            className="tpl-btn-tool"
+                            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                            style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0', fontWeight: 700 }}
+                            title="Tải tệp .docx, .html hoặc .txt từ máy tính"
+                          >
+                            <i className="fas fa-cloud-arrow-up"></i> Tải file mẫu
+                          </button>
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            accept=".html,.htm,.txt,.docx"
+                            onChange={handleFileUpload}
+                          />
+
+                          <button type="button" className="tpl-btn-tool" onClick={() => execCmd('removeFormat')} title="Xóa định dạng" style={{ marginLeft: 'auto' }}><i className="fas fa-eraser"></i></button>
+                        </div>
+
+                        {/* Vùng Soạn thảo Rich Text WYSIWYG */}
+                        <div
+                          ref={richEditorRef}
+                          className="tpl-rich-editor"
+                          contentEditable="true"
+                          onInput={(e) => setFullTemplateHtml(e.currentTarget.innerHTML)}
+                          dangerouslySetInnerHTML={{ __html: fullTemplateHtml }}
+                          placeholder="Dán (Paste) trực tiếp văn bản từ Word/Google Docs hoặc tải file mẫu lên tại đây..."
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, fontSize: 11.5, color: '#64748b' }}>
+                          <span>💡 <b>Mẹo:</b> Bạn có thể chọn tất cả (Ctrl+A) trong Word rồi <b>Paste trực tiếp vào ô trên</b>, định dạng in đậm, in nghiêng, bảng và căn lề sẽ được giữ nguyên 100%!</span>
+                        </div>
+                      </div>
+                    )}
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>
                       <button className="btn btn-secondary" onClick={onClose}>
