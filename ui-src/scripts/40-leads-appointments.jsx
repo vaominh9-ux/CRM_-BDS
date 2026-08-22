@@ -952,6 +952,7 @@
     }
 
     // ============== Appointments (viewing scheduler — conflicts checked server-side) ==============
+    // ============== Appointments (viewing scheduler — conflicts checked server-side) ==============
     function AppointmentsView({ currentUser, role, perms, initialSearch }) {
       const { data: res, error, mutate } = useSWR('appts:all', () => gsRun('getAppointments', currentUser), SWR_LIVE);
       const rows = res ? (res.success ? res.data : []) : undefined;
@@ -965,9 +966,10 @@
       const [viewingLead, setViewingLead] = useState(null);
       const [calView, setCalView] = useState(false);      // list <-> month grid toggle
       const [stage, setStage] = useState('');
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '', agent: '', range: '' });
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch, range: '' })); }, [initialSearch]);
-      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Load failed', text: String((error && error.message) || error) }); }, [error]);
+      useEffect(() => { if (error) Swal.fire({ icon: 'error', title: 'Tải dữ liệu thất bại', text: String((error && error.message) || error) }); }, [error]);
 
       const inRange = (a) => {
         if (!filters.range) return true;
@@ -988,6 +990,7 @@
           a.leadName,a.leadPhone,a.propertyRef,a.propertyTitle,a.agent,a.status,a.notes,a.feedback
         ].some((value)=>String(value||'').toLowerCase().includes(q)));
       }, [base,stage,filters.search]);
+      const activeFiltersCount = (filters.search ? 1 : 0) + (filters.agent ? 1 : 0) + (filters.range ? 1 : 0);
 
       const kpi = useMemo(() => { const r = rows || [], now = new Date(); return [
         [r.filter((a) => ['Scheduled', 'Confirmed'].indexOf(a.status) !== -1 && new Date(a.scheduledAt) >= now).length, 'Sắp tới', 'fa-calendar-plus', 'bg-navy'],
@@ -1013,10 +1016,14 @@
       }, [canAdd]);
 
       const onAction = (action, a) => {
-        if (action === 'wa') { const n = String(a.leadPhone || '').replace(/\D/g, ''); if (n) window.open('https://zalo.me/' + n, '_blank'); }
+        if (action === 'wa') {
+          const n = String(a.leadPhone || '').replace(/\D/g, '');
+          const msg = 'Xin chào ' + (a.leadName || 'Quý khách') + ', tôi là ' + (a.agent || 'chuyên viên') + ' từ công ty BĐS. Tôi xin phép liên hệ xác nhận lịch hẹn xem nhà ' + (a.propertyRef ? 'mã ' + a.propertyRef : '') + (a.propertyTitle ? ' (' + a.propertyTitle + ')' : '') + ' vào lúc ' + fmtDT(a.scheduledAt) + '.';
+          waOpen(n, msg);
+        }
         else if (action === 'confirm') {
           gsRun('updateAppointment', { id: a.id, status: 'Confirmed' }, currentUser).then((res) => {
-            if (res && res.success) { Swal.fire({ icon: 'success', title: 'Đã xác nhận', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
+            if (res && res.success) { Swal.fire({ icon: 'success', title: 'Đã xác nhận lịch hẹn', timer: 1500, showConfirmButton: false }); mutate(); swrMutate('dash:stats'); }
             else Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Thao tác thất bại' });
           });
         }
@@ -1054,11 +1061,73 @@
       useEffect(() => { const t = tableRef.current; if (t && t.search() !== (filters.search || '')) t.search(filters.search || '').draw(); }, [filters.search, visible]); // redraw only on a REAL search change — background refreshes keep page/scroll
 
       const RANGES = [{ value: '', label: 'Toàn thời gian' }, { value: 'today', label: 'Hôm nay' }, { value: 'week', label: 'Tuần này' }, { value: 'month', label: 'Tháng này' }, { value: 'past', label: 'Đã qua' }];
+
       return (
         <>
           <KpiRow items={kpi} />
-          <Pipeline stages={ENUMS.appointmentStatus} counts={counts} active={stage} onPick={setStage} total={base.length} />
-          <div className="filters-section">
+
+          {/* 1. Desktop Pipeline */}
+          <div className="desk-pipeline-block">
+            <Pipeline stages={ENUMS.appointmentStatus} counts={counts} active={stage} onPick={setStage} total={base.length} />
+          </div>
+
+          {/* 2. Mobile Horizontally Scrollable Pipeline Pills */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (!stage ? 'active' : '')}
+                onClick={() => setStage('')}
+              >
+                <span>Tất cả</span>
+                <span className="mob-pill-badge">{base.length}</span>
+              </button>
+              {ENUMS.appointmentStatus.map((st) => {
+                const count = counts[st] || 0;
+                const col = STAGE_COLORS[st] || '#64748b';
+                return (
+                  <button
+                    key={st}
+                    className={'mob-pill ' + (stage === st ? 'active' : '') + (count === 0 ? ' empty' : '')}
+                    onClick={() => setStage(stage === st ? '' : st)}
+                  >
+                    <span className="mob-pill-dot" style={{ background: col }}></span>
+                    <span>{viEnum(st)}</span>
+                    <span className="mob-pill-badge">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Mobile Sub-Toolbar */}
+          <div className="mob-appts-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Lịch hẹn {stage ? `· ${viEnum(stage)}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              <button
+                className={'mob-tool-btn ' + (calView ? 'active' : '')}
+                onClick={() => setCalView(!calView)}
+                title={calView ? 'Xem danh sách' : 'Xem dạng lịch'}
+              >
+                <i className={'fas ' + (calView ? 'fa-list' : 'fa-calendar-days')}></i>
+              </button>
+              {canAdd && (
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditing(null); setShowModal(true); }} title="Đặt lịch xem">
+                  <i className="fas fa-plus"></i>
+                </button>
+              )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc lịch hẹn">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
             <div className="filters-header">
               <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -1078,13 +1147,180 @@
               {all && <SearchableDropdown label="Nhân viên" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + viEnum(a.role) + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
             </div>
           </div>
+
+          {/* 5. Data Section: Desktop Table & Mobile Luxury Cards */}
           <div className="data-section">
             <input type="file" id="apptCsvImport" accept=".csv" style={{ display: 'none' }}
                    onChange={(e) => { const f = e.target.files[0]; if (f) importCSVFile(f, 'LeadPhone', 'bulkImportAppointments', currentUser, () => { mutate(); swrMutate('dash:stats'); }); e.target.value = ''; }} />
-            {calView && <CalendarGrid appts={visible} onSelectAppt={(a) => { setEditing(a); setShowModal(true); }} />}
-            {loading ? (!calView && <TableSkeleton rows={8} columns={7} />)
-              : <div style={{ overflowX: 'auto', display: calView ? 'none' : 'block' }}><table id="apptTable" className="display" style={{ width: '100%' }}></table></div>}
+
+            {/* Desktop Table or Desktop Calendar Grid */}
+            <div className="desk-appts-table-wrap">
+              {calView && <CalendarGrid appts={visible} onSelectAppt={(a) => { setEditing(a); setShowModal(true); }} />}
+              {loading ? (!calView && <TableSkeleton rows={8} columns={7} />)
+                : <div style={{ overflowX: 'auto', display: calView ? 'none' : 'block' }}><table id="apptTable" className="display" style={{ width: '100%' }}></table></div>}
+            </div>
+
+            {/* Mobile View: List or Calendar Grid */}
+            <div className="mob-appts-view-container">
+              {calView ? (
+                <div className="mob-calendar-wrapper">
+                  <CalendarGrid appts={visible} onSelectAppt={(a) => { setEditing(a); setShowModal(true); }} />
+                </div>
+              ) : (
+                <div className="mob-appts-cards-container">
+                  {loading ? (
+                    <div className="mob-appts-skeleton-list">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="mob-appt-card-skeleton">
+                          <div className="sk-line w50"></div>
+                          <div className="sk-line w80"></div>
+                          <div className="sk-line w40"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : visible.length === 0 ? (
+                    <div className="mob-appts-empty-state">
+                      <div className="empty-circle"><i className="fas fa-calendar-xmark"></i></div>
+                      <h4>Chưa có lịch hẹn phù hợp</h4>
+                      <p>Thử đổi bộ lọc hoặc tạo lịch hẹn xem nhà mới</p>
+                      {canAdd && (
+                        <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditing(null); setShowModal(true); }}>
+                          <i className="fas fa-plus"></i> Đặt lịch xem
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    visible.map((a) => {
+                      const isUpcoming = ['Scheduled', 'Confirmed'].indexOf(a.status) !== -1;
+                      const initial = (a.leadName || 'K').trim().charAt(0).toUpperCase();
+                      return (
+                        <div key={a.id} className={'mob-appt-card status-' + (a.status || '').toLowerCase()}>
+                          {/* HÀNG 1: Thời gian lịch hẹn & Trạng thái */}
+                          <div className="mob-appt-header-row">
+                            <div className="mob-appt-time-pill">
+                              <i className="fas fa-calendar-day"></i>
+                              <span><strong>{fmtDT(a.scheduledAt)}</strong> ({a.durationMinutes || 30} phút)</span>
+                            </div>
+                            <div className="mob-appt-status-tags">
+                              <Badge s={a.status} />
+                              {a.interestLevel ? <Badge s={a.interestLevel} /> : null}
+                            </div>
+                          </div>
+
+                          {/* HÀNG 2: Khách hàng & Bất động sản */}
+                          <div className="mob-appt-body">
+                            {/* Khách hàng */}
+                            <div className="mob-appt-lead-row" onClick={() => setViewingLead(a)}>
+                              <div className="mob-lead-avatar">{initial}</div>
+                              <div className="mob-appt-lead-info">
+                                <div className="mob-appt-lead-name">
+                                  <strong>{a.leadName || 'Khách vãng lai'}</strong>
+                                  <span className="mob-view-profile-hint"><i className="fas fa-address-card"></i> Hồ sơ</span>
+                                </div>
+                                <div className="mob-appt-lead-phone">{a.leadPhone || 'Chưa có SĐT'}</div>
+                              </div>
+                            </div>
+
+                            {/* Bất động sản */}
+                            <div className="mob-appt-prop-box">
+                              <div className="mob-appt-prop-icon"><i className="fas fa-building"></i></div>
+                              <div className="mob-appt-prop-info">
+                                <span className="prop-ref">{a.propertyRef || 'Mã #' + (a.propertyId || '—')}</span>
+                                <span className="mob-appt-prop-title">{a.propertyTitle || 'Bất động sản quan tâm'}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* HÀNG 3: Nhân viên & Ghi chú / Phản hồi / Lý do hủy */}
+                          <div className="mob-appt-meta-info">
+                            <div className="mob-appt-agent">
+                              <i className="fas fa-user-tie"></i> Phụ trách: <strong>{a.agent || 'Chưa phân công'}</strong>
+                            </div>
+                            {a.status === 'Cancelled' && a.cancellationReason ? (
+                              <div className="mob-appt-cancel-reason">
+                                <i className="fas fa-triangle-exclamation"></i> Lý do hủy: {a.cancellationReason}
+                              </div>
+                            ) : null}
+                            {a.feedback ? (
+                              <div className="mob-appt-feedback">
+                                <i className="fas fa-comment-dots"></i> Phản hồi: {a.feedback}
+                              </div>
+                            ) : a.notes ? (
+                              <div className="mob-appt-notes">
+                                <i className="fas fa-note-sticky"></i> Ghi chú: {a.notes}
+                              </div>
+                            ) : null}
+                          </div>
+
+                          {/* HÀNG 4: Các nút hành động 1 chạm */}
+                          <div className="mob-appt-actions">
+                            {canEdit && a.status === 'Scheduled' && (
+                              <button className="mob-btn mob-btn-confirm" onClick={() => onAction('confirm', a)} title="Xác nhận lịch hẹn">
+                                <i className="fas fa-check"></i> Xác nhận
+                              </button>
+                            )}
+                            {canEdit && isUpcoming && (
+                              <button className="mob-btn mob-btn-complete" onClick={() => onAction('complete', a)} title="Hoàn thành & Ghi phản hồi">
+                                <i className="fas fa-flag-checkered"></i> Hoàn thành
+                              </button>
+                            )}
+                            <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', a)} title="Nhắn Zalo khách hàng">
+                              <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
+                                <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5"/>
+                                <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/>
+                                <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+                              </svg>
+                              Zalo
+                            </button>
+                            {canEdit && (
+                              <button className="mob-btn mob-btn-edit" onClick={() => onAction('edit', a)} title="Chỉnh sửa lịch hẹn">
+                                <i className="fas fa-pen-to-square"></i>
+                              </button>
+                            )}
+                            {canDel && (
+                              <button className="mob-btn mob-btn-del" onClick={() => onAction('delete', a)} title="Xóa lịch hẹn">
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* 6. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc lịch hẹn</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm lịch hẹn</label>
+                    <input className="filter-input" value={filters.search} placeholder="Tên khách, SĐT, BĐS, nhân viên…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                  <SearchableDropdown label="Khoảng thời gian" icon="fas fa-calendar-week" options={RANGES.filter((r) => r.value)} value={filters.range} onChange={(v) => setFilters({ ...filters, range: v })} placeholder="Toàn thời gian" />
+                  {all && <SearchableDropdown label="Nhân viên" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + viEnum(a.role) + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { setFilters({ search: '', agent: '', range: '' }); setStage(''); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Lịch hẹn)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showModal && (
             <AppointmentModal appt={editing} currentUser={currentUser} role={role} lookups={lookups}
                               onClose={() => { setShowModal(false); setEditing(null); }}
@@ -1117,9 +1353,9 @@
 
       const submit = (e) => {
         e.preventDefault();
-        if (!editing && (!form.leadId || !form.propertyId)) return Swal.fire({ icon: 'warning', title: 'Lead and property are required' });
+        if (!editing && (!form.leadId || !form.propertyId)) return Swal.fire({ icon: 'warning', title: 'Chưa chọn khách hàng và BĐS', text: 'Vui lòng chọn khách hàng và bất động sản cần xem.' });
         if (form.status === 'Cancelled' && !form.cancellationReason.trim())
-          return Swal.fire({ icon: 'warning', title: 'Cancellation reason required' });
+          return Swal.fire({ icon: 'warning', title: 'Cần nhập lý do hủy', text: 'Vui lòng ghi rõ lý do hủy lịch hẹn.' });
         setSaving(true);
         const payload = editing
           ? { id: appt.id, scheduledAt: form.scheduledAt, durationMinutes: form.durationMinutes, agent: form.agent, status: form.status, cancellationReason: form.cancellationReason, notes: form.notes }
@@ -1127,61 +1363,61 @@
         gsRun(editing ? 'updateAppointment' : 'addAppointment', payload, currentUser).then((r) => {
           setSaving(false);
           if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2200, showConfirmButton: false }); onSaved(); }
-          else Swal.fire({ icon: 'error', title: 'Cannot book', text: (r && r.message) || 'Failed' }); // conflict message surfaces here
-        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+          else Swal.fire({ icon: 'error', title: 'Không thể đặt lịch', text: (r && r.message) || 'Thao tác thất bại' }); // conflict message surfaces here
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Lỗi', text: String((err && err.message) || err) }); });
       };
 
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving} />
-          <div className="modal" style={{ maxWidth: 560 }}>
+          <div className="modal modal-appt-form">
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-calendar-plus')}></i> {editing ? 'Edit Viewing #' + appt.id : 'Book Viewing'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-calendar-plus')}></i> {editing ? 'Chỉnh sửa lịch xem #' + appt.id : 'Đặt lịch hẹn xem nhà'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 {!editing && (
-                  <SearchableDropdown label="Lead" icon="fas fa-user-tag"
-                    options={leads.map((l) => ({ value: String(l.id), label: l.fullName + ' (' + l.phone + ') · ' + l.status }))}
-                    value={form.leadId} onChange={set('leadId')} placeholder="Search lead…" required={true} />
+                  <SearchableDropdown label="Khách hàng tiềm năng" icon="fas fa-user-tag"
+                    options={leads.map((l) => ({ value: String(l.id), label: l.fullName + ' (' + l.phone + ') · ' + viEnum(l.status) }))}
+                    value={form.leadId} onChange={set('leadId')} placeholder="Tìm khách hàng…" required={true} />
                 )}
                 {!editing && (
-                  <SearchableDropdown label="Property" icon="fas fa-building"
+                  <SearchableDropdown label="Bất động sản cần xem" icon="fas fa-building"
                     options={props.filter((p) => ['Sold', 'Rented'].indexOf(p.status) === -1).map((p) => ({ value: String(p.id), label: (p.referenceCode || '#' + p.id) + ' — ' + p.title }))}
-                    value={form.propertyId} onChange={set('propertyId')} placeholder="Search property…" required={true} />
+                    value={form.propertyId} onChange={set('propertyId')} placeholder="Tìm bất động sản…" required={true} />
                 )}
                 <div className="form-grid">
                   <div className="form-group">
-                    <label><i className="fas fa-clock"></i> Date & Time *</label>
+                    <label><i className="fas fa-clock"></i> Thời gian hẹn *</label>
                     <input type="datetime-local" value={form.scheduledAt} onChange={(e) => setForm((f) => ({ ...f, scheduledAt: e.target.value }))} required />
                   </div>
-                  <SearchableDropdown label="Duration" icon="fas fa-hourglass-half"
-                    options={[{ value: '30', label: '30 minutes' }, { value: '45', label: '45 minutes' }, { value: '60', label: '1 hour' }, { value: '90', label: '1.5 hours' }]}
-                    value={form.durationMinutes} onChange={set('durationMinutes')} placeholder="Duration…" />
+                  <SearchableDropdown label="Thời lượng dự kiến" icon="fas fa-hourglass-half"
+                    options={[{ value: '30', label: '30 phút' }, { value: '45', label: '45 phút' }, { value: '60', label: '1 tiếng' }, { value: '90', label: '1.5 tiếng' }]}
+                    value={form.durationMinutes} onChange={set('durationMinutes')} placeholder="Thời lượng…" />
                   {all && (
-                    <SearchableDropdown label="Agent" icon="fas fa-user-tie"
-                      options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
-                      value={form.agent} onChange={set('agent')} placeholder="Agent…" />
+                    <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie"
+                      options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + viEnum(a.role) + ')' }))}
+                      value={form.agent} onChange={set('agent')} placeholder="Chọn nhân viên…" />
                   )}
                   {editing && (
-                    <SearchableDropdown label="Status" icon="fas fa-flag" options={opts(ENUMS.appointmentStatus)} value={form.status} onChange={set('status')} placeholder="Status…" />
+                    <SearchableDropdown label="Trạng thái" icon="fas fa-flag" options={opts(ENUMS.appointmentStatus)} value={form.status} onChange={set('status')} placeholder="Trạng thái…" />
                   )}
                 </div>
                 {editing && form.status === 'Cancelled' && (
                   <div className="form-group">
-                    <label><i className="fas fa-circle-question"></i> Cancellation Reason *</label>
-                    <textarea rows="2" value={form.cancellationReason} onChange={(e) => setForm((f) => ({ ...f, cancellationReason: e.target.value }))} required></textarea>
+                    <label><i className="fas fa-circle-question"></i> Lý do hủy lịch hẹn *</label>
+                    <textarea rows="2" value={form.cancellationReason} onChange={(e) => setForm((f) => ({ ...f, cancellationReason: e.target.value }))} required placeholder="Ghi rõ lý do khách hoặc công ty hủy…"></textarea>
                   </div>
                 )}
                 <div className="form-group">
-                  <label><i className="fas fa-align-left"></i> Notes</label>
-                  <textarea rows="2" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}></textarea>
+                  <label><i className="fas fa-align-left"></i> Ghi chú nội bộ</label>
+                  <textarea rows="2" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Lưu ý địa điểm gặp, tài liệu cần mang theo…"></textarea>
                 </div>
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update' : 'Book Viewing'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật lịch xem' : 'Xác nhận đặt lịch'}</>}
                   </button>
                 </div>
               </form>

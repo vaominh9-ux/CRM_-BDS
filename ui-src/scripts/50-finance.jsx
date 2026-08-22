@@ -991,7 +991,7 @@
       };
       return (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 480 }}>
+          <div className="modal modal-feedback-form" style={{ maxWidth: 480 }}>
             <div className="modal-header">
               <h3><i className="fas fa-clipboard-check"></i> Hoàn thành lịch xem — {appt.leadName}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
