@@ -1487,12 +1487,12 @@
     .tpl-a4-sheet-paper {
       background: #ffffff !important;
       width: 100%;
-      max-width: 840px;
-      min-height: 1050px;
+      max-width: 794px;
+      min-height: 1123px;
       height: auto;
       border-radius: 4px;
       box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
-      padding: 44px 50px;
+      padding: 48px 52px;
       font-family: var(--font-sans);
       font-size: 13.5px;
       line-height: 1.8;
