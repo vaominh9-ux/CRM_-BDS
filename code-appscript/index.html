@@ -3038,11 +3038,7 @@
       .pd-gallery-main { height: 280px; }
       .pd-facts { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 560px) {
-      .pd-facts { grid-template-columns: 1fr; }
-      .modal-pd-luxury .modal-header { padding: 14px 16px; }
-      .modal-pd-luxury .modal-body { padding: 16px; }
-    }
+
 
     /* ===== Public Property Portal (pre-login surface) — Ultra Luxury Harmonized Edition ===== */
     .portal,
@@ -4120,6 +4116,259 @@
       .customer-quick-facts .pd-fact:last-child:nth-child(odd) { grid-column: auto; }
       .customer-quick-footer { align-items: stretch; flex-direction: column; }
       .customer-quick-footer .btn { width: 100%; }
+    }
+
+    /* ===== CỔNG THÔNG TIN BĐS - TOÀN BỘ GIAO DIỆN MOBILE CHUẨN 100% TRÀN VIỀN KHÔNG THỪA KHOẢNG TRỐNG ===== */
+    @media (max-width: 768px) {
+      /* 1. Modal Overlay toàn màn hình */
+      .modal-overlay,
+      .portal .modal-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        align-items: stretch !important;
+        justify-content: stretch !important;
+        background: #0a192f !important;
+        z-index: 9999 !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 2. Hộp Modal Chi tiết BĐS Luxury full 100% không để lại khoảng trống 2 bên */
+      .modal.modal-pd-luxury,
+      .portal .modal.modal-pd-luxury,
+      .modal-pd-luxury {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 100% !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        background: #ffffff !important;
+      }
+
+      /* 3. Tiêu đề Modal trên Mobile */
+      .modal.modal-pd-luxury .modal-header,
+      .modal-pd-luxury .modal-header {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 12px 14px !important;
+        border-radius: 0 !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 30 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+      }
+      .modal.modal-pd-luxury .modal-header h3,
+      .modal-pd-luxury .modal-header h3 {
+        font-size: 14.5px !important;
+        line-height: 1.3 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: calc(100% - 40px) !important;
+        flex: 1 !important;
+        margin: 0 !important;
+      }
+
+      /* 4. Thân Modal cuộn mượt */
+      .modal.modal-pd-luxury .modal-body,
+      .modal-pd-luxury .modal-body {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 14px 12px 85px !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        background: #f8fafc !important;
+      }
+
+      /* 5. Cột bố cục */
+      .pd-grid-layout {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        box-sizing: border-box !important;
+      }
+      .pd-col-main,
+      .pd-col-side {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 6. Thư viện ảnh */
+      .pd-gallery-wrap {
+        width: 100% !important;
+        margin-bottom: 12px !important;
+        box-sizing: border-box !important;
+      }
+      .pd-gallery-main {
+        width: 100% !important;
+        height: 220px !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+      }
+      .pd-thumbs {
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .pd-thumbs img {
+        width: 60px !important;
+        height: 44px !important;
+        border-radius: 7px !important;
+      }
+
+      /* 7. Thông số BĐS */
+      .pd-facts {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+        margin-bottom: 14px !important;
+      }
+      .pd-fact {
+        padding: 8px 10px !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 8. Tiện ích & Bản đồ */
+      .pd-amen-list {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        gap: 6px !important;
+        margin-bottom: 14px !important;
+      }
+      .amen-chip {
+        font-size: 11.5px !important;
+        padding: 5px 10px !important;
+      }
+      .pd-map {
+        width: 100% !important;
+        height: 180px !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 9. Thẻ Báo giá & Form điền thông tin */
+      .pd-side-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        background: #ffffff !important;
+        border-radius: 16px !important;
+        padding: 16px 14px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 20px rgba(15,23,42,0.06) !important;
+        margin-top: 10px !important;
+        gap: 14px !important;
+      }
+      .pd-price-val {
+        font-size: 22px !important;
+      }
+      .pd-loc-row {
+        font-size: 13px !important;
+        line-height: 1.45 !important;
+      }
+      .pd-share-row {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding-bottom: 12px !important;
+        gap: 8px !important;
+      }
+      .pd-share-row .btn {
+        flex: 1 !important;
+        font-size: 13px !important;
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+      }
+
+      /* 10. Form điền thông tin liền mạch */
+      .modal-pd-luxury .enquiry-box {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin-top: 4px !important;
+      }
+      .modal-pd-luxury .enquiry-box h3 {
+        font-size: 15px !important;
+        margin-bottom: 12px !important;
+        color: #001f3f !important;
+      }
+      .modal-pd-luxury .form-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-bottom: 12px !important;
+      }
+      .modal-pd-luxury .form-group label {
+        font-size: 12px !important;
+        font-weight: 650 !important;
+        color: #334155 !important;
+        margin-bottom: 5px !important;
+      }
+      .modal-pd-luxury .form-group input,
+      .modal-pd-luxury .form-group textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 10px 12px !important;
+        font-size: 13.5px !important;
+        background: #f8fafc !important;
+        box-sizing: border-box !important;
+        -webkit-appearance: none !important;
+      }
+      .modal-pd-luxury .form-group input:focus,
+      .modal-pd-luxury .form-group textarea:focus {
+        background: #ffffff !important;
+        border-color: #0284c7 !important;
+        box-shadow: 0 0 0 3px rgba(2,132,199,0.15) !important;
+      }
+      .pd-submit-btn {
+        width: 100% !important;
+        padding: 13px 16px !important;
+        font-size: 14.5px !important;
+        font-weight: 750 !important;
+        border-radius: 25px !important;
+        margin-top: 6px !important;
+        box-shadow: 0 4px 16px rgba(0, 31, 63, 0.25) !important;
+      }
+      .pd-privacy-note {
+        font-size: 11.5px !important;
+        margin-top: 8px !important;
+        text-align: center !important;
+      }
     }
   </style>
 </head>
