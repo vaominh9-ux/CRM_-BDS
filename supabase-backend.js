@@ -720,27 +720,32 @@ async function dealBody(data,jwt,isNew=false){
     updated_by: p.id
   });
 }
-async function syncTenancyOnRentDeal(dealRow, jwt) {
-  if (!dealRow || dealRow.deal_type !== 'Rent' || dealRow.status !== 'Completed' || !dealRow.property_id) return;
+async function syncTenancyOnRentDeal(dealIdOrRow, jwt) {
+  const dealId = typeof dealIdOrRow === 'object' ? dealIdOrRow?.id : Number(dealIdOrRow);
+  if (!dealId) return;
+  const deals = await select('deals', 'id,deal_type,property_id,status,buyer_name,buyer_phone,deal_amount_vnd,token_amount_vnd,closed_at,notes', jwt, `&id=eq.${dealId}&limit=1`);
+  if (!deals.length) return;
+  const deal = deals[0];
+  if (deal.deal_type !== 'Rent' || deal.status !== 'Completed' || !deal.property_id) return;
   const p = await currentProfile(jwt);
-  const existing = await select('tenancies', 'id', jwt, `&deal_id=eq.${dealRow.id}&limit=1`);
+  const existing = await select('tenancies', 'id', jwt, `&deal_id=eq.${deal.id}&deleted_at=is.null&limit=1`);
   if (!existing.length) {
     const today = new Date().toISOString().slice(0, 10);
     await insertRow('tenancies', {
-      property_id: Number(dealRow.property_id),
-      deal_id: Number(dealRow.id),
-      tenant_name: dealRow.buyer_name || 'Khách thuê',
-      tenant_phone: dealRow.buyer_phone || '',
-      monthly_rent_vnd: Number(dealRow.deal_amount_vnd || 0),
-      security_deposit_vnd: Number(dealRow.token_amount_vnd || 0),
-      start_date: dealRow.closed_at ? String(dealRow.closed_at).slice(0, 10) : today,
+      property_id: Number(deal.property_id),
+      deal_id: Number(deal.id),
+      tenant_name: deal.buyer_name || 'Khách thuê',
+      tenant_phone: deal.buyer_phone || '',
+      monthly_rent_vnd: Number(deal.deal_amount_vnd || 0),
+      security_deposit_vnd: Number(deal.token_amount_vnd || 0),
+      start_date: deal.closed_at ? String(deal.closed_at).slice(0, 10) : today,
       rent_due_day: 5,
       status: 'Active',
-      notes: dealRow.notes || '',
+      notes: deal.notes || '',
       created_by: p.id,
       updated_by: p.id
     }, jwt);
-    await patchRow('properties', dealRow.property_id, { status: 'Rented', updated_at: new Date().toISOString(), updated_by: p.id }, jwt);
+    await patchRow('properties', deal.property_id, { status: 'Rented', updated_at: new Date().toISOString(), updated_by: p.id }, jwt);
   }
 }
 async function addDeal(args,jwt){
@@ -762,12 +767,12 @@ async function addDeal(args,jwt){
         }
       }).catch(() => {});
     }
-    await syncTenancyOnRentDeal(row, jwt);
+    await syncTenancyOnRentDeal(row.id, jwt);
   }
   await audit(jwt, 'Deal Added', row ? `#${row.id}` : '');
   return ok({ id: row?.id, message: 'Đã thêm giao dịch' });
 }
-async function updateDeal(args,jwt){const d=args[0]||{};const row=await patchRow('deals',d.id,await dealBody(d,jwt,false),jwt);if(row)await syncTenancyOnRentDeal(row,jwt);await audit(jwt,'Deal Updated',`#${d.id}`);return ok({message:'Đã cập nhật giao dịch'});}
+async function updateDeal(args,jwt){const d=args[0]||{};const row=await patchRow('deals',d.id,await dealBody(d,jwt,false),jwt);await syncTenancyOnRentDeal(d.id,jwt);await audit(jwt,'Deal Updated',`#${d.id}`);return ok({message:'Đã cập nhật giao dịch'});}
 async function deleteDeal(args,jwt){return softDelete('deals',args[0],jwt,'Deal');}
 async function addDealPayment(args,jwt){const [dealId,data]=args;await request('/rest/v1/rpc/record_deal_payment',{method:'POST',jwt,body:{target_deal_id:Number(dealId),payment_amount_vnd:Number(data.amount),payment_method:data.method||'Cash',payment_reference:data.reference||'',payment_notes:data.notes||'',payment_time:data.date||data.paidAt||new Date().toISOString()}});await audit(jwt,'Deal Payment Added',`#${dealId}`);return ok({message:'Đã ghi nhận thanh toán'});}
 async function markAgentPaid(args,jwt){const id=args[0],p=await currentProfile(jwt);await patchRow('deals',id,{agent_paid_at:new Date().toISOString(),updated_at:new Date().toISOString(),updated_by:p.id},jwt);await audit(jwt,'Agent Commission Paid',`#${id}`);return ok({message:'Đã ghi nhận thanh toán hoa hồng'});}
