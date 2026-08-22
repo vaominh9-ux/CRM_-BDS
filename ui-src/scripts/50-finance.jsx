@@ -3088,9 +3088,18 @@ function ContractTemplatesManagerModal({ currentUser, onClose }) {
                           <div className="tpl-tool-divider"></div>
 
                           <div className="tpl-tool-btn-group">
-                            <button type="button" className="tpl-tool-btn" onClick={() => insertTable(2)} title="Chèn bảng đại diện 2 bên"><i className="fas fa-table-columns"></i> Bảng 2 cột</button>
-                            <button type="button" className="tpl-tool-btn" onClick={() => insertTable(3)} title="Chèn bảng danh mục 3 cột"><i className="fas fa-table-cells"></i> Bảng 3 cột</button>
-                            <button type="button" className="tpl-tool-btn tpl-page-break-btn" onClick={insertPageBreak} title="Chèn ngắt sang trang A4 mới"><i className="fas fa-scissors"></i> Ngắt trang A4</button>
+                            <button type="button" className="tpl-tool-btn tpl-tool-btn-text" onClick={() => insertTable(2)} title="Chèn bảng đại diện 2 bên">
+                              <i className="fas fa-table-columns" style={{ color: '#0284c7' }}></i>
+                              <span>Bảng 2 cột</span>
+                            </button>
+                            <button type="button" className="tpl-tool-btn tpl-tool-btn-text" onClick={() => insertTable(3)} title="Chèn bảng danh mục 3 cột">
+                              <i className="fas fa-table-cells" style={{ color: '#059669' }}></i>
+                              <span>Bảng 3 cột</span>
+                            </button>
+                            <button type="button" className="tpl-tool-btn tpl-tool-btn-text tpl-page-break-btn" onClick={insertPageBreak} title="Chèn ngắt sang trang A4 mới">
+                              <i className="fas fa-scissors"></i>
+                              <span>Ngắt trang A4</span>
+                            </button>
                           </div>
                           
                           <div className="tpl-tool-divider"></div>
