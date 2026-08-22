@@ -20905,33 +20905,198 @@
     function A4DocModal({ doc, docType, recId, currentUser, autoPrint, onClose }) {
       const frameRef = useRef(null);
       const [busy, setBusy] = useState(false);
+      const [isEditing, setIsEditing] = useState(false);
+      const [isEdited, setIsEdited] = useState(false);
       const printed = useRef(false);
-      const doPrint = () => { const w = frameRef.current && frameRef.current.contentWindow; if (w) { w.focus(); w.print(); } };
+
+      const injectEditStyles = (docObj) => {
+        if (!docObj || !docObj.head) return;
+        let style = docObj.getElementById('a4-edit-mode-style');
+        if (!style) {
+          style = docObj.createElement('style');
+          style.id = 'a4-edit-mode-style';
+          style.textContent = `
+            body[contenteditable="true"] { cursor: text; }
+            body[contenteditable="true"] p:hover, 
+            body[contenteditable="true"] td:hover, 
+            body[contenteditable="true"] div:hover,
+            body[contenteditable="true"] span:hover,
+            body[contenteditable="true"] b:hover,
+            body[contenteditable="true"] h1:hover,
+            body[contenteditable="true"] h2:hover,
+            body[contenteditable="true"] h3:hover {
+              outline: 1px dashed #0284c7 !important;
+              background-color: rgba(2, 132, 199, 0.03);
+            }
+            body[contenteditable="true"] *:focus {
+              outline: 2px solid #0284c7 !important;
+              background-color: rgba(2, 132, 199, 0.07);
+            }
+            @media print {
+              body, * { outline: none !important; background-color: transparent !important; }
+            }
+          `;
+          docObj.head.appendChild(style);
+        }
+      };
+
+      const toggleEdit = () => {
+        const next = !isEditing;
+        setIsEditing(next);
+        const docObj = frameRef.current && (frameRef.current.contentDocument || frameRef.current.contentWindow.document);
+        if (docObj && docObj.body) {
+          injectEditStyles(docObj);
+          docObj.body.contentEditable = next ? 'true' : 'false';
+          docObj.designMode = next ? 'on' : 'off';
+          if (next) {
+            docObj.body.addEventListener('input', () => setIsEdited(true), { once: true });
+            docObj.body.focus();
+            Swal.fire({
+              icon: 'info',
+              title: 'Chế độ Chỉnh sửa trực tiếp',
+              text: 'Bạn có thể nhấp chuột trực tiếp vào bất kỳ dòng chữ, số tiền, tên người hoặc điều khoản nào để sửa đổi trước khi in.',
+              timer: 2500,
+              showConfirmButton: false
+            });
+          }
+        }
+      };
+
+      const resetDoc = () => {
+        Swal.fire({
+          icon: 'question',
+          title: 'Khôi phục bản gốc?',
+          text: 'Mọi nội dung bạn vừa chỉnh sửa sẽ được đặt lại theo dữ liệu hệ thống ban đầu.',
+          showCancelButton: true,
+          confirmButtonColor: 'var(--navy-primary)',
+          confirmButtonText: 'Khôi phục',
+          cancelButtonText: 'Hủy'
+        }).then((res) => {
+          if (!res.isConfirmed) return;
+          const frame = frameRef.current;
+          if (frame) {
+            frame.srcDoc = doc.html;
+            setIsEdited(false);
+            setIsEditing(false);
+          }
+        });
+      };
+
+      const doPrint = () => {
+        const w = frameRef.current && frameRef.current.contentWindow;
+        if (w) {
+          w.focus();
+          w.print();
+        }
+      };
+
       const doPdf = () => {
+        if (isEdited) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Tải PDF bản đã chỉnh sửa',
+            html: 'Vì bạn đã chỉnh sửa nội dung văn bản trực tiếp, vui lòng chọn <b>In văn bản (A4)</b> rồi chọn máy in <b>"Save as PDF / Lưu dưới dạng PDF"</b> để lưu trọn vẹn nội dung vừa sửa.',
+            confirmButtonText: 'Mở cửa sổ in ngay',
+            showCancelButton: true,
+            cancelButtonText: 'Đóng'
+          }).then((r) => {
+            if (r.isConfirmed) doPrint();
+          });
+          return;
+        }
+
         setBusy(true);
         gsRun('agreementPdf', docType, recId, currentUser).then((r) => {
           setBusy(false);
-          if (r && r.success) { const a = document.createElement('a'); a.href = 'data:application/pdf;base64,' + r.base64; a.download = r.filename; a.click(); }
-          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+          if (r && r.success) {
+            const a = document.createElement('a');
+            a.href = 'data:application/pdf;base64,' + r.base64;
+            a.download = r.filename;
+            a.click();
+          } else {
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+          }
         }).catch(() => setBusy(false));
       };
+
+      const handleFrameLoad = () => {
+        const docObj = frameRef.current && (frameRef.current.contentDocument || frameRef.current.contentWindow.document);
+        if (docObj && docObj.body) {
+          injectEditStyles(docObj);
+          if (isEditing) {
+            docObj.body.contentEditable = 'true';
+            docObj.designMode = 'on';
+          }
+        }
+        if (autoPrint && !printed.current) {
+          printed.current = true;
+          setTimeout(doPrint, 400);
+        }
+      };
+
       return (
         <div className="modal-overlay">
-          <div className="modal modal-doc-preview" style={{ maxWidth: 920 }}>
-            <div className="modal-header">
-              <h3><i className="fas fa-file-contract"></i> {doc.title}</h3>
+          <div className="modal modal-doc-preview" style={{ maxWidth: 940 }}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h3 style={{ margin: 0 }}><i className="fas fa-file-signature" style={{ color: 'var(--navy-accent)' }}></i> {doc.title}</h3>
+                {isEditing && (
+                  <span className="badge badge-warning" style={{ fontSize: 11, padding: '3px 8px' }}>
+                    <i className="fas fa-pen-to-square"></i> Đang chỉnh sửa
+                  </span>
+                )}
+                {isEdited && (
+                  <span className="badge badge-info" style={{ fontSize: 11, padding: '3px 8px' }}>
+                    <i className="fas fa-check"></i> Đã tùy biến
+                  </span>
+                )}
+              </div>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
+
             <div className="modal-body" style={{ padding: '12px 16px' }}>
-              <div className="mob-doc-modal-actions" style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-                <button className="btn btn-primary btn-sm" onClick={doPrint}><i className="fas fa-print"></i> In văn bản (A4)</button>
+              {/* Action Toolbar with Live Edit Toggle */}
+              <div className="mob-doc-modal-actions" style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  className={'btn btn-sm ' + (isEditing ? 'btn-warning' : 'btn-secondary')}
+                  onClick={toggleEdit}
+                  style={{ fontWeight: 700 }}
+                  title="Cho phép bấm trực tiếp vào văn bản để chỉnh sửa trước khi in"
+                >
+                  <i className={'fas ' + (isEditing ? 'fa-lock-open' : 'fa-pen-to-square')}></i>
+                  {isEditing ? 'Đang bật sửa văn bản' : 'Chỉnh sửa trực tiếp'}
+                </button>
+
+                {isEdited && (
+                  <button className="btn btn-secondary btn-sm" onClick={resetDoc} title="Đặt lại về văn bản gốc">
+                    <i className="fas fa-rotate-left"></i> Khôi phục gốc
+                  </button>
+                )}
+
+                <button className="btn btn-primary btn-sm" onClick={doPrint} style={{ fontWeight: 700 }}>
+                  <i className="fas fa-print"></i> In văn bản (A4)
+                </button>
+
                 <button className="btn btn-secondary btn-sm" onClick={doPdf} disabled={busy}>
                   <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-file-pdf')}></i> Tải tệp PDF
                 </button>
-                <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b', alignSelf: 'center' }}><i className="fas fa-circle-info"></i> Định dạng chuẩn A4</span>
+
+                <div style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className="fas fa-circle-info" style={{ color: 'var(--navy-accent)' }}></i>
+                  <span>{isEditing ? 'Nhấp chuột vào bất kỳ chữ/số nào trên văn bản để sửa' : 'Chuẩn khổ in A4'}</span>
+                </div>
               </div>
-              <iframe ref={frameRef} srcDoc={doc.html} className="a4-frame" title="document"
-                      onLoad={() => { if (autoPrint && !printed.current) { printed.current = true; setTimeout(doPrint, 400); } }}></iframe>
+
+              {/* Editable Live A4 Preview Frame */}
+              <div style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', border: isEditing ? '2px solid #0284c7' : '1px solid #ccd5df', transition: 'border-color .2s' }}>
+                <iframe
+                  ref={frameRef}
+                  srcDoc={doc.html}
+                  className="a4-frame"
+                  title="document"
+                  onLoad={handleFrameLoad}
+                ></iframe>
+              </div>
             </div>
           </div>
         </div>
