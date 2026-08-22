@@ -354,6 +354,32 @@
     const isOverdue = (f) => f.status === 'Pending' && f.dueAt && new Date(f.dueAt) < new Date(); // derived — never stored
     const isDueToday = (f) => f.status === 'Pending' && f.dueAt && new Date(f.dueAt).toDateString() === new Date().toDateString();
 
+    const getLeadAvatarColor = (name) => {
+      const colors = [
+        'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+        'linear-gradient(135deg, #065f46, #10b981)',
+        'linear-gradient(135deg, #581c87, #8b5cf6)',
+        'linear-gradient(135deg, #7c2d12, #f97316)',
+        'linear-gradient(135deg, #075985, #0ea5e9)',
+        'linear-gradient(135deg, #831843, #ec4899)',
+        'linear-gradient(135deg, #134e4a, #14b8a6)',
+        'linear-gradient(135deg, #4338ca, #6366f1)',
+        'linear-gradient(135deg, #9a3412, #ea580c)'
+      ];
+      let hash = 0;
+      const str = String(name || '');
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      return colors[Math.abs(hash) % colors.length];
+    };
+
+    const getLeadInitials = (name) => {
+      if (!name) return 'K';
+      const parts = String(name).trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 0) return 'K';
+      if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    };
+
     const STATUS_TINT = {
       Draft: 'st-gray', Available: 'st-green', Reserved: 'st-orange', Sold: 'st-purple', Rented: 'st-teal', Withdrawn: 'st-red',
       New: 'st-blue', Contacted: 'st-navy', Qualified: 'st-teal', 'Viewing Scheduled': 'st-amber', Negotiating: 'st-orange', Won: 'st-green', Lost: 'st-red',

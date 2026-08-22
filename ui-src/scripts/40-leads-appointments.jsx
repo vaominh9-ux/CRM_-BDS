@@ -1211,7 +1211,7 @@
                           <div className="mob-appt-body">
                             {/* Khách hàng */}
                             <div className="mob-appt-lead-row" onClick={() => setViewingLead(a)}>
-                              <div className="mob-lead-avatar">{initial}</div>
+                              <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(a.leadName) }}>{initial}</div>
                               <div className="mob-appt-lead-info">
                                 <div className="mob-appt-lead-name">
                                   <strong>{a.leadName || 'Khách vãng lai'}</strong>

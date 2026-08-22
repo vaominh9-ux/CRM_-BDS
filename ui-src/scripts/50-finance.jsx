@@ -521,7 +521,9 @@
                       {/* HÀNG 2: Khách hàng mua/thuê & Tiêu đề BĐS */}
                       <div className="mob-deal-parties-row">
                         <div className="mob-deal-buyer-box" onClick={() => setViewingLead(x)}>
-                          <div className="mob-lead-avatar">{initial}</div>
+                          <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(x.buyerName || 'Khách hàng') }}>
+                            {getLeadInitials(x.buyerName)}
+                          </div>
                           <div className="mob-deal-buyer-info">
                             <div className="mob-deal-buyer-name">
                               <strong>{x.buyerName || 'Chưa có tên'}</strong>
@@ -920,7 +922,9 @@
                     <div key={o.id} className="mob-owner-card">
                       {/* HÀNG 1: Avatar & Tên chủ sở hữu */}
                       <div className="mob-owner-header-row" onClick={() => setViewing(o)}>
-                        <div className="mob-lead-avatar">{initial}</div>
+                        <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(o.name || 'Chủ sở hữu') }}>
+                          {getLeadInitials(o.name)}
+                        </div>
                         <div className="mob-owner-header-info">
                           <div className="mob-owner-name">
                             <strong>{o.name || 'Chưa có tên'}</strong>
@@ -1494,7 +1498,9 @@
                       {/* HÀNG 2: Khách thuê & Tiêu đề BĐS */}
                       <div className="mob-tenancy-parties-row">
                         <div className="mob-tenancy-tenant-box" onClick={() => setViewingLead(t)}>
-                          <div className="mob-lead-avatar">{initial}</div>
+                          <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(t.tenantName || 'Người thuê') }}>
+                            {getLeadInitials(t.tenantName)}
+                          </div>
                           <div className="mob-tenancy-tenant-info">
                             <div className="mob-tenancy-tenant-name">
                               <strong>{t.tenantName || 'Chưa có tên'}</strong>
