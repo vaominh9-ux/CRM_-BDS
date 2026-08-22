@@ -683,6 +683,7 @@
         NewPassword: '',
         ConfirmPassword: ''
       });
+      const [profileImage, setProfileImage] = useState('');
       const [showCurPass, setShowCurPass] = useState(false);
       const [showNewPass, setShowNewPass] = useState(false);
       const [showCfmPass, setShowCfmPass] = useState(false);
@@ -690,6 +691,14 @@
       const [savingPass, setSavingPass] = useState(false);
       const [uploading, setUploading] = useState(false);
       const fileInputRef = useRef(null);
+
+      useEffect(() => {
+        gsRun('getUserSettings', currentUser).then((res) => {
+          if (res && res.success && res.settings && res.settings.profileImage) {
+            setProfileImage(res.settings.profileImage);
+          }
+        }).catch(() => {});
+      }, [currentUser]);
 
       const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -709,13 +718,15 @@
             .withSuccessHandler((result) => {
               setUploading(false);
               if (result.success) {
+                const imgUrl = result.fileUrl || result.url || '';
+                if (imgUrl) setProfileImage(imgUrl);
                 google.script.run
                   .withSuccessHandler((r) => {
                     if (r.success) {
                       Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã cập nhật ảnh đại diện!', timer: 2000, showConfirmButton: false });
                     }
                   })
-                  .updateUserSettings(currentUser, { profileImage: result.fileUrl });
+                  .updateUserSettings(currentUser, { profileImage: imgUrl });
               } else {
                 Swal.fire({ icon: 'error', title: 'Lỗi', text: result.message });
               }
@@ -807,24 +818,78 @@
               1. GIAO DIỆN MÁY TÍNH (DESKTOP ACCOUNT VIEW)
               ========================================================= */}
           <div className="desk-account-view profile-section">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+            />
             <div className="profile-header">
-              <div className="profile-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
-                {currentUser.charAt(0).toUpperCase()}
+              <div className="account-avatar-wrapper" style={{ position: 'relative', display: 'inline-block' }}>
+                <div
+                  className="profile-avatar"
+                  style={{
+                    background: profileImage ? '#001f3f' : getLeadAvatarColor(currentUser),
+                    overflow: 'hidden',
+                    position: 'relative',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  title="Nhấp để đổi ảnh đại diện"
+                >
+                  {profileImage ? (
+                    <img src={profileImage} alt={currentUser} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    currentUser.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="account-avatar-cam-btn"
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  disabled={uploading}
+                  title="Thay đổi ảnh đại diện"
+                  style={{
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    width: 26,
+                    height: 26,
+                    borderRadius: '50%',
+                    background: 'var(--navy-accent, #0074D9)',
+                    color: '#ffffff',
+                    border: '2px solid #ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 11,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                    zIndex: 2
+                  }}
+                >
+                  <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-camera')}></i>
+                </button>
               </div>
               <div className="profile-info">
                 <h2>{currentUser}</h2>
-                <p><span className={'user-role-badge role-' + String(role || 'agent').toLowerCase()}>{viEnum(role) || role}</span> · {formData.Email || 'Chưa có email'}</p>
+                <p>
+                  <span className={'user-role-badge role-' + String(role || 'agent').toLowerCase()}>
+                    <i className={'fas ' + (role === 'admin' ? 'fa-shield-halved' : role === 'manager' ? 'fa-user-tie' : 'fa-user')}></i> {viEnum(role) || role}
+                  </span> · {formData.Email || 'Chưa có email'}
+                </p>
               </div>
             </div>
 
             <div className="account-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
-              {/* THẺ 1: THÔNG TIN TÀI KHOẢN & ẢNH ĐẠI DIỆN */}
+              {/* THẺ 1: THÔNG TIN TÀI KHOẢN */}
               <div className="account-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20 }}>
                 <div className="account-card-header" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid #f1f5f9' }}>
                   <i className="fas fa-id-card" style={{ fontSize: 20, color: 'var(--navy-accent)' }}></i>
                   <div>
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1e293b' }}>Thông tin tài khoản</h3>
-                    <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Cập nhật địa chỉ email và ảnh đại diện</p>
+                    <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Cập nhật địa chỉ email liên hệ nhận thông báo</p>
                   </div>
                 </div>
 
@@ -853,28 +918,6 @@
                       className="filter-input"
                       placeholder="email@congty.com"
                     />
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: 16 }}>
-                    <label><i className="fas fa-image"></i> Ảnh đại diện</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        style={{ display: 'none' }}
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                        disabled={uploading}
-                      >
-                        <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-upload')}></i> {uploading ? 'Đang tải lên…' : 'Tải ảnh mới'}
-                      </button>
-                      <small style={{ color: '#64748b', fontSize: 12 }}>Đề xuất: 200×200 px</small>
-                    </div>
                   </div>
 
                   <button type="submit" className="btn btn-primary" disabled={saving}>
@@ -979,8 +1022,21 @@
             {/* HERO CARD: Avatar, Tên đăng nhập & Vai trò */}
             <div className="mob-account-hero-card">
               <div className="mob-account-avatar-wrapper">
-                <div className="mob-account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
-                  {getLeadInitials(currentUser)}
+                <div
+                  className="mob-account-avatar"
+                  style={{
+                    background: profileImage ? '#0f172a' : getLeadAvatarColor(currentUser),
+                    overflow: 'hidden',
+                    position: 'relative',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                >
+                  {profileImage ? (
+                    <img src={profileImage} alt={currentUser} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    getLeadInitials(currentUser)
+                  )}
                 </div>
                 <button
                   type="button"
