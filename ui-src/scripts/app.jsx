@@ -271,28 +271,28 @@
 
     // page registry — drives sidebar, header title, routing
     const PAGE_META = {
-      dashboard:    { label:'Dashboard',           icon:'fa-chart-line',         group:'General' },
-      ai:           { label:'AI Assistant',        icon:'fa-robot',              group:'General' },
-      properties:   { label:'Properties',          icon:'fa-building',           group:'CRM' },
-      leads:        { label:'Leads',               icon:'fa-user-tag',           group:'CRM' },
-      followups:    { label:'Follow-Ups',          icon:'fa-bell',               group:'CRM' },
-      appointments: { label:'Appointments',        icon:'fa-calendar-check',     group:'CRM' },
-      deals:        { label:'Deals',               icon:'fa-handshake',          group:'Money' },
-      tenancies:    { label:'Tenancies',           icon:'fa-house-user',         group:'Money' },
-      agreements:   { label:'Agreements',          icon:'fa-file-contract',      group:'Money' },
-      reports:      { label:'Reports',             icon:'fa-chart-pie',          group:'Money' },
-      owners:       { label:'Owners',              icon:'fa-user-tie',           group:'Catalog' },
-      locations:    { label:'Locations',           icon:'fa-map-location-dot',   group:'Catalog' },
-      amenities:    { label:'Amenities',           icon:'fa-list-check',         group:'Catalog' },
-      users:        { label:'Users Management',    icon:'fa-users',              group:'System' },
-      settings:     { label:'Settings',            icon:'fa-cog',                group:'System' },
-      logs:         { label:'Activity Logs',       icon:'fa-clock-rotate-left',  group:'System' },
-      trash:        { label:'Trash',               icon:'fa-trash-arrow-up',     group:'System' },
-      permissions:  { label:'Roles & Permissions', icon:'fa-user-shield',        group:'System' },
-      account:      { label:'My Account',          icon:'fa-user-circle',        group:'System' },
-      about:        { label:'About App',           icon:'fa-circle-info',        group:'System' } // keep last — sits at the bottom of the sidebar
+      dashboard:    { label:'Tổng quan',            icon:'fa-chart-pie',          group:'TỔNG QUAN' },
+      ai:           { label:'Trợ lý AI',            icon:'fa-robot',              group:'TỔNG QUAN' },
+      properties:   { label:'Bất động sản',         icon:'fa-building',           group:'CRM' },
+      leads:        { label:'Khách hàng tiềm năng', icon:'fa-user-tag',           group:'CRM' },
+      followups:    { label:'Chăm sóc khách hàng',  icon:'fa-bell',               group:'CRM' },
+      appointments: { label:'Lịch hẹn',             icon:'fa-calendar-check',     group:'CRM' },
+      deals:        { label:'Giao dịch',            icon:'fa-handshake',          group:'TÀI CHÍNH' },
+      tenancies:    { label:'Hợp đồng thuê',        icon:'fa-house-user',         group:'TÀI CHÍNH' },
+      agreements:   { label:'Hợp đồng & Biểu mẫu',  icon:'fa-file-contract',      group:'TÀI CHÍNH' },
+      reports:      { label:'Báo cáo doanh số',     icon:'fa-chart-pie',          group:'TÀI CHÍNH' },
+      owners:       { label:'Chủ sở hữu',           icon:'fa-user-tie',           group:'DANH MỤC' },
+      locations:    { label:'Khu vực',              icon:'fa-map-location-dot',   group:'DANH MỤC' },
+      amenities:    { label:'Tiện ích',             icon:'fa-list-check',         group:'DANH MỤC' },
+      users:        { label:'Người dùng',           icon:'fa-users',              group:'HỆ THỐNG' },
+      settings:     { label:'Cài đặt',              icon:'fa-cog',                group:'HỆ THỐNG' },
+      logs:         { label:'Nhật ký hoạt động',    icon:'fa-clock-rotate-left',  group:'HỆ THỐNG' },
+      trash:        { label:'Thùng rác',            icon:'fa-trash-arrow-up',     group:'HỆ THỐNG' },
+      permissions:  { label:'Phân quyền',           icon:'fa-user-shield',        group:'HỆ THỐNG' },
+      account:      { label:'Tài khoản của tôi',    icon:'fa-user-circle',        group:'HỆ THỐNG' },
+      about:        { label:'Thông tin hệ thống',   icon:'fa-circle-info',        group:'HỆ THỐNG' }
     };
-    const PAGE_GROUPS = ['General', 'CRM', 'Money', 'Catalog', 'System'];
+    const PAGE_GROUPS = ['TỔNG QUAN', 'CRM', 'TÀI CHÍNH', 'DANH MỤC', 'HỆ THỐNG'];
     const ALWAYS_PAGES = ['account', 'about']; // every signed-in user
 
     // can(perms, page, perm)  perm = 'v'(default)|'a'|'e'|'d'
@@ -719,6 +719,16 @@
       return { branding, loading: !portalResponse && !error };
     }
 
+    function ZaloIcon({ size = 18, style }) {
+      return (
+        <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle', ...style }}>
+          <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5" />
+          <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5" />
+          <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
+        </svg>
+      );
+    }
+
     function BrandLogo({ logo, className = '', alt = 'Logo công ty' }) {
       const [failed, setFailed] = useState(false);
       useEffect(() => setFailed(false), [logo]);
@@ -909,17 +919,146 @@
       );
     }
 
-    // ============== Bottom Navigation (Mobile) ==============
-    function BottomNavigation({ activeMenu, setActiveMenu, perms, setShowMobileSidebar }) {
-      // up to 3 permitted quick pages + menu
-      const quick = [];
-      if (can(perms, 'dashboard', 'v')) quick.push('dashboard');
-      if (can(perms, 'settings', 'v')) quick.push('settings');
-      quick.push('account');
+    // ============== Mobile Modules Hub (Trang Trung Tâm Phân Hệ Toàn Màn Hình) ==============
+    function MobileModulesHub({ isOpen, onClose, activeMenu, setActiveMenu, role, user, profileImage, themeMode, onThemeToggle, onLogout, perms, canEditRbac, pinnedTabs, onTogglePin }) {
+      if (!isOpen) return null;
+      const { branding } = useAgencyBranding();
 
-      const labelOf = (k) => k === 'account' ? 'Account' : PAGE_META[k].label.split(' ')[0];
-      const navItems = [{ id: 'menu', icon: 'fa-bars', label: 'Menu', onClick: () => setShowMobileSidebar(true) }]
-        .concat(quick.slice(0, 3).map(k => ({ id: k, icon: PAGE_META[k].icon, label: labelOf(k), onClick: () => setActiveMenu(k) })));
+      const menuVisible = (k) => {
+        if (ALWAYS_PAGES.indexOf(k) !== -1) return true;
+        if (k === 'permissions') return !!canEditRbac;
+        if (role === 'Admin') return true;
+        return can(perms, k, 'v');
+      };
+
+      const go = (k) => {
+        setActiveMenu(k);
+        onClose();
+      };
+
+      const groupColors = {
+        'TỔNG QUAN': { bg: '#e0f2fe', color: '#0369a1' },
+        'CRM': { bg: '#f0fdf4', color: '#15803d' },
+        'TÀI CHÍNH': { bg: '#fef3c7', color: '#b45309' },
+        'DANH MỤC': { bg: '#fae8ff', color: '#a21caf' },
+        'HỆ THỐNG': { bg: '#f1f5f9', color: '#334155' }
+      };
+
+      return (
+        <div className="mob-hub-overlay">
+          <div className="mob-hub-container">
+            {/* Header Hub */}
+            <div className="mob-hub-header">
+              <div className="mob-hub-user">
+                <div className="mob-hub-avatar">
+                  <BrandLogo logo={branding.logo || profileImage} alt="Avatar" />
+                </div>
+                <div className="mob-hub-user-info">
+                  <div className="mob-hub-name">{user}</div>
+                  <div className="mob-hub-role-badge">{role === 'Admin' ? 'Quản Trị Viên' : (role === 'Manager' ? 'Quản Lý' : 'Nhân Viên')}</div>
+                </div>
+              </div>
+              <button className="mob-hub-close-btn" onClick={onClose} aria-label="Đóng">
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+
+
+
+            {/* All Modules Grouped */}
+            <div className="mob-hub-modules-scroll">
+              {PAGE_GROUPS.map((grp) => {
+                const items = Object.keys(PAGE_META).filter((k) => PAGE_META[k].group === grp && menuVisible(k));
+                if (!items.length) return null;
+                const gColor = groupColors[grp] || { bg: '#f1f5f9', color: '#475569' };
+
+                return (
+                  <div className="mob-hub-group" key={grp}>
+                    <div className="mob-hub-group-header">
+                      <span className="mob-hub-group-title">{grp}</span>
+                      <span className="mob-hub-group-count">{items.length} mục</span>
+                    </div>
+
+                    <div className="mob-hub-grid">
+                      {items.map((k) => {
+                        const meta = PAGE_META[k];
+                        const isPinned = pinnedTabs.includes(k);
+                        const isActive = activeMenu === k;
+
+                        return (
+                          <div
+                            key={k}
+                            className={`mob-hub-card ${isActive ? 'active' : ''}`}
+                            onClick={() => go(k)}
+                          >
+                            <div className="mob-hub-card-top">
+                              <div className="mob-hub-card-icon" style={{ background: gColor.bg, color: gColor.color }}>
+                                <i className={`fas ${meta.icon}`}></i>
+                              </div>
+                              <button
+                                className={`mob-hub-pin-toggle ${isPinned ? 'pinned' : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTogglePin(k);
+                                }}
+                                title={isPinned ? 'Đã ghim - Bấm để bỏ ghim' : 'Bấm để ghim vào thanh đáy'}
+                              >
+                                <i className={`fas fa-thumbtack ${isPinned ? 'active-pin' : ''}`}></i>
+                              </button>
+                            </div>
+                            <div className="mob-hub-card-label">{meta.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Bottom Quick Controls in Hub */}
+              <div className="mob-hub-footer-controls">
+                <button className="mob-hub-ctrl-btn" onClick={onThemeToggle}>
+                  <i className={`fas fa-${themeMode === 'light' ? 'moon' : 'sun'}`}></i>
+                  <span>Chế độ {themeMode === 'light' ? 'Tối (Dark)' : 'Sáng (Light)'}</span>
+                </button>
+                <button className="mob-hub-ctrl-btn logout" onClick={onLogout}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  <span>Đăng xuất tài khoản</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ============== Bottom Navigation (Mobile) - Hiển Thị Phân Hệ Đã Ghim Tùy Chỉnh ==============
+    function BottomNavigation({ activeMenu, setActiveMenu, perms, setShowMobileSidebar, pinnedTabs = [] }) {
+      const shortLabel = (k) => {
+        if (!PAGE_META[k]) return k;
+        if (k === 'dashboard') return 'Tổng quan';
+        if (k === 'leads') return 'Khách hàng';
+        if (k === 'properties') return 'BĐS';
+        if (k === 'appointments') return 'Lịch hẹn';
+        if (k === 'deals') return 'Giao dịch';
+        if (k === 'tenancies') return 'Thuê';
+        if (k === 'reports') return 'Báo cáo';
+        if (k === 'settings') return 'Cài đặt';
+        return PAGE_META[k].label.split(' ')[0];
+      };
+
+      const pinnedNavItems = pinnedTabs
+        .filter(k => PAGE_META[k] && (can(perms, k, 'v') || ALWAYS_PAGES.includes(k)))
+        .map(k => ({
+          id: k,
+          icon: PAGE_META[k].icon,
+          label: shortLabel(k),
+          onClick: () => setActiveMenu(k)
+        }));
+
+      const navItems = pinnedNavItems.concat([
+        { id: 'menu', icon: 'fa-table-cells-large', label: 'Phân hệ', onClick: () => setShowMobileSidebar(true) }
+      ]);
 
       return (
         <div className="bottom-nav">
@@ -1110,6 +1249,7 @@
     function DashboardView({ currentUser, setActiveMenu }) {
       const { data, error, isLoading, mutate } = useSWR('dash:stats', () => gsRun('getDashboardStats', currentUser), SWR_LIVE);
       const [leadDays, setLeadDays] = useState(30); // leads-trend range chips — hook stays above the early returns
+      const [kpiTab, setKpiTab] = useState('finance'); // Hook kpiTab đặt ở đầu component để tuân thủ Rules of Hooks
       const stats = data && data.success ? data.data : null;
       const go = (p) => setActiveMenu && setActiveMenu(p);
 
@@ -1129,52 +1269,202 @@
       const targetPct = stats.myTarget ? Math.round((stats.dealsMonthValue || 0) / stats.myTarget * 100) : 0;
       // [value, label, icon, color, page]
       const KPI = [
-        [stats.activeListings || 0, agency ? 'Active Listings' : 'My Active Listings', 'fa-building', 'bg-navy', 'properties'],
-        [stats.openLeads || 0, agency ? 'Open Leads' : 'My Open Leads', 'fa-user-tag', 'bg-info', 'leads'],
-        [stats.overdueFollowUps || 0, 'Overdue Follow-Ups', 'fa-bell', 'bg-danger', 'followups'],
-        [stats.todayAppointments || 0, "Today's Viewings", 'fa-calendar-check', 'bg-success', 'appointments']
+        [stats.activeListings || 0, agency ? 'Bất động sản đang mở' : 'BĐS tôi phụ trách', 'fa-building', 'bg-navy', 'properties'],
+        [stats.openLeads || 0, agency ? 'Khách hàng đang xử lý' : 'Khách hàng của tôi', 'fa-user-tag', 'bg-info', 'leads'],
+        [stats.overdueFollowUps || 0, 'Lịch chăm sóc quá hạn', 'fa-bell', 'bg-danger', 'followups'],
+        [stats.todayAppointments || 0, 'Lịch xem nhà hôm nay', 'fa-calendar-check', 'bg-success', 'appointments']
       ];
-      const viewAll = (p) => <button className="card-link" onClick={() => go(p)}>View all <i className="fas fa-arrow-right" style={{ fontSize: 10 }}></i></button>;
+      const viewAll = (p) => <button className="card-link" onClick={() => go(p)}>Xem tất cả <i className="fas fa-arrow-right" style={{ fontSize: 10 }}></i></button>;
 
       return (
         <>
-          <div className="lte-kpi-grid">
-            {KPI.map(([v, l, ic, c, page], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} onMore={() => go(page)} />)}
+          {/* GIAO DIỆN DESKTOP: Giữ nguyên 100% 4 hàng lưới AdminLTE */}
+          <div className="dash-desktop-kpis">
+            <div className="lte-kpi-grid">
+              {KPI.map(([v, l, ic, c, page], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} onMore={() => go(page)} />)}
+            </div>
+            <div className="lte-kpi-grid">
+              <InfoBox value={stats.dealsMonth || 0} label="Giao dịch chốt trong tháng" icon="fa-handshake" color="bg-navy"
+                       trend={delta(stats.dealsMonth || 0, prev.deals || 0)} sub={'Tháng trước: ' + (prev.deals || 0)} onClick={() => go('deals')} />
+              <InfoBox value={pkrShort(stats.dealsMonthValue || 0)} label="Doanh số tháng" icon="fa-sack-dollar" color="bg-success"
+                       trend={delta(stats.dealsMonthValue || 0, prev.dealsValue || 0)} sub={'Tháng trước: ' + pkrShort(prev.dealsValue || 0)} onClick={() => go('deals')} />
+              <InfoBox value={pkrShort(stats.commissionMonth || 0)} label="Hoa hồng tháng" icon="fa-percent" color="bg-info"
+                       trend={delta(stats.commissionMonth || 0, prev.commission || 0)} sub={'Tháng trước: ' + pkrShort(prev.commission || 0)} />
+              <InfoBox value={pkrShort(stats.collectedMonth || 0)} label="Đã thu trong tháng" icon="fa-money-bill-wave" color="bg-warning"
+                       trend={delta(stats.collectedMonth || 0, prev.collected || 0)} sub={'Tháng trước: ' + pkrShort(prev.collected || 0)} />
+            </div>
+            <div className="lte-kpi-grid">
+              <InfoBox value={stats.featured || 0} label="Tin đăng nổi bật" icon="fa-star" color="bg-warning" onClick={() => go('properties')} />
+              <InfoBox value={(stats.totalViews || 0).toLocaleString('vi-VN')} label="Lượt xem cổng thông tin" icon="fa-eye" color="bg-info" sub="Tất cả tin đăng, toàn thời gian" />
+              <InfoBox value={stats.wonLeads || 0} label="Khách hàng thành công" icon="fa-trophy" color="bg-success"
+                       sub={(stats.conversionRate || 0) + '% chuyển đổi'} onClick={() => go('leads')} />
+              {agency
+                ? <InfoBox value={pkrShort(stats.payable || 0)} label="Hoa hồng nhân viên cần trả" icon="fa-hand-holding-dollar" color="bg-danger" onClick={() => go('deals')} />
+                : <InfoBox value={stats.dueTodayFollowUps || 0} label="Đến hạn hôm nay" icon="fa-clock" color="bg-navy" onClick={() => go('followups')} />}
+            </div>
+            <div className="lte-kpi-grid">
+              <InfoBox value={(stats.totalLeads || 0).toLocaleString('vi-VN')} label="Tổng yêu cầu tư vấn" icon="fa-comments" color="bg-info"
+                       trend={delta(stats.leadsMonth || 0, prev.leads || 0)} sub={(stats.leadsMonth || 0) + ' trong tháng này'} onClick={() => go('leads')} />
+              <InfoBox value={pkrShort(stats.rentArrears || 0)} label="Công nợ tiền thuê" icon="fa-triangle-exclamation" color="bg-danger"
+                       sub={(stats.activeTenancies || 0) + ' hợp đồng đang hoạt động'} onClick={() => go('tenancies')} />
+              <InfoBox value={pkrShort(stats.balanceDue || 0)} label="Số tiền còn lại" icon="fa-file-invoice-dollar" color="bg-warning"
+                       sub="Giao dịch đang mở — chưa tất toán" onClick={() => go('deals')} />
+              {agency
+                ? <InfoBox value={stats.activeAgents || 0} label="Nhân viên đang hoạt động" icon="fa-user-check" color="bg-success" sub="Đang hoạt động trong danh sách nhân sự" />
+                : <InfoBox value={stats.myTarget ? targetPct + '%' : '—'} label="Mục tiêu tháng" icon="fa-bullseye" color="bg-success"
+                           sub={stats.myTarget ? pkrShort(stats.dealsMonthValue || 0) + ' / ' + pkrShort(stats.myTarget) : 'Chưa đặt mục tiêu'} />}
+            </div>
           </div>
-          <div className="lte-kpi-grid">
-            <InfoBox value={stats.dealsMonth || 0} label="Giao dịch chốt trong tháng" icon="fa-handshake" color="bg-navy"
-                     trend={delta(stats.dealsMonth || 0, prev.deals || 0)} sub={'Tháng trước: ' + (prev.deals || 0)} onClick={() => go('deals')} />
-            <InfoBox value={pkrShort(stats.dealsMonthValue || 0)} label="Doanh số tháng" icon="fa-sack-dollar" color="bg-success"
-                     trend={delta(stats.dealsMonthValue || 0, prev.dealsValue || 0)} sub={'Tháng trước: ' + pkrShort(prev.dealsValue || 0)} onClick={() => go('deals')} />
-            <InfoBox value={pkrShort(stats.commissionMonth || 0)} label="Hoa hồng tháng" icon="fa-percent" color="bg-info"
-                     trend={delta(stats.commissionMonth || 0, prev.commission || 0)} sub={'Tháng trước: ' + pkrShort(prev.commission || 0)} />
-            <InfoBox value={pkrShort(stats.collectedMonth || 0)} label="Đã thu trong tháng" icon="fa-money-bill-wave" color="bg-warning"
-                     trend={delta(stats.collectedMonth || 0, prev.collected || 0)} sub={'Tháng trước: ' + pkrShort(prev.collected || 0)} />
-          </div>
-          <div className="lte-kpi-grid">
-            <InfoBox value={stats.featured || 0} label="Tin đăng nổi bật" icon="fa-star" color="bg-warning" onClick={() => go('properties')} />
-            <InfoBox value={(stats.totalViews || 0).toLocaleString('vi-VN')} label="Lượt xem cổng thông tin" icon="fa-eye" color="bg-info" sub="Tất cả tin đăng, toàn thời gian" />
-            <InfoBox value={stats.wonLeads || 0} label="Khách hàng thành công" icon="fa-trophy" color="bg-success"
-                     sub={(stats.conversionRate || 0) + '% chuyển đổi'} onClick={() => go('leads')} />
-            {agency
-              ? <InfoBox value={pkrShort(stats.payable || 0)} label="Hoa hồng nhân viên cần trả" icon="fa-hand-holding-dollar" color="bg-danger" onClick={() => go('deals')} />
-              : <InfoBox value={stats.dueTodayFollowUps || 0} label="Đến hạn hôm nay" icon="fa-clock" color="bg-navy" onClick={() => go('followups')} />}
-          </div>
-          <div className="lte-kpi-grid">
-            <InfoBox value={(stats.totalLeads || 0).toLocaleString('vi-VN')} label="Tổng yêu cầu tư vấn" icon="fa-comments" color="bg-info"
-                     trend={delta(stats.leadsMonth || 0, prev.leads || 0)} sub={(stats.leadsMonth || 0) + ' trong tháng này'} onClick={() => go('leads')} />
-            <InfoBox value={pkrShort(stats.rentArrears || 0)} label="Công nợ tiền thuê" icon="fa-triangle-exclamation" color="bg-danger"
-                     sub={(stats.activeTenancies || 0) + ' active tenancies'} onClick={() => go('tenancies')} />
-            <InfoBox value={pkrShort(stats.balanceDue || 0)} label="Số tiền còn lại" icon="fa-file-invoice-dollar" color="bg-warning"
-                     sub="Giao dịch đang mở — chưa thanh toán" onClick={() => go('deals')} />
-            {agency
-              ? <InfoBox value={stats.activeAgents || 0} label="Nhân viên đang hoạt động" icon="fa-user-check" color="bg-success" sub="Hiện có trong danh sách nhân sự" />
-              : <InfoBox value={stats.myTarget ? targetPct + '%' : '—'} label="Mục tiêu tháng" icon="fa-bullseye" color="bg-success"
-                         sub={stats.myTarget ? pkrShort(stats.dealsMonthValue || 0) + ' of ' + pkrShort(stats.myTarget) : 'No target set'} />}
+
+          {/* GIAO DIỆN MOBILE: Lưới 2x2 Top + Thẻ Performance Hub Phân Tab Siêu Sang */}
+          <div className="dash-mobile-kpis">
+            <div className="lte-kpi-grid">
+              {KPI.map(([v, l, ic, c, page], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} onMore={() => go(page)} />)}
+            </div>
+
+            <div className="mob-kpi-hub-card">
+              <div className="mob-kpi-tabs">
+                <button className={'mob-kpi-tab ' + (kpiTab === 'finance' ? 'active' : '')} onClick={() => setKpiTab('finance')}>
+                  <i className="fas fa-wallet"></i> Tài chính
+                </button>
+                <button className={'mob-kpi-tab ' + (kpiTab === 'leads' ? 'active' : '')} onClick={() => setKpiTab('leads')}>
+                  <i className="fas fa-user-tag"></i> Khách hàng
+                </button>
+                <button className={'mob-kpi-tab ' + (kpiTab === 'ops' ? 'active' : '')} onClick={() => setKpiTab('ops')}>
+                  <i className="fas fa-building"></i> Nguồn hàng & Web
+                </button>
+              </div>
+
+              <div className="mob-kpi-tab-body">
+                {kpiTab === 'finance' && (
+                  <div className="mob-kpi-rows">
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e8f5e9', color: '#2e7d32' }}><i className="fas fa-sack-dollar"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Doanh số tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {pkrShort(prev.dealsValue || 0)}</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#2e7d32' }}>{pkrShort(stats.dealsMonthValue || 0)}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#fff8e1', color: '#f57f17' }}><i className="fas fa-money-bill-wave"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Đã thu trong tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {pkrShort(prev.collected || 0)}</div>
+                      </div>
+                      <div className="mob-kpi-val">{pkrShort(stats.collectedMonth || 0)}</div>
+                    </div>
+
+                    <div className="mob-kpi-row">
+                      <div className="mob-kpi-ic" style={{ background: '#e1f5fe', color: '#0288d1' }}><i className="fas fa-percent"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Hoa hồng tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {pkrShort(prev.commission || 0)}</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#0288d1' }}>{pkrShort(stats.commissionMonth || 0)}</div>
+                    </div>
+
+                    {agency && (
+                      <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                        <div className="mob-kpi-ic" style={{ background: '#ffebee', color: '#c62828' }}><i className="fas fa-hand-holding-dollar"></i></div>
+                        <div className="mob-kpi-info">
+                          <div className="mob-kpi-label">Hoa hồng nhân viên cần trả</div>
+                          <div className="mob-kpi-sub">Khoản chi trả môi giới</div>
+                        </div>
+                        <div className="mob-kpi-val" style={{ color: '#c62828' }}>{pkrShort(stats.payable || 0)}</div>
+                      </div>
+                    )}
+
+                    <div className="mob-kpi-row" onClick={() => go('tenancies')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#ffebee', color: '#d32f2f' }}><i className="fas fa-triangle-exclamation"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Công nợ tiền thuê</div>
+                        <div className="mob-kpi-sub">{stats.activeTenancies || 0} hợp đồng đang hoạt động</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#d32f2f' }}>{pkrShort(stats.rentArrears || 0)}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#fffde7', color: '#fbc02d' }}><i className="fas fa-file-invoice-dollar"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Số tiền còn lại</div>
+                        <div className="mob-kpi-sub">Giao dịch đang mở chưa tất toán</div>
+                      </div>
+                      <div className="mob-kpi-val">{pkrShort(stats.balanceDue || 0)}</div>
+                    </div>
+                  </div>
+                )}
+
+                {kpiTab === 'leads' && (
+                  <div className="mob-kpi-rows">
+                    <div className="mob-kpi-row" onClick={() => go('leads')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e1f5fe', color: '#0288d1' }}><i className="fas fa-comments"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Tổng yêu cầu tư vấn</div>
+                        <div className="mob-kpi-sub">{stats.leadsMonth || 0} yêu cầu trong tháng này</div>
+                      </div>
+                      <div className="mob-kpi-val">{(stats.totalLeads || 0).toLocaleString('vi-VN')}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('leads')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e8f5e9', color: '#2e7d32' }}><i className="fas fa-trophy"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Khách hàng thành công</div>
+                        <div className="mob-kpi-sub">Tỷ lệ chuyển đổi: {stats.conversionRate || 0}%</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#2e7d32' }}>{stats.wonLeads || 0}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e8eaf6', color: '#303f9f' }}><i className="fas fa-handshake"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Giao dịch chốt trong tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {prev.deals || 0} giao dịch</div>
+                      </div>
+                      <div className="mob-kpi-val">{stats.dealsMonth || 0}</div>
+                    </div>
+                  </div>
+                )}
+
+                {kpiTab === 'ops' && (
+                  <div className="mob-kpi-rows">
+                    <div className="mob-kpi-row">
+                      <div className="mob-kpi-ic" style={{ background: '#e0f2fe', color: '#0369a1' }}><i className="fas fa-eye"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Lượt xem cổng thông tin</div>
+                        <div className="mob-kpi-sub">Toàn thời gian, tất cả BĐS</div>
+                      </div>
+                      <div className="mob-kpi-val">{(stats.totalViews || 0).toLocaleString('vi-VN')}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('properties')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#fef3c7', color: '#d97706' }}><i className="fas fa-star"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Tin đăng nổi bật</div>
+                        <div className="mob-kpi-sub">BĐS gắn cờ VIP/Featured</div>
+                      </div>
+                      <div className="mob-kpi-val">{stats.featured || 0}</div>
+                    </div>
+
+                    {agency && (
+                      <div className="mob-kpi-row">
+                        <div className="mob-kpi-ic" style={{ background: '#f0fdf4', color: '#16a34a' }}><i className="fas fa-user-check"></i></div>
+                        <div className="mob-kpi-info">
+                          <div className="mob-kpi-label">Nhân viên đang hoạt động</div>
+                          <div className="mob-kpi-sub">Đang sẵn sàng nhận khách</div>
+                        </div>
+                        <div className="mob-kpi-val">{stats.activeAgents || 0}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="dash-grid-3">
-            <LteCard title="Tổng quan trạng thái bất động sản" icon="fa-house-chimney" tools={viewAll('properties')}>
+            <LteCard title="Trạng thái bất động sản" icon="fa-house-chimney" tools={viewAll('properties')}>
               <StatusDonut counts={inv} order={ENUMS.propertyStatus} total={invTotal} caption="Tổng cộng" />
             </LteCard>
             <LteCard title="Tổng quan khách hàng" icon="fa-chart-line"
@@ -1185,7 +1475,7 @@
             </LteCard>
             <LteCard title="Lịch xem sắp tới" icon="fa-calendar-day" tools={viewAll('appointments')}>
               {(stats.upcomingViewings || []).length === 0
-                ? <p className="dash-empty"><i className="fas fa-calendar-xmark"></i>No upcoming viewings</p>
+                ? <p className="dash-empty"><i className="fas fa-calendar-check"></i>Không có lịch xem nào sắp tới</p>
                 : stats.upcomingViewings.map((v) => (
                     <DashRow key={v.id} image={v.image} icon="fa-building" title={v.title} sub={v.address || '—'}
                              right={<Badge s={v.status} />} small={fmtDT(v.when)} onClick={() => go('appointments')} />
@@ -1196,12 +1486,15 @@
           <div className="dash-grid-3">
             <LteCard title="Bất động sản gần đây" icon="fa-building-circle-check" tools={viewAll('properties')}>
               {(stats.recentProperties || []).length === 0
-                ? <p className="dash-empty"><i className="fas fa-house-circle-xmark"></i>No properties yet</p>
-                : stats.recentProperties.map((p) => (
-                    <DashRow key={p.id} image={p.image} icon="fa-house" title={p.title} sub={p.address || '—'}
-                             right={<>{pkrShort(p.price)}<div style={{ marginTop: 4 }}><Badge s={p.status} /></div></>}
-                             small={'Đã thêm ' + fmtDate(p.created)} onClick={() => go('properties')} />
-                  ))}
+                ? <p className="dash-empty"><i className="fas fa-building"></i>Chưa có bất động sản nào</p>
+                : stats.recentProperties.map((p) => {
+                    const imgUrl = p.image || (p.images && p.images.length ? (p.images.find(x => x.isPrimary) || p.images[0]).url : '') || '';
+                    return (
+                      <DashRow key={p.id} image={imgUrl} icon="fa-house" title={p.title} sub={p.address || '—'}
+                               right={<>{pkrShort(p.price)}<div style={{ marginTop: 4 }}><Badge s={p.status} /></div></>}
+                               small={'Đã thêm ' + fmtDate(p.created)} onClick={() => go('properties')} />
+                    );
+                  })}
             </LteCard>
             <LteCard title="Quy trình giao dịch" icon="fa-filter" tools={viewAll('leads')}>
               <FunnelChart steps={stats.funnelSteps} rate={stats.conversionRate || 0} onPick={() => go('leads')} />
@@ -1212,15 +1505,15 @@
               </LteCard>
             ) : (
               <LteCard title="Tháng của tôi" icon="fa-bullseye">
-                <div className="mm-row"><span>Deals closed</span><b>{stats.dealsMonth || 0}</b></div>
-                <div className="mm-row"><span>Sales value</span><b>{pkrShort(stats.dealsMonthValue || 0)}</b></div>
-                <div className="mm-row"><span>Commission</span><b>{pkrShort(stats.commissionMonth || 0)}</b></div>
-                <div className="mm-row"><span>Won leads</span><b>{stats.wonLeads || 0}</b></div>
-                <div className="mm-row"><span>Monthly target</span><b>{stats.myTarget ? pkrShort(stats.myTarget) : '—'}</b></div>
+                <div className="mm-row"><span>Giao dịch đã chốt</span><b>{stats.dealsMonth || 0}</b></div>
+                <div className="mm-row"><span>Doanh số đạt được</span><b>{pkrShort(stats.dealsMonthValue || 0)}</b></div>
+                <div className="mm-row"><span>Hoa hồng nhận được</span><b>{pkrShort(stats.commissionMonth || 0)}</b></div>
+                <div className="mm-row"><span>Khách thành công</span><b>{stats.wonLeads || 0}</b></div>
+                <div className="mm-row"><span>Mục tiêu tháng</span><b>{stats.myTarget ? pkrShort(stats.myTarget) : '—'}</b></div>
                 {stats.myTarget > 0 && (
                   <>
                     <div className="ag-bar" style={{ height: 6, marginTop: 12 }}><span style={{ width: Math.min(100, targetPct) + '%' }}></span></div>
-                    <div className="fn-foot" style={{ marginTop: 8, paddingTop: 8 }}>{targetPct}% of target</div>
+                    <div className="fn-foot" style={{ marginTop: 8, paddingTop: 8 }}>{targetPct}% mục tiêu tháng</div>
                   </>
                 )}
               </LteCard>
@@ -1230,13 +1523,13 @@
           <div className="dash-grid-2">
             <LteCard title="Khách hàng gần đây" icon="fa-user-clock" tools={<button onClick={() => go('leads')} title="Mở danh sách khách hàng"><i className="fas fa-arrow-right"></i></button>}>
               {(stats.recentLeads || []).length === 0
-                ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>No leads yet</p>
+                ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>Chưa có khách hàng nào</p>
                 : stats.recentLeads.map((l) => (
                     <div className="recent-lead-row" key={l.id}>
                       <div className="recent-lead-ic"><i className="fas fa-user"></i></div>
                       <div className="recent-lead-t">
                         <div className="n">{l.fullName}</div>
-                        <div className="s">{l.phone} · {l.source} · {l.assignedAgent || 'Unassigned'} · {fmtDate(l.created)}</div>
+                        <div className="s">{l.phone} · {l.source} · {l.assignedAgent || 'Chưa phân công'} · {fmtDate(l.created)}</div>
                       </div>
                       <Badge s={l.status} />
                     </div>
@@ -1245,7 +1538,7 @@
             {agency ? (
               <LteCard title="Bảng xếp hạng nhân viên — chi tiết" icon="fa-table-list">
                 {(stats.leaderboard || []).length === 0
-                  ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>No agent activity yet</p>
+                  ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>Chưa có số liệu nhân viên</p>
                   : (
                     <div className="about-table-wrapper">
                       <table className="about-roles-table">
@@ -1282,12 +1575,12 @@
 
     // ============== Notification bell (header) — LIVE computed alerts, each deep-links to its section ==============
     function NotificationBell({ currentUser, perms, setActiveMenu }) {
-      const { data } = useSWR('notif:live', () => gsRun('getNotifications', currentUser), { refreshInterval: 60000 });
+      const { data } = useSWR('notif:live', () => gsRun('getNotifications', currentUser), { refreshInterval: 30000 });
       const items = data && data.success ? (data.items || []) : [];
       const [open, setOpen] = useState(false);
       const [seen, setSeen] = useState(() => { try { return localStorage.getItem('notif_seen_' + currentUser) || ''; } catch (e) { return ''; } });
-      const sig = items.map((n) => n.text).join('|');
-      const unread = items.length && sig !== seen;
+      const sig = items.map((n) => `${n.page}:${n.count}:${n.text}`).join('|');
+      const unread = items.length > 0 && sig !== seen;
       const ref = useRef(null);
 
       useEffect(() => {
@@ -1295,22 +1588,40 @@
         document.addEventListener('mousedown', close);
         return () => document.removeEventListener('mousedown', close);
       }, []);
+      
       const openMenu = () => {
-        setOpen(!open);
-        if (!open) { setSeen(sig); try { localStorage.setItem('notif_seen_' + currentUser, sig); } catch (e) {} }
+        const nextOpen = !open;
+        setOpen(nextOpen);
+        if (nextOpen) { setSeen(sig); try { localStorage.setItem('notif_seen_' + currentUser, sig); } catch (e) {} }
+      };
+
+      const markAllRead = (e) => {
+        e.stopPropagation();
+        setSeen(sig);
+        try { localStorage.setItem('notif_seen_' + currentUser, sig); } catch (e) {} 
       };
 
       return (
         <div className={'notif-bell' + (open ? ' open' : '')} ref={ref}>
-          <button className="notif-btn" onClick={openMenu} title="Thông báo">
+          <button className="notif-btn" onClick={openMenu} title="Thông báo công việc cần xử lý">
             <i className="fas fa-bell"></i>
-            {items.length > 0 && <span className="notif-badge" style={{ opacity: unread ? 1 : .55 }}>{items.length}</span>}
+            {unread && <span className="notif-badge" title="Có thông báo mới chưa đọc">{items.length}</span>}
           </button>
           <div className="notif-menu">
-            <div className="notif-head">Cần xử lý {items.length > 0 && <span className="notif-count-pill">{items.length}</span>}</div>
+            <div className="notif-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Cần xử lý {items.length > 0 && <span className="notif-count-pill">{items.length} danh mục</span>}</span>
+              {unread && (
+                <button
+                  onClick={markAllRead}
+                  style={{ background: 'none', border: 'none', color: 'var(--blue-primary, #1877f2)', fontSize: '11.5px', cursor: 'pointer', fontWeight: 600, padding: '2px 6px' }}
+                >
+                  <i className="fas fa-check-double"></i> Đã xem
+                </button>
+              )}
+            </div>
             <div className="notif-list">
               {items.length === 0 ? (
-                <div className="notif-empty"><i className="fas fa-bell-slash" style={{fontSize: '22px', display: 'block', marginBottom: '8px', opacity: .5}}></i>Bạn đã xem hết thông báo</div>
+                <div className="notif-empty"><i className="fas fa-bell-slash" style={{fontSize: '22px', display: 'block', marginBottom: '8px', opacity: .5}}></i>Tuyệt vời! Không còn việc tồn đọng cần xử lý</div>
               ) : items.map((n, i) => (
                 <div className="notif-item" key={i} style={{ cursor: 'pointer' }} onClick={() => { setActiveMenu(n.page); setOpen(false); }}>
                   <i className={'fas ' + n.icon}></i>
@@ -1662,7 +1973,7 @@
                   className: 'dt-actions actions-3',
                   width: '106px',
                   render: (d, t, row) => `<div class="table-actions slots-3">
-                    ${canEdit ? `<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>` : ''}
+                    ${canEdit ? `<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>` : ''}
                     ${canDel ? `<button class="action-icon assign-icon" data-action="reassign" title="Reassign work"><i class="fas fa-people-arrows"></i></button>` : ''}
                     ${canDel ? `<button class="action-icon delete-icon" data-action="delete" title="Deactivate"><i class="fas fa-user-slash"></i></button>` : ''}
                     ${!canEdit && !canDel ? '<span style="color:#999;">—</span>' : ''}
@@ -1899,7 +2210,7 @@
                   options={targets.map((u) => ({ value: u.Username, label: u.Username + ' (' + u.Role + ')' }))}
                   value={toUser} onChange={setToUser} placeholder="Pick a user…" required={true} />
                 <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving || !toUser}>
                     {saving ? <><i className="fas fa-spinner fa-spin"></i> Moving…</> : <><i className="fas fa-people-arrows"></i> Reassign All</>}
                   </button>
@@ -2012,6 +2323,46 @@
         ConfirmPassword: ''
       });
       const [saving, setSaving] = useState(false);
+      const [uploading, setUploading] = useState(false);
+      const fileInputRef = useRef(null);
+
+      const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn một tệp hình ảnh' });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploading(true);
+          const base64Data = event.target.result;
+
+          google.script.run
+            .withSuccessHandler((result) => {
+              setUploading(false);
+              if (result.success) {
+                google.script.run
+                  .withSuccessHandler((r) => {
+                    if (r.success) {
+                      Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã cập nhật ảnh đại diện!', timer: 2000, showConfirmButton: false });
+                    }
+                  })
+                  .updateUserSettings(currentUser, { profileImage: result.fileUrl });
+              } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+              }
+            })
+            .withFailureHandler((err) => {
+              setUploading(false);
+              Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            })
+            .uploadFile(base64Data, file.name, 'profile');
+        };
+        reader.readAsDataURL(file);
+      };
 
       const handleSubmit = (e) => {
         e.preventDefault();
@@ -2942,10 +3293,10 @@
           { data: 'status', title: 'Status', render: (d, t) => t === 'display' ? badge(d) : d },
           { data: 'assignedAgent', title: 'Agent', render: (d) => esc(d || '—') },
           { data: 'viewsCount', title: 'Views', render: (d, t) => t === 'display' ? Number(d || 0).toLocaleString('en-US') : d },
-          { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-3', width: '106px', render: () => `<div class="table-actions slots-3">
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-3', width: '106px', render: () => `<div class="table-actions slots-3">
             <button class="action-icon view-icon" data-action="view" title="Details"><i class="fas fa-eye"></i></button>
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
-            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
+            ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : ''}</div>` }
         ],
         createdRow: (row) => { row.classList.add('dblclick-row'); row.setAttribute('title', 'Nhấp đúp để xem nhanh thông tin'); },
         order: []
@@ -2965,7 +3316,7 @@
             </div>
             <div className="filters-grid">
               <div className="filter-group">
-                <label><i className="fas fa-magnifying-glass"></i> Search</label>
+                <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
                 <input className="filter-input" value={filters.search} placeholder="Title, ref, type, agent…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
               </div>
               <SearchableDropdown label="Property Type" icon="fas fa-house" options={opts(ENUMS.propertyType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="All Types" />
@@ -3366,7 +3717,7 @@
                 </span>
               </div>
               <div className="pd-meta-actions" style={{ marginBottom: '16px' }}>
-                <button className="btn btn-secondary btn-sm" onClick={waShare} title="Chia sẻ qua Zalo"><i className="fas fa-comment-dots" style={{ color: '#25D366' }}></i> Chia sẻ</button>
+                <button className="btn btn-secondary btn-sm" onClick={waShare} title="Chia sẻ qua Zalo"><ZaloIcon size={16} style={{ marginRight: 5 }} /> Chia sẻ Zalo</button>
                 <button className="btn btn-secondary btn-sm" onClick={doBrochure} disabled={busy} title="Tờ giới thiệu PDF"><i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-file-pdf')}></i> Tờ giới thiệu</button>
                 <button className="btn btn-secondary btn-sm" onClick={doEmail} title="Gửi tin đăng qua email"><i className="fas fa-envelope"></i> Email</button>
                 <button className="btn btn-secondary btn-sm" onClick={doCopy} title="Sao chép liên kết cổng"><i className="fas fa-link"></i> Liên kết</button>
@@ -3433,7 +3784,7 @@
                   </div>))}
               {tab === 'docs' && (
                 <>
-                  {canEdit && <div className="form-group"><label><i className="fas fa-file-arrow-up"></i> Tải tài liệu lên <small style={{ color: '#999', textTransform: 'none' }}>(hợp đồng, CNIC, giấy chuyển nhượng — không công khai)</small></label>
+                  {canEdit && <div className="form-group"><label><i className="fas fa-file-arrow-up"></i> Tải tài liệu lên <small style={{ color: '#999', textTransform: 'none' }}>(hợp đồng, CCCD/CMND, giấy tờ chuyển nhượng — không công khai)</small></label>
                     <input type="file" className="file-input" onChange={addDoc} disabled={busy} /></div>}
                   {(prop.documents || []).length === 0 ? <p style={{ color: '#789', padding: 12 }}>Chưa có tài liệu đính kèm.</p>
                     : (prop.documents || []).map((doc, i) => (
@@ -3519,7 +3870,7 @@
                         <span className="kb-agent"><i className="fas fa-user-tie"></i>{l.assignedAgent || 'Unassigned'} · {fmtDate(l.created)}</span>
                         <span className="kb-acts">
                           <button title="Lead 360" onClick={() => onAction('view', l)}><i className="fas fa-id-card-clip"></i></button>
-                          <button title="Nhắn Zalo" onClick={() => onAction('wa', l)}><i className="fas fa-comment-dots"></i></button>
+                          <button title="Nhắn Zalo" onClick={() => onAction('wa', l)}><ZaloIcon size={15} /></button>
                           {canEdit && <button title="Edit" onClick={() => onAction('edit', l)}><i className="fas fa-edit"></i></button>}
                         </span>
                       </div>
@@ -3572,7 +3923,7 @@
                 <div className="pd-fact"><div className="k">Trạng thái</div><div className="v">{viEnum(source.status || '—')}</div></div>
               </div>
               <div className="customer-quick-footer">
-                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><i className="fas fa-comment-dots"></i> Liên hệ Zalo</button>}
+                {phone !== '—' && <button className="btn btn-primary" onClick={() => waOpen(phone)}><ZaloIcon size={18} style={{ marginRight: 6 }} /> Liên hệ Zalo</button>}
                 <p className="customer-quick-note"><i className="fas fa-circle-info"></i> Thông tin này chưa liên kết với hồ sơ khách hàng tiềm năng.</p>
               </div>
             </div>
@@ -4101,7 +4452,7 @@
                   )}
                 </div>
                 <div className="form-group">
-                  <label><i className="fas fa-align-left"></i> Notes</label>
+                  <label><i className="fas fa-align-left"></i> Ghi chú</label>
                   <textarea rows="3" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="What needs to happen / what happened…"></textarea>
                 </div>
                 <div className="form-actions">
@@ -5086,23 +5437,23 @@
         <div className="modal-overlay">
           <div className="modal" style={{ maxWidth: 560 }}>
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Edit Owner #' + owner.id : 'Add Owner'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-user-plus')}></i> {editing ? 'Chỉnh sửa chủ sở hữu #' + owner.id : 'Thêm chủ sở hữu'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 <div className="form-grid">
-                  <div className="form-group"><label><i className="fas fa-user"></i> Name *</label><input value={form.name} onChange={setEv('name')} required /></div>
+                  <div className="form-group"><label><i className="fas fa-user"></i> Họ và tên *</label><input value={form.name} onChange={setEv('name')} required /></div>
                   <div className="form-group"><label><i className="fas fa-phone"></i> Điện thoại * <small style={{ color: '#999', textTransform: 'none' }}>(khóa định danh)</small></label><input value={form.phone} onChange={setEv('phone')} required placeholder="+92300…" /></div>
                   <div className="form-group"><label><i className="fas fa-envelope"></i> Email</label><input type="email" value={form.email} onChange={setEv('email')} /></div>
-                  <div className="form-group"><label><i className="fas fa-id-card"></i> CNIC</label><input value={form.cnic} onChange={setEv('cnic')} placeholder="35201-…" /></div>
+                  <div className="form-group"><label><i className="fas fa-id-card"></i> Số CCCD / CMND</label><input value={form.cnic} onChange={setEv('cnic')} placeholder="Nhập số CCCD/CMND..." /></div>
                 </div>
-                <div className="form-group"><label><i className="fas fa-location-dot"></i> Address</label><input value={form.address} onChange={setEv('address')} /></div>
+                <div className="form-group"><label><i className="fas fa-location-dot"></i> Địa chỉ</label><input value={form.address} onChange={setEv('address')} /></div>
                 <div className="form-group"><label><i className="fas fa-align-left"></i> Notes</label><textarea rows="2" value={form.notes} onChange={setEv('notes')}></textarea></div>
                 <div className="form-actions">
                   <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update Owner' : 'Add Owner'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật chủ sở hữu' : 'Thêm chủ sở hữu'}</>}
                   </button>
                 </div>
               </form>
@@ -5143,7 +5494,7 @@
                 <div className="pd-facts">
                   <div className="pd-fact"><div className="k">Điện thoại</div><div className="v">{owner.phone}</div></div>
                   <div className="pd-fact"><div className="k">Email</div><div className="v">{owner.email || '—'}</div></div>
-                  <div className="pd-fact"><div className="k">CNIC</div><div className="v">{owner.cnic || '—'}</div></div>
+                  <div className="pd-fact"><div className="k">Số CCCD / CMND</div><div className="v">{owner.cnic || '—'}</div></div>
                   <div className="pd-fact"><div className="k">Địa chỉ</div><div className="v">{owner.address || '—'}</div></div>
                   <div className="pd-fact"><div className="k">Ngày tạo</div><div className="v">{fmtDate(owner.created)}</div></div>
                   <div className="pd-fact"><div className="k">Ghi chú</div><div className="v">{owner.notes || '—'}</div></div>
@@ -5179,10 +5530,10 @@
       useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]);
 
       const kpi = useMemo(() => { const r = rows || []; return [
-        [r.length, 'Owners', 'fa-user-tie', 'bg-navy'],
-        [r.filter((o) => o.propertyCount > 0).length, 'With Listings', 'fa-building', 'bg-info'],
-        [r.reduce((s, o) => s + (o.propertyCount || 0), 0), 'Linked Properties', 'fa-link', 'bg-success'],
-        [pkrShort(r.reduce((s, o) => s + (o.totalBusiness || 0), 0)), 'Total Business', 'fa-sack-dollar', 'bg-warning']
+        [r.length, 'Tổng chủ sở hữu', 'fa-user-tie', 'bg-navy'],
+        [r.filter((o) => o.propertyCount > 0).length, 'Có BĐS gửi bán/thuê', 'fa-building', 'bg-info'],
+        [r.reduce((s, o) => s + (o.propertyCount || 0), 0), 'BĐS liên kết', 'fa-link', 'bg-success'],
+        [pkrShort(r.reduce((s, o) => s + (o.totalBusiness || 0), 0)), 'Tổng doanh số', 'fa-sack-dollar', 'bg-warning']
       ]; }, [rows]);
 
       const downloadTemplate = () => downloadCSV('owners_template.csv', 'Name,Phone,Email,CNIC,Address,Notes\nOwner 99,03005000099,owner99@demo.com,,DHA Lahore,\n');
@@ -5205,7 +5556,7 @@
         else if (action === 'wa') waOpen(o.phone);
         else if (action === 'edit') { setEditing(o); setShowModal(true); }
         else if (action === 'delete') {
-          Swal.fire({ icon: 'warning', title: 'Delete owner "' + o.name + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Delete' })
+          Swal.fire({ icon: 'warning', title: 'Xóa chủ sở hữu "' + o.name + '"?', showCancelButton: true, confirmButtonColor: '#ea4335', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy' })
             .then((r) => { if (r.isConfirmed) gsRun('deleteOwner', o.id, currentUser).then((res) => {
               if (res && res.success) { Swal.fire({ icon: 'success', title: res.message, timer: 1800, showConfirmButton: false }); mutate(); }
               else Swal.fire({ icon: 'error', title: 'Error', text: (res && res.message) || 'Failed' }); }); });
@@ -5215,16 +5566,16 @@
       const tableRef = useDataTable('ownersTable', rows === undefined ? null : rows, () => ({
         search: { search: filters.search },
         columns: [
-          { data: 'name', title: 'Owner', render: (d, t, o) => t === 'display'
+          { data: 'name', title: 'Chủ sở hữu', render: (d, t, o) => t === 'display'
               ? '<button type="button" class="table-record-link" data-action="view" title="Xem hồ sơ chủ sở hữu"><strong>' + esc(d) + '</strong><span class="record-phone">' + esc(o.phone) + '</span></button>'
               : d },
           { data: 'email', title: 'Email', render: (d) => esc(d || '—') },
-          { data: 'address', title: 'Address', render: (d) => esc(d || '—') },
-          { data: 'propertyCount', title: 'Properties' },
-          { data: 'totalBusiness', title: 'Business', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
-          { data: 'created', title: 'Since', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
+          { data: 'address', title: 'Địa chỉ', render: (d) => esc(d || '—') },
+          { data: 'propertyCount', title: 'Số BĐS' },
+          { data: 'totalBusiness', title: 'Tổng doanh số', render: (d, t) => t === 'display' ? esc(pkrShort(d)) : d },
+          { data: 'created', title: 'Ngày tạo', render: (d, t) => t === 'display' ? fmtDate(d) : (d || '') },
           { data: null, title: 'Actions', orderable: false, className: 'dt-actions actions-4', width: '140px', render: () => `<div class="table-actions slots-4">
-            <button class="action-icon view-icon" data-action="view" title="Owner 360"><i class="fas fa-id-card-clip"></i></button>
+            <button class="action-icon view-icon" data-action="view" title="Hồ sơ chủ sở hữu 360"><i class="fas fa-id-card-clip"></i></button>
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
             ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Edit"><i class="fas fa-edit"></i></button>' : ''}
             ${canDel ? '<button class="action-icon delete-icon" data-action="delete" title="Delete"><i class="fas fa-trash"></i></button>' : ''}</div>` }
@@ -5238,13 +5589,13 @@
         <>
           <KpiRow items={kpi} />
           <div className="filters-section">
-            <div className="filters-header"><h3><i className="fas fa-filter"></i> Filters</h3>
-              <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ search: '' })}><i className="fas fa-rotate-left"></i> Clear</button>
+            <div className="filters-header"><h3><i className="fas fa-filter"></i> Bộ lọc</h3>
+              <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ search: '' })}><i className="fas fa-rotate-left"></i> Xóa lọc</button>
             </div>
             <div className="filters-grid">
               <div className="filter-group">
                 <label><i className="fas fa-magnifying-glass"></i> Search</label>
-                <input className="filter-input" value={filters.search} placeholder="Name, phone, address…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                <input className="filter-input" value={filters.search} placeholder="Tên, số điện thoại, địa chỉ, CCCD…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
               </div>
             </div>
           </div>
@@ -6618,9 +6969,9 @@
         <div className="prop-card" onClick={() => onOpen(p)}>
           <div className="prop-card-img">
             {im ? <img src={im.url} alt={p.title} loading="lazy" /> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ab' }}><i className="fas fa-image" style={{ fontSize: 34 }}></i></div>}
-            {!!p.isFeatured && <span className="prop-ribbon"><i className="fas fa-star"></i> Featured</span>}
-            <span className={'prop-lt ' + (p.listingType === 'Rent' ? 'rent' : 'sale')}>For {p.listingType}</span>
-            {p.status === 'Reserved' && <span className="prop-reserved">Reserved</span>}
+            {!!p.isFeatured && <span className="prop-ribbon"><i className="fas fa-star"></i> Nổi bật</span>}
+            <span className={'prop-lt ' + (p.listingType === 'Rent' ? 'rent' : 'sale')}>{p.listingType === 'Rent' ? 'Cho thuê' : 'Đang bán'}</span>
+            {p.status === 'Reserved' && <span className="prop-reserved">Đã giữ chỗ</span>}
           </div>
           <div className="prop-card-body">
             <div className="prop-price">{pkrShort(p.price)}{p.listingType === 'Rent' && <small> /{(p.rentFrequency || 'Monthly').toLowerCase()}</small>}</div>
@@ -6739,7 +7090,7 @@
                     <div className="pd-share-row">
                       <button className="btn btn-secondary btn-sm" title="Chia sẻ qua Zalo"
                               onClick={() => window.open('https://zalo.me/?text=' + encodeURIComponent(prop.title + ' — ' + pkrShort(prop.price) + '\n' + portalLink), '_blank')}>
-                        <i className="fas fa-comment-dots" style={{ color: '#0068FF' }}></i> Zalo
+                        <ZaloIcon size={16} style={{ marginRight: 4 }} /> Zalo
                       </button>
                       <button className="btn btn-secondary btn-sm" title="Sao chép liên kết"
                               onClick={() => { try { navigator.clipboard.writeText(portalLink); Swal.fire({ icon: 'success', title: 'Đã sao chép liên kết!', timer: 1200, showConfirmButton: false }); } catch (e) {} }}>
@@ -6848,7 +7199,7 @@
               <BrandLogo logo={portal && portal.branding && portal.branding.logo} />
               <span>{(portal && portal.branding && portal.branding.name) || 'Hệ thống CRM'}</span>
             </div>
-            <button className="portal-login-btn" onClick={onStaffLogin}><i className="fas fa-lock"></i> Đăng nhập nhân viên</button>
+            <button className="portal-login-btn" onClick={onStaffLogin} title="Đăng nhập nhân viên"><i className="fas fa-lock"></i></button>
           </nav>
 
           <div className="portal-hero">
@@ -6859,20 +7210,20 @@
 
           <div className="portal-search">
             <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--navy-primary)', textTransform: 'uppercase' }}><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
+              <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
               <input className="filter-input" value={filters.q} placeholder="Tiêu đề, khu vực, mã BĐS…" onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
             </div>
             <SearchableDropdown label="Thành phố" icon="fas fa-city"
               options={locs.filter((l) => l.level === 'City').map((c) => ({ value: c.name, label: c.name }))}
-              value={filters.city} onChange={(v) => setFilters({ ...filters, city: v })} placeholder="Tất cả thành phố" />
+              value={filters.city} onChange={(v) => setFilters({ ...filters, city: v })} placeholder="Tất cả" />
             <SearchableDropdown label="Loại hình" icon="fas fa-house"
-              options={opts(ENUMS.propertyType).map(o => ({ value: o.value, label: viEnum(o.value) || o.label }))} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Tất cả loại hình" />
+              options={opts(ENUMS.propertyType).map(o => ({ value: o.value, label: viEnum(o.value) || o.label }))} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Tất cả" />
             <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--navy-primary)', textTransform: 'uppercase' }}><i className="fas fa-money-bill"></i> Giá tối thiểu</label>
+              <label><i className="fas fa-money-bill"></i> Giá tối thiểu</label>
               <input className="filter-input" type="number" min="0" value={filters.minPrice} placeholder="Bất kỳ" onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--navy-primary)', textTransform: 'uppercase' }}><i className="fas fa-money-bill"></i> Giá tối đa</label>
+              <label><i className="fas fa-money-bill"></i> Giá tối đa</label>
               <input className="filter-input" type="number" min="0" value={filters.maxPrice} placeholder="Bất kỳ" onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })} />
             </div>
             <SearchableDropdown label="Số phòng" icon="fas fa-bed"
@@ -6885,11 +7236,11 @@
           <div className="portal-body">
             <div className="portal-sec-h">
               <div className="lt-tabs">
-                <button className={lt === '' ? 'on' : ''} onClick={() => setLt('')}>All</button>
-                <button className={lt === 'Sale' ? 'on' : ''} onClick={() => setLt('Sale')}>Buy</button>
-                <button className={lt === 'Rent' ? 'on' : ''} onClick={() => setLt('Rent')}>Rent</button>
+                <button className={lt === '' ? 'on' : ''} onClick={() => setLt('')}>Tất cả</button>
+                <button className={lt === 'Sale' ? 'on' : ''} onClick={() => setLt('Sale')}>Mua bán</button>
+                <button className={lt === 'Rent' ? 'on' : ''} onClick={() => setLt('Rent')}>Cho thuê</button>
               </div>
-              <span className="portal-count">{loading ? 'Loading…' : visible.length + ' listing' + (visible.length === 1 ? '' : 's')}</span>
+              <span className="portal-count">{loading ? 'Loading…' : visible.length + ' bất động sản'}</span>
             </div>
 
             {loading && (
@@ -6910,19 +7261,19 @@
             {!loading && !filtering && featured.length > 0 && (
               <>
                 <div className="portal-sec-h" style={{ margin: '4px 0 14px' }}>
-                  <h2><i className="fas fa-star" style={{ color: '#ffb703' }}></i> Featured Properties</h2>
+                  <h2><i className="fas fa-star" style={{ color: '#ffb703' }}></i> Bất động sản nổi bật</h2>
                 </div>
                 <div className="prop-grid" style={{ marginBottom: 28 }}>
                   {featured.map((p) => <PropCard key={p.id} p={p} onOpen={openDetail} />)}
                 </div>
                 <div className="portal-sec-h" style={{ margin: '4px 0 14px' }}>
-                  <h2><i className="fas fa-building"></i> All Listings</h2>
+                  <h2><i className="fas fa-building"></i> Tất cả bất động sản</h2>
                 </div>
               </>
             )}
 
             {!loading && (visible.length === 0
-              ? <div className="portal-empty"><i className="fas fa-house-circle-xmark"></i>No listings match your search — try widening the filters.</div>
+              ? <div className="portal-empty"><i className="fas fa-house-circle-xmark"></i>Không tìm thấy bất động sản phù hợp — vui lòng thử điều chỉnh lại bộ lọc.</div>
               : <div className="prop-grid">{visible.map((p) => <PropCard key={p.id} p={p} onOpen={openDetail} />)}</div>)}
           </div>
 
@@ -6997,6 +7348,42 @@
       });
       const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
+      // Quản lý danh sách phân hệ được ghim trên thanh đáy của từng người dùng
+      const [pinnedTabs, setPinnedTabs] = useState(() => {
+        try {
+          const saved = localStorage.getItem('crm_pinned_tabs_' + user);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          }
+        } catch (e) {}
+        return ['dashboard', 'leads', 'properties', 'appointments'];
+      });
+
+      const handleTogglePin = (key) => {
+        setPinnedTabs((prev) => {
+          let updated;
+          if (prev.includes(key)) {
+            if (prev.length <= 1) {
+              if (window.Swal) Swal.fire({ icon: 'warning', title: 'Cần giữ lại ít nhất 1 phân hệ trên thanh đáy', timer: 1500, showConfirmButton: false });
+              return prev;
+            }
+            updated = prev.filter(k => k !== key);
+          } else {
+            if (prev.length >= 4) {
+              if (window.Swal) Swal.fire({ icon: 'info', title: 'Tối đa 4 phân hệ được ghim', text: 'Vui lòng bỏ ghim bớt một mục trước khi ghim thêm', timer: 2000, showConfirmButton: false });
+              return prev;
+            }
+            updated = [...prev, key];
+          }
+          // 1. Lưu tức thì trên máy hiện tại
+          try { localStorage.setItem('crm_pinned_tabs_' + user, JSON.stringify(updated)); } catch (e) {}
+          // 2. Đồng bộ vĩnh viễn lên cơ sở dữ liệu Supabase theo tài khoản người dùng
+          gsRun('updateUserSettings', user, { pinnedTabs: updated }).catch(() => {});
+          return updated;
+        });
+      };
+
       useEffect(() => {
         try { localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
       }, [collapsed]);
@@ -7057,6 +7444,25 @@
             setActiveMenu={go}
             perms={permissions}
             setShowMobileSidebar={setShowMobileSidebar}
+            pinnedTabs={pinnedTabs}
+          />
+
+          {/* Trang Trung Tâm Phân Hệ Toàn Màn Hình Mobile */}
+          <MobileModulesHub
+            isOpen={showMobileSidebar}
+            onClose={() => setShowMobileSidebar(false)}
+            activeMenu={activeMenu}
+            setActiveMenu={go}
+            role={role}
+            user={user}
+            profileImage={profileImage}
+            themeMode={themeMode}
+            onThemeToggle={onThemeToggle}
+            onLogout={onLogout}
+            perms={permissions}
+            canEditRbac={canEditRbac}
+            pinnedTabs={pinnedTabs}
+            onTogglePin={handleTogglePin}
           />
         </>
       );

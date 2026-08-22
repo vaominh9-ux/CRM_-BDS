@@ -50,7 +50,7 @@ function extractSource() {
   }
 
   const styleOpen = html.match(/<style(?:\s[^>]*)?>/);
-  const jsxOpen = html.match(/<script\s+type=["']text\/babel["']>/);
+  const jsxOpen = html.match(/<script\s+[^>]*type=["']text\/babel["'][^>]*>/);
   if (!styleOpen || styleOpen.index === undefined) fail('Không tìm thấy khối <style> chính.');
   if (!jsxOpen || jsxOpen.index === undefined) fail('Không tìm thấy khối <script type="text/babel"> chính.');
 
