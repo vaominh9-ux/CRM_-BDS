@@ -48,6 +48,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script>
+    (function () {
+      var origWarn = console.warn;
+      var origError = console.error;
+      console.warn = function () {
+        if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].indexOf('in-browser Babel transformer') !== -1) return;
+        origWarn.apply(console, arguments);
+      };
+      console.error = function () {
+        if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].indexOf('[BABEL] Note: The code generator has deoptimised') !== -1) return;
+        origError.apply(console, arguments);
+      };
+    })();
+  </script>
   <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
