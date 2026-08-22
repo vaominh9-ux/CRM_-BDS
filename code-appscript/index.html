@@ -3068,16 +3068,24 @@
     .portal-search .filter-input,
     .portal .searchable-dropdown-input {
       width: 100%;
-      height: 42px;
-      padding: 9px 12px;
+      height: 38px;
+      padding: 7px 11px;
       border: 1.5px solid #cbd5e1 !important;
-      border-radius: 10px !important;
-      font-size: 13.5px !important;
+      border-radius: 9px !important;
+      font-size: 12.5px !important;
+      font-weight: 500 !important;
       color: #1e293b !important;
       background: #ffffff !important;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
       transition: all 0.2s ease !important;
       box-sizing: border-box !important;
+      line-height: normal !important;
+    }
+    .portal-search .filter-input::placeholder,
+    .portal .searchable-dropdown-input::placeholder {
+      font-size: 12.5px !important;
+      color: #64748b !important;
+      font-weight: 450 !important;
     }
     .portal-search .filter-input:focus,
     .portal .searchable-dropdown-input:focus,
@@ -3249,18 +3257,37 @@
       }
       .portal-search .form-group label,
       .portal-search .searchable-dropdown label {
-        font-size: 10.5px !important;
-        margin-bottom: 3px !important;
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        margin-bottom: 2px !important;
         letter-spacing: 0.2px !important;
+        color: #001f3f !important;
+        text-transform: uppercase !important;
       }
       .portal-search .filter-input,
       .portal .searchable-dropdown-input {
-        height: 38px !important;
-        padding: 6px 10px !important;
-        font-size: 12.5px !important;
-        border-radius: 9px !important;
+        height: 35px !important;
+        padding: 5px 9px !important;
+        font-size: 11.5px !important;
+        font-weight: 500 !important;
+        border-radius: 8px !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        line-height: normal !important;
+      }
+      .portal-search .filter-input::placeholder,
+      .portal .searchable-dropdown-input::placeholder {
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        font-weight: 450 !important;
+      }
+      .portal .searchable-dropdown-arrow {
+        right: 8px !important;
+        font-size: 10px !important;
+      }
+      .portal .searchable-dropdown-item {
+        font-size: 11.5px !important;
+        padding: 6px 10px !important;
       }
       
       .portal-body {
@@ -11304,20 +11331,20 @@
 
           <div className="portal-search">
             <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--navy-primary)', textTransform: 'uppercase' }}><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
+              <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
               <input className="filter-input" value={filters.q} placeholder="Tiêu đề, khu vực, mã BĐS…" onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
             </div>
             <SearchableDropdown label="Thành phố" icon="fas fa-city"
               options={locs.filter((l) => l.level === 'City').map((c) => ({ value: c.name, label: c.name }))}
-              value={filters.city} onChange={(v) => setFilters({ ...filters, city: v })} placeholder="Tất cả thành phố" />
+              value={filters.city} onChange={(v) => setFilters({ ...filters, city: v })} placeholder="Tất cả" />
             <SearchableDropdown label="Loại hình" icon="fas fa-house"
-              options={opts(ENUMS.propertyType).map(o => ({ value: o.value, label: viEnum(o.value) || o.label }))} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Tất cả loại hình" />
+              options={opts(ENUMS.propertyType).map(o => ({ value: o.value, label: viEnum(o.value) || o.label }))} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Tất cả" />
             <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--navy-primary)', textTransform: 'uppercase' }}><i className="fas fa-money-bill"></i> Giá tối thiểu</label>
+              <label><i className="fas fa-money-bill"></i> Giá tối thiểu</label>
               <input className="filter-input" type="number" min="0" value={filters.minPrice} placeholder="Bất kỳ" onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--navy-primary)', textTransform: 'uppercase' }}><i className="fas fa-money-bill"></i> Giá tối đa</label>
+              <label><i className="fas fa-money-bill"></i> Giá tối đa</label>
               <input className="filter-input" type="number" min="0" value={filters.maxPrice} placeholder="Bất kỳ" onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })} />
             </div>
             <SearchableDropdown label="Số phòng" icon="fas fa-bed"
