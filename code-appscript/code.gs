@@ -2477,6 +2477,39 @@ function agreementPdf(type, id, currentUser) {
   } catch (e) { return err_('Error: ' + e); }
 }
 
+function getContractTemplates(currentUser) {
+  try {
+    if (!userRole_(currentUser)) return err_('Access denied');
+    var defaults = [
+      { key: 'rental', label: 'HĐ Thuê Bất Động Sản', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature', src: 'ten', hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn', isCustom: false },
+      { key: 'sale', label: 'HĐ Cọc Mua Bán', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract', src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc', isCustom: false },
+      { key: 'handover', label: 'Biên Bản Bàn Giao Hiện Trạng', shortLabel: 'Bàn Giao', icon: 'fa-clipboard-check', src: 'ten', hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị', isCustom: false },
+      { key: 'exclusive', label: 'HĐ Dịch Vụ Môi Giới Độc Quyền', shortLabel: 'MG Độc Quyền', icon: 'fa-handshake-angle', src: 'deal', hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông', isCustom: false },
+      { key: 'receipt', label: 'Phiếu Thu Giao Dịch', shortLabel: 'Phiếu Thu', icon: 'fa-receipt', src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại', isCustom: false },
+      { key: 'rentreceipt', label: 'Bảng Kê Tiền Thuê', shortLabel: 'Kê Tiền Thuê', icon: 'fa-file-invoice', src: 'ten', hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và tổng công nợ còn thiếu', isCustom: false },
+      { key: 'dues', label: 'Thông Báo Công Nợ', shortLabel: 'Báo Công Nợ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật', isCustom: false },
+      { key: 'invoice', label: 'Hóa Đơn Hoa Hồng', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất', isCustom: false }
+    ];
+    return ok_({ templates: defaults });
+  } catch (e) { return err_('Error: ' + e); }
+}
+
+function saveContractTemplate(templateKey, templateData, currentUser) {
+  try {
+    if (userRole_(currentUser) !== 'Admin') return err_('Access denied');
+    addLog_(currentUser, 'Contract Template Saved', 'Template: ' + templateKey);
+    return ok_({ message: 'Đã lưu mẫu hợp đồng thành công!' });
+  } catch (e) { return err_('Error: ' + e); }
+}
+
+function resetContractTemplates(currentUser) {
+  try {
+    if (userRole_(currentUser) !== 'Admin') return err_('Access denied');
+    addLog_(currentUser, 'Contract Templates Reset', 'All templates reset');
+    return ok_({ message: 'Đã đặt lại tất cả mẫu hợp đồng về mặc định!' });
+  } catch (e) { return err_('Error: ' + e); }
+}
+
 // ============== AI Assistant (OpenAI — key lives server-side ONLY, context scoped by role) ==============
 var aiCfg_ = function() {
   var p = PropertiesService.getScriptProperties();

@@ -365,6 +365,34 @@ async function run(method, args) {
     }
   }if('themeMode'in s)u.ThemeMode=s.themeMode;if('customColors'in s)u.CustomColors=s.customColors;u.UpdatedAt=now();persist(crm);return ok({message:'Đã lưu cài đặt'});}
   if(method==='getNotifications')return ok({data:[]});if(method==='getDefaultTheme')return ok({id:'',vars:''});if(method==='getAiConfig')return ok({configured:false});if(method==='getAppConfig')return ok({config:{}});
+  if(method==='getContractTemplates'){
+    const custom = (crm.settings && crm.settings.contractTemplates) || {};
+    const DEFAULT_CONTRACT_TEMPLATES = [
+      { key: 'rental', label: 'HỢP ĐỒNG THUÊ BẤT ĐỘNG SẢN', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature', src: 'ten', hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn' },
+      { key: 'sale', label: 'HỢP ĐỒNG ĐẶT CỌC CHUYỂN NHƯỢNG BẤT ĐỘNG SẢN', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract', src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc' },
+      { key: 'handover', label: 'BIÊN BẢN BÀN GIAO HIỆN TRẠNG VÀ CHỈ SỐ ĐIỆN NƯỚC', shortLabel: 'Bàn Giao', icon: 'fa-clipboard-check', src: 'ten', hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị' },
+      { key: 'exclusive', label: 'HỢP ĐỒNG DỊCH VỤ MÔI GIỚI BẤT ĐỘNG SẢN ĐỘC QUYỀN', shortLabel: 'MG Độc Quyền', icon: 'fa-handshake-angle', src: 'deal', hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông' },
+      { key: 'receipt', label: 'PHIẾU THU GIAO DỊCH BẤT ĐỘNG SẢN', shortLabel: 'Phiếu Thu', icon: 'fa-receipt', src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại' },
+      { key: 'rentreceipt', label: 'BẢNG KÊ THANH TOÁN TIỀN THUÊ BẤT ĐỘNG SẢN', shortLabel: 'Kê Tiền Thuê', icon: 'fa-file-invoice', src: 'ten', hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và tổng công nợ còn thiếu' },
+      { key: 'dues', label: 'THÔNG BÁO CÔNG NỢ GIAO DỊCH', shortLabel: 'Báo Công NỢ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật' },
+      { key: 'invoice', label: 'HÓA ĐƠN DỊCH VỤ MÔI GIỚI HOA HỒNG', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất' }
+    ];
+    const list = DEFAULT_CONTRACT_TEMPLATES.map(t => ({ ...t, ...(custom[t.key] || {}), isCustom: Boolean(custom[t.key]) }));
+    return ok({ data: { templates: list } });
+  }
+  if(method==='saveContractTemplate'){
+    const key = args[0], payload = args[1] || {};
+    crm.settings = crm.settings || {};
+    crm.settings.contractTemplates = crm.settings.contractTemplates || {};
+    crm.settings.contractTemplates[key] = payload;
+    persist(crm);
+    return ok({ message: 'Đã lưu cấu hình mẫu ' + (payload.label || key) });
+  }
+  if(method==='resetContractTemplates'){
+    if(crm.settings) delete crm.settings.contractTemplates;
+    persist(crm);
+    return ok({ message: 'Đã khôi phục toàn bộ mẫu hợp đồng về mặc định' });
+  }
   if(method==='getTrash'){const data=[];Object.entries(crm.sheets).forEach(([sheet,items])=>items.filter(x=>x.deleted).forEach(x=>data.push({...x,sheet})));return ok({data});}
   if(method==='restoreRecord'){const sheet=ENTITY[args[0]]||args[0],r=byId(crm.sheets[sheet]||[],args[1]);if(!r)return fail('Không tìm thấy dữ liệu');delete r.deleted;delete r.deletedAt;delete r.deletedBy;r.updated=now();persist(crm);return ok({message:'Đã khôi phục'});}
 

@@ -4828,8 +4828,216 @@
       .customer-quick-footer .btn { width: 100%; }
     }
 
+    /* ---- Smart Contract Templates Manager & 1-Click Merge Tags ---- */
+    .modal-template-manager {
+      width: min(94vw, 1100px) !important;
+      max-width: 1100px !important;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .tpl-mgr-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      min-height: 520px;
+    }
+    .tpl-mgr-sidebar {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      max-height: 560px;
+    }
+    .tpl-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all .16s ease;
+      text-align: left;
+    }
+    .tpl-nav-item:hover {
+      border-color: #cbd5e1;
+      background: #f1f5f9;
+      transform: translateX(2px);
+    }
+    .tpl-nav-item.active {
+      background: linear-gradient(135deg, var(--navy-primary) 0%, #1e3a5f 100%);
+      color: #ffffff;
+      border-color: var(--navy-primary);
+      box-shadow: 0 4px 12px rgba(0, 31, 63, .18);
+    }
+    .tpl-nav-item.active .tpl-nav-icon {
+      background: rgba(255, 255, 255, .2);
+      color: #ffffff;
+    }
+    .tpl-nav-item.active .tpl-nav-desc {
+      color: rgba(255, 255, 255, .75);
+    }
+    .tpl-nav-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #eef2f7;
+      color: var(--navy-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .tpl-nav-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .tpl-nav-title {
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tpl-nav-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .tpl-nav-badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    .tpl-nav-item.active .tpl-nav-badge {
+      background: rgba(255, 255, 255, .25);
+      color: #ffffff;
+    }
     
-    /* ===== TRANG TRUNG TÂM PHÂN HỆ MOBILE TOÀN MÀN HÌNH (APP LAUNCHER HUB) ===== */
+    .tpl-mgr-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      max-height: 560px;
+      padding-right: 4px;
+    }
+    .tpl-edit-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .tpl-tags-panel {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 6px;
+    }
+    .tpl-tag-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+    .tpl-tag-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .tpl-tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      transition: all .14s ease;
+      user-select: none;
+    }
+    .tpl-tag-chip:hover {
+      background: #e0f2fe;
+      border-color: #38bdf8;
+      color: #0369a1;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(56, 189, 248, .2);
+    }
+    .tpl-tag-chip code {
+      font-size: 10.5px;
+      color: #0284c7;
+      background: rgba(2, 132, 199, .08);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    body.dark-mode .tpl-mgr-sidebar,
+    body.dark-mode .tpl-tags-panel {
+      background: #0f172a;
+      border-color: #334155;
+    }
+    body.dark-mode .tpl-nav-item {
+      background: #1e293b;
+      border-color: #334155;
+      color: #f8fafc;
+    }
+    body.dark-mode .tpl-nav-item:hover {
+      background: #334155;
+    }
+    body.dark-mode .tpl-nav-icon {
+      background: #334155;
+      color: #38bdf8;
+    }
+    body.dark-mode .tpl-nav-desc {
+      color: #94a3b8;
+    }
+    body.dark-mode .tpl-edit-card {
+      background: #1e293b;
+      border-color: #334155;
+    }
+    body.dark-mode .tpl-tag-group-title {
+      color: #94a3b8;
+    }
+    body.dark-mode .tpl-tag-chip {
+      background: #334155;
+      border-color: #475569;
+      color: #f8fafc;
+    }
+    body.dark-mode .tpl-tag-chip:hover {
+      background: #0369a1;
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+
+    @media (max-width: 768px) {
+      .tpl-mgr-layout {
+        grid-template-columns: 1fr;
+      }
+      .tpl-mgr-sidebar {
+        max-height: 180px;
+      }
+      .tpl-mgr-editor {
+        max-height: none;
+      }
+    }/* ===== TRANG TRUNG TÂM PHÂN HỆ MOBILE TOÀN MÀN HÌNH (APP LAUNCHER HUB) ===== */
     .mob-hub-overlay {
       display: none;
     }
@@ -19021,6 +19229,7 @@
       const [editing, setEditing] = useState(null);
       const [paying, setPaying] = useState(null);
       const [viewingLead, setViewingLead] = useState(null);
+      const [printDoc, setPrintDoc] = useState(null);
       const [stage, setStage] = useState('');
       const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '', type: '', agent: '' });
@@ -19074,6 +19283,35 @@
         }
         else if (action === 'pay') setPaying(x);
         else if (action === 'edit') { setEditing(x); setShowModal(true); }
+        else if (action === 'doc') {
+          Swal.fire({
+            title: 'Tạo văn bản A4 — Giao dịch #' + x.id,
+            text: 'Chọn loại tài liệu bạn muốn xuất cho giao dịch này:',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: '📄 HĐ Đặt cọc',
+            denyButtonText: '🧾 Phiếu thu tiền',
+            cancelButtonText: 'Đóng',
+            confirmButtonColor: 'var(--navy-primary)',
+            denyButtonColor: '#16a34a'
+          }).then((res) => {
+            if (res.isConfirmed) {
+              Swal.showLoading();
+              gsRun('buildAgreement', 'sale', x.id, currentUser).then((r) => {
+                Swal.close();
+                if (r && r.success) setPrintDoc({ doc: r, docType: 'sale', recId: x.id });
+                else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Không thể tạo tài liệu' });
+              });
+            } else if (res.isDenied) {
+              Swal.showLoading();
+              gsRun('buildAgreement', 'receipt', x.id, currentUser).then((r) => {
+                Swal.close();
+                if (r && r.success) setPrintDoc({ doc: r, docType: 'receipt', recId: x.id });
+                else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Không thể tạo tài liệu' });
+              });
+            }
+          });
+        }
         else if (action === 'paidout') {
           Swal.fire({ icon: 'question', title: 'Xác nhận đã chi hoa hồng?', text: x.agent + ' · ' + fmtPKR(x.agentShareAmt), showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Đã chi' })
             .then((r) => { if (r.isConfirmed) gsRun('markAgentPaid', x.id, currentUser).then((res) => {
@@ -19101,10 +19339,11 @@
               ? esc(pkrShort(d)) + '<br>' + (x.status === 'Completed' ? badge(x.agentPaidAt ? 'Paid' : 'Payable') : '<small style="color:#789">' + esc(pkrShort(x.agentShareAmt || 0)) + ' NV</small>') : d },
           { data: 'agent', title: 'Nhân viên' },
           { data: 'status', title: 'Trạng thái', render: (d, t) => t === 'display' ? badge(d) : d },
-          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, x) => `<div class="table-actions slots-5">
-            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa giao dịch"><i class="fas fa-pen-to-square"></i></button>' : ''}
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '180px', render: (d, t, x) => `<div class="table-actions slots-5">
+            <button class="action-icon view-icon" data-action="doc" title="Tạo HĐ cọc / Phiếu thu 1-chạm"><i class="fas fa-file-contract"></i></button>
             ${canEdit && ['Token','Agreement'].indexOf(x.status) !== -1 ? '<button class="action-icon assign-icon" data-action="pay" title="Ghi nhận thanh toán"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo người mua"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
+            ${canEdit ? '<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa giao dịch"><i class="fas fa-pen-to-square"></i></button>' : ''}
             ${all && x.status === 'Completed' && !x.agentPaidAt ? '<button class="action-icon edit-icon" data-action="paidout" title="Chi hoa hồng nhân viên"><i class="fas fa-hand-holding-dollar"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             ${canDel && x.status !== 'Completed' ? '<button class="action-icon delete-icon" data-action="delete" title="Xóa"><i class="fas fa-trash"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}</div>` }
         ],
@@ -19308,6 +19547,9 @@
 
                       {/* HÀNG 5: Các nút hành động 1-chạm */}
                       <div className="mob-deal-actions">
+                        <button className="mob-btn mob-btn-doc" onClick={() => onAction('doc', x)} title="Tạo HĐ cọc / Phiếu thu">
+                          <i className="fas fa-file-contract"></i> In HĐ
+                        </button>
                         {canEdit && ['Token', 'Agreement'].indexOf(x.status) !== -1 && (
                           <button className="mob-btn mob-btn-pay" onClick={() => onAction('pay', x)} title="Thu tiền / Ghi nhận thanh toán">
                             <i className="fas fa-money-bill-wave"></i> Thu tiền
@@ -19350,16 +19592,24 @@
               <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
                 <div className="mob-sheet-handle"></div>
                 <div className="mob-sheet-header">
-                  <h4><i className="fas fa-sliders"></i> Bộ lọc giao dịch</h4>
-                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                  <h3><i className="fas fa-filter"></i> Bộ lọc giao dịch</h3>
+                  <button className="mob-sheet-close" onClick={() => setShowFilterDrawer(false)}>&times;</button>
                 </div>
                 <div className="mob-sheet-body">
-                  <div className="form-group" style={{ marginBottom: 12 }}>
-                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm giao dịch</label>
-                    <input className="filter-input" value={filters.search} placeholder="Người mua, mã BĐS, nhân viên…" onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  <div className="mob-sheet-field">
+                    <label>Loại hình</label>
+                    <div className="mob-sheet-chips">
+                      <button className={'mob-sheet-chip ' + (!filters.type ? 'active' : '')} onClick={() => setFilters({ ...filters, type: '' })}>Tất cả</button>
+                      <button className={'mob-sheet-chip ' + (filters.type === 'Sale' ? 'active' : '')} onClick={() => setFilters({ ...filters, type: 'Sale' })}>Mua bán</button>
+                      <button className={'mob-sheet-chip ' + (filters.type === 'Rent' ? 'active' : '')} onClick={() => setFilters({ ...filters, type: 'Rent' })}>Cho thuê</button>
+                    </div>
                   </div>
-                  <SearchableDropdown label="Hình thức giao dịch" icon="fas fa-tags" options={opts(ENUMS.listingType)} value={filters.type} onChange={(v) => setFilters({ ...filters, type: v })} placeholder="Bán & Cho thuê" />
-                  {all && <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />}
+                  {all && (
+                    <div className="mob-sheet-field">
+                      <label>Nhân viên phụ trách</label>
+                      <SearchableDropdown label="" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />
+                    </div>
+                  )}
                 </div>
                 <div className="mob-sheet-footer">
                   <button className="btn btn-secondary" onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); setShowFilterDrawer(false); }}>
@@ -20038,6 +20288,7 @@
       const canEdit = can(perms, 'tenancies', 'e'), canDel = can(perms, 'tenancies', 'd');
       const [modal, setModal] = useState(null); // {type:'collect'|'renew'|'end'|'view', ten}
       const [viewingLead, setViewingLead] = useState(null);
+      const [printDoc, setPrintDoc] = useState(null);
       const [stage, setStage] = useState('Active');
       const [showFilterDrawer, setShowFilterDrawer] = useState(false);
       const [filters, setFilters] = useState({ search: initialSearch || '' });
@@ -20077,6 +20328,35 @@
         else if (action === 'collect') setModal({ type: 'collect', ten: t });
         else if (action === 'renew') setModal({ type: 'renew', ten: t });
         else if (action === 'end') setModal({ type: 'end', ten: t });
+        else if (action === 'doc') {
+          Swal.fire({
+            title: 'Tạo văn bản A4 — HĐ #' + t.id,
+            text: 'Chọn loại tài liệu bạn muốn xuất cho hợp đồng thuê này:',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: '📄 Hợp đồng thuê',
+            denyButtonText: '📋 Biên bản bàn giao',
+            cancelButtonText: 'Đóng',
+            confirmButtonColor: 'var(--navy-primary)',
+            denyButtonColor: '#0284c7'
+          }).then((res) => {
+            if (res.isConfirmed) {
+              Swal.showLoading();
+              gsRun('buildAgreement', 'rental', t.id, currentUser).then((r) => {
+                Swal.close();
+                if (r && r.success) setPrintDoc({ doc: r, docType: 'rental', recId: t.id });
+                else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Không thể tạo tài liệu' });
+              });
+            } else if (res.isDenied) {
+              Swal.showLoading();
+              gsRun('buildAgreement', 'handover', t.id, currentUser).then((r) => {
+                Swal.close();
+                if (r && r.success) setPrintDoc({ doc: r, docType: 'handover', recId: t.id });
+                else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Không thể tạo tài liệu' });
+              });
+            }
+          });
+        }
         else if (action === 'wa') {
           const last = (t.rentLog || []).slice(-1)[0];
           const msg = 'Xin chào ' + (t.tenantName || 'Quý khách') + ', tôi liên hệ về hợp đồng thuê ' + (t.propertyRef || '') + '. Tiền thuê: ' + fmtPKR(t.monthlyRent) + '/tháng (hạn ngày ' + (t.rentDueDay || 5) + ' hàng tháng). Công nợ hiện tại: ' + (t.arrears > 0 ? fmtPKR(t.arrears) : '0 đ') + '.';
@@ -20095,7 +20375,8 @@
           { data: 'arrears', title: 'Công nợ', render: (d, t) => t === 'display' ? (d > 0 ? '<span style="color:#c0392b;font-weight:700">' + esc(pkrShort(d)) + '</span>' : '<span style="color:#2e7d32">Không nợ</span>') : d },
           { data: 'endDate', title: 'Ngày kết thúc', render: (d, t, x) => t === 'display' ? (d ? esc(d) + (expSoon(x) ? ' ' + badge('Overdue').replace('Overdue', '≤30 ngày') : '') : 'Không thời hạn') : (d || '') },
           { data: 'status', title: 'Trạng thái', render: (d, t) => t === 'display' ? badge(d) : d },
-          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '174px', render: (d, t, x) => `<div class="table-actions slots-5">
+          { data: null, title: 'Thao tác', orderable: false, className: 'dt-actions actions-5', width: '180px', render: (d, t, x) => `<div class="table-actions slots-5">
+            <button class="action-icon view-icon" data-action="doc" title="Tạo HĐ thuê / Biên bản bàn giao 1-chạm"><i class="fas fa-file-contract"></i></button>
             ${canEdit && x.status === 'Active' ? '<button class="action-icon assign-icon" data-action="collect" title="Thu tiền thuê"><i class="fas fa-money-bill-wave"></i></button>' : '<span class="action-slot" aria-hidden="true"></span>'}
             <button class="action-icon view-icon" data-action="view" title="Chi tiết HĐ 360"><i class="fas fa-eye"></i></button>
             <button class="action-icon wa-icon" data-action="wa" title="Nhắn Zalo người thuê"><svg class="zalo-logo-img" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" stroke-width="4.5"/><path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5"/><text x="50.5" y="58" fill="#ffffff" font-family="system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="28" font-weight="900" text-anchor="middle" letter-spacing="-1.2">Zalo</text></svg></button>
@@ -20276,6 +20557,9 @@
 
                       {/* HÀNG 5: Các nút hành động 1-chạm */}
                       <div className="mob-tenancy-actions">
+                        <button className="mob-btn mob-btn-doc" onClick={() => onAction('doc', t)} title="Tạo HĐ thuê / Biên bản bàn giao">
+                          <i className="fas fa-file-contract"></i> In HĐ
+                        </button>
                         {canEdit && t.status === 'Active' && (
                           <button className="mob-btn mob-btn-collect" onClick={() => onAction('collect', t)} title="Thu tiền thuê">
                             <i className="fas fa-money-bill-wave"></i> Thu tiền
@@ -20343,6 +20627,15 @@
           {modal && modal.type === 'view' && <Tenancy360Modal ten={(visible.find((t) => t.id === modal.ten.id)) || modal.ten} currentUser={currentUser} canEdit={canEdit}
             onClose={() => setModal(null)} onChanged={() => mutate()} />}
           {viewingLead && <CrossModuleLeadModal source={viewingLead} currentUser={currentUser} role={role} perms={perms} lookups={lookups} onClose={() => setViewingLead(null)} />}
+          {printDoc && (
+            <A4DocModal
+              doc={printDoc.doc}
+              docType={printDoc.docType}
+              recId={printDoc.recId}
+              currentUser={currentUser}
+              onClose={() => setPrintDoc(null)}
+            />
+          )}
         </>
       );
     }
@@ -21103,6 +21396,298 @@
       );
     }
 
+    // =========================================================================
+    // MODAL QUẢN LÝ MẪU BIỂU MẪU & THẺ BIẾN THÔNG MINH (1-CLICK MERGE TAGS)
+    // =========================================================================
+    function ContractTemplatesManagerModal({ currentUser, onClose }) {
+      const { data: tplRes, mutate } = useSWR('contractTemplates:all', () => gsRun('getContractTemplates', currentUser), SWR_LIVE);
+      const templates = (tplRes && tplRes.success && tplRes.data && tplRes.data.templates) || [
+        { key: 'rental', label: 'HĐ Thuê Bất Động Sản', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature', src: 'ten', hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn' },
+        { key: 'sale', label: 'HĐ Cọc Mua Bán', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract', src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc' },
+        { key: 'handover', label: 'Biên Bản Bàn Giao Hiện Trạng', shortLabel: 'Bàn Giao', icon: 'fa-clipboard-check', src: 'ten', hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị' },
+        { key: 'exclusive', label: 'HĐ Dịch Vụ Môi Giới Độc Quyền', shortLabel: 'MG Độc Quyền', icon: 'fa-handshake-angle', src: 'deal', hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông' },
+        { key: 'receipt', label: 'Phiếu Thu Giao Dịch', shortLabel: 'Phiếu Thu', icon: 'fa-receipt', src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại' },
+        { key: 'rentreceipt', label: 'Bảng Kê Tiền Thuê', shortLabel: 'Kê Tiền Thuê', icon: 'fa-file-invoice', src: 'ten', hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và tổng công nợ còn thiếu' },
+        { key: 'dues', label: 'Thông Báo Công Nợ', shortLabel: 'Báo Công Nợ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật' },
+        { key: 'invoice', label: 'Hóa Đơn Hoa Hồng', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất' }
+      ];
+      const [selectedKey, setSelectedKey] = useState('rental');
+      const [busy, setBusy] = useState(false);
+      const curTpl = templates.find((t) => t.key === selectedKey) || templates[0] || {};
+      const [title, setTitle] = useState('');
+      const [shortLabel, setShortLabel] = useState('');
+      const [hint, setHint] = useState('');
+      const [customTerms, setCustomTerms] = useState('');
+      const textareaRef = useRef(null);
+
+      useEffect(() => {
+        if (curTpl) {
+          setTitle(curTpl.label || '');
+          setShortLabel(curTpl.shortLabel || '');
+          setHint(curTpl.hint || '');
+          setCustomTerms(curTpl.customTerms || '');
+        }
+      }, [curTpl.key, curTpl]);
+
+      const MERGE_TAG_GROUPS = [
+        {
+          group: '👤 Bên A (Chủ nhà / Bên chuyển nhượng)',
+          tags: [
+            { tag: '{{TEN_BEN_A}}', label: 'Tên Bên A' },
+            { tag: '{{SDT_BEN_A}}', label: 'SĐT Bên A' },
+            { tag: '{{CCCD_BEN_A}}', label: 'CCCD Bên A' },
+            { tag: '{{DIA_CHI_BEN_A}}', label: 'Địa chỉ Bên A' }
+          ]
+        },
+        {
+          group: '👥 Bên B (Khách thuê / Khách mua)',
+          tags: [
+            { tag: '{{TEN_BEN_B}}', label: 'Tên Bên B' },
+            { tag: '{{SDT_BEN_B}}', label: 'SĐT Bên B' },
+            { tag: '{{CCCD_BEN_B}}', label: 'CCCD Bên B' },
+            { tag: '{{HO_KHAU_BEN_B}}', label: 'Hộ khẩu Bên B' }
+          ]
+        },
+        {
+          group: '🏠 Bất Động Sản',
+          tags: [
+            { tag: '{{MA_BDS}}', label: 'Mã BĐS' },
+            { tag: '{{TIEU_DE_BDS}}', label: 'Tiêu đề BĐS' },
+            { tag: '{{DIA_CHI_BDS}}', label: 'Địa chỉ BĐS' },
+            { tag: '{{DIEN_TICH}}', label: 'Diện tích' },
+            { tag: '{{LOAI_BDS}}', label: 'Loại hình' }
+          ]
+        },
+        {
+          group: '💰 Tài Chính & Tiền Tệ',
+          tags: [
+            { tag: '{{GIA_GIAO_DICH}}', label: 'Giá giao dịch' },
+            { tag: '{{TIEN_BANG_CHU}}', label: 'Số tiền bằng chữ' },
+            { tag: '{{TIEN_THUE_THANG}}', label: 'Tiền thuê/tháng' },
+            { tag: '{{TIEN_COC}}', label: 'Tiền đặt cọc' },
+            { tag: '{{TIEN_CON_LAI}}', label: 'Số tiền còn lại' }
+          ]
+        },
+        {
+          group: '🗓️ Thời Gian & Pháp Lý',
+          tags: [
+            { tag: '{{NGAY_KY}}', label: 'Ngày ký kết' },
+            { tag: '{{NGAY_BAT_DAU}}', label: 'Ngày bắt đầu' },
+            { tag: '{{NGAY_KET_THUC}}', label: 'Ngày kết thúc' },
+            { tag: '{{NGAY_DONG_TIEN}}', label: 'Hạn đóng tiền' }
+          ]
+        }
+      ];
+
+      const insertTag = (tag) => {
+        const el = textareaRef.current;
+        if (!el) {
+          setCustomTerms((prev) => (prev ? prev + '\n' + tag : tag));
+          return;
+        }
+        const start = el.selectionStart;
+        const end = el.selectionEnd;
+        const val = el.value;
+        const newVal = val.substring(0, start) + ' ' + tag + ' ' + val.substring(end);
+        setCustomTerms(newVal);
+        setTimeout(() => {
+          el.focus();
+          el.setSelectionRange(start + tag.length + 2, start + tag.length + 2);
+        }, 50);
+      };
+
+      const handleSave = () => {
+        setBusy(true);
+        const payload = {
+          ...curTpl,
+          label: title,
+          shortLabel: shortLabel,
+          hint: hint,
+          customTerms: customTerms
+        };
+        gsRun('saveContractTemplate', curTpl.key, payload, currentUser).then((res) => {
+          setBusy(false);
+          if (res && res.success) {
+            mutate();
+            Swal.fire({
+              icon: 'success',
+              title: 'Đã lưu cấu hình mẫu',
+              text: 'Mẫu "' + title + '" đã được cập nhật thành công!',
+              timer: 1800,
+              showConfirmButton: false
+            });
+          } else {
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: (res && res.message) || 'Không thể lưu' });
+          }
+        }).catch((e) => {
+          setBusy(false);
+          Swal.fire({ icon: 'error', title: 'Lỗi', text: String((e && e.message) || e) });
+        });
+      };
+
+      const handleReset = () => {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Đặt lại mẫu mặc định?',
+          text: 'Toàn bộ mẫu biểu mẫu sẽ quay về định dạng pháp lý chuẩn của hệ thống.',
+          showCancelButton: true,
+          confirmButtonColor: 'var(--navy-primary)',
+          confirmButtonText: 'Đặt lại mặc định',
+          cancelButtonText: 'Hủy'
+        }).then((r) => {
+          if (!r.isConfirmed) return;
+          setBusy(true);
+          gsRun('resetContractTemplates', currentUser).then((res) => {
+            setBusy(false);
+            if (res && res.success) {
+              mutate();
+              Swal.fire({ icon: 'success', title: 'Hoàn tất', text: 'Đã khôi phục các mẫu về mặc định!' });
+            }
+          });
+        });
+      };
+
+      return (
+        <div className="modal-overlay">
+          <div className="modal modal-template-manager">
+            <div className="modal-header">
+              <h3><i className="fas fa-sliders"></i> Quản lý & Tùy biến Mẫu Hợp đồng</h3>
+              <button className="close-btn" onClick={onClose}>&times;</button>
+            </div>
+            <div className="modal-body" style={{ padding: '16px 20px' }}>
+              <div className="tpl-mgr-layout">
+                {/* Cột Trái: Danh sách 8 mẫu hợp đồng */}
+                <div className="tpl-mgr-sidebar">
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', padding: '4px 6px', letterSpacing: '.5px' }}>
+                    Chọn mẫu để chỉnh sửa
+                  </div>
+                  {templates.map((t) => (
+                    <div
+                      key={t.key}
+                      className={'tpl-nav-item' + (selectedKey === t.key ? ' active' : '')}
+                      onClick={() => setSelectedKey(t.key)}
+                    >
+                      <div className="tpl-nav-icon">
+                        <i className={'fas ' + (t.icon || 'fa-file-lines')}></i>
+                      </div>
+                      <div className="tpl-nav-info">
+                        <div className="tpl-nav-title">{t.label}</div>
+                        <div className="tpl-nav-desc">{t.src === 'ten' ? 'Nguồn: HĐ Thuê' : 'Nguồn: Giao dịch'}</div>
+                      </div>
+                      {t.isCustom && <span className="tpl-nav-badge">Tùy biến</span>}
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 'auto', paddingTop: 10 }}>
+                    <button className="btn btn-secondary btn-sm" style={{ width: '100%', fontSize: 11.5 }} onClick={handleReset}>
+                      <i className="fas fa-rotate-left"></i> Khôi phục mặc định
+                    </button>
+                  </div>
+                </div>
+
+                {/* Cột Phải: Trình biên soạn & Thư viện Merge Tags 1-Chạm */}
+                <div className="tpl-mgr-editor">
+                  <div className="tpl-edit-card">
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 12 }}>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                          Tiêu đề văn bản in (In hoa trên trang A4)
+                        </label>
+                        <input
+                          className="filter-input"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          placeholder="Ví dụ: HỢP ĐỒNG THUÊ BẤT ĐỘNG SẢN"
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                          Tên nút viết tắt
+                        </label>
+                        <input
+                          className="filter-input"
+                          value={shortLabel}
+                          onChange={(e) => setShortLabel(e.target.value)}
+                          placeholder="Ví dụ: HĐ Thuê"
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        Mô tả tóm tắt mục đích
+                      </label>
+                      <input
+                        className="filter-input"
+                        value={hint}
+                        onChange={(e) => setHint(e.target.value)}
+                        placeholder="Mô tả ngắn gọn hướng dẫn người dùng..."
+                      />
+                    </div>
+
+                    {/* Dải Thẻ Biến Thông Minh 1-Chạm (Merge Tags Chips) */}
+                    <div className="tpl-tags-panel">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy-primary)' }}>
+                          <i className="fas fa-tags"></i> Thư viện thẻ biến tự động điền (Bấm để chèn nhanh)
+                        </span>
+                        <small style={{ color: '#64748b' }}>Nhấp vào thẻ để chèn vào vị trí con trỏ</small>
+                      </div>
+
+                      {MERGE_TAG_GROUPS.map((grp, idx) => (
+                        <div key={idx} style={{ marginBottom: 8 }}>
+                          <div className="tpl-tag-group-title">{grp.group}</div>
+                          <div className="tpl-tag-chips">
+                            {grp.tags.map((t) => (
+                              <button
+                                key={t.tag}
+                                type="button"
+                                className="tpl-tag-chip"
+                                onClick={() => insertTag(t.tag)}
+                                title={'Chèn ' + t.tag}
+                              >
+                                <span>{t.label}</span>
+                                <code>{t.tag}</code>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Ô Soạn Thảo Điều Khoản Bổ Sung */}
+                    <div style={{ marginTop: 14 }}>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span><i className="fas fa-file-pen"></i> Các điều khoản thỏa thuận hoặc ghi chú riêng của biểu mẫu:</span>
+                        <small style={{ color: '#64748b' }}>Hỗ trợ chèn các thẻ biến <code>{'{{...}}'}</code></small>
+                      </label>
+                      <textarea
+                        ref={textareaRef}
+                        className="filter-input"
+                        rows={6}
+                        style={{ width: '100%', fontFamily: 'Consolas, monospace', fontSize: 12.5, lineHeight: 1.6 }}
+                        value={customTerms}
+                        onChange={(e) => setCustomTerms(e.target.value)}
+                        placeholder="Nhập thêm các điều khoản riêng của công ty hoặc chèn các thẻ biến tự động bên trên..."
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>
+                      <button className="btn btn-secondary" onClick={onClose}>
+                        Đóng
+                      </button>
+                      <button className="btn btn-primary" onClick={handleSave} disabled={busy}>
+                        <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-floppy-disk')}></i> {busy ? 'Đang lưu…' : 'Lưu cấu hình mẫu'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // eligible records for one document type — 80% wide, View prints that record's document
     function EligibleDocsModal({ meta, records, busyId, onView, onClose }) {
       const ten = meta.src === 'ten';
@@ -21182,14 +21767,17 @@
       const [doc, setDoc] = useState(null);
       const [busy, setBusy] = useState(false);
       const [listOpen, setListOpen] = useState(false); // eligible-records popup
+      const [tplManagerOpen, setTplManagerOpen] = useState(false); // template manager popup
       const [rowBusy, setRowBusy] = useState(0);
       const [autoPrint, setAutoPrint] = useState(false);
       useEffect(() => { setPageActions([]); return () => setPageActions([]); }, []); // generator view — no list toolbar
 
       const DOC_TYPES = [
-        { value: 'rental',      label: 'HĐ thuê BĐS', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature',   src: 'ten',  hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc và 6 điều khoản chuẩn' },
-        { value: 'sale',        label: 'HĐ cọc mua bán', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract',    src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán và điều khoản' },
-        { value: 'receipt',     label: 'Phiếu thu giao dịch', shortLabel: 'Phiếu Thu', icon: 'fa-receipt',          src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch và số dư còn lại' },
+        { value: 'rental',      label: 'HĐ thuê BĐS', shortLabel: 'HĐ Thuê', icon: 'fa-file-signature',   src: 'ten',  hint: 'Hợp đồng chủ nhà – người thuê gồm điều khoản thương mại, tiền cọc, số tiền bằng chữ và 6 điều khoản chuẩn' },
+        { value: 'sale',        label: 'HĐ cọc mua bán', shortLabel: 'Cọc Mua Bán', icon: 'fa-file-contract',    src: 'deal', hint: 'Hợp đồng đặt cọc chuyển nhượng — các bên, giá trị, tiến độ thanh toán, cam kết và phạt cọc' },
+        { value: 'handover',    label: 'Biên bản bàn giao', shortLabel: 'Bàn Giao', icon: 'fa-clipboard-check', src: 'ten', hint: 'Biên bản bàn giao chìa khóa, chỉ số đồng hồ điện nước và hiện trạng trang thiết bị' },
+        { value: 'exclusive',   label: 'HĐ môi giới độc quyền', shortLabel: 'MG Độc Quyền', icon: 'fa-handshake-angle', src: 'deal', hint: 'Hợp đồng cam kết dịch vụ môi giới độc quyền, biểu phí hoa hồng và trách nhiệm truyền thông' },
+        { value: 'receipt',     label: 'Phiếu thu giao dịch', shortLabel: 'Phiếu Thu', icon: 'fa-receipt',          src: 'deal', hint: 'Xác nhận toàn bộ các đợt thanh toán đã thu của giao dịch, số tiền bằng chữ và số dư còn lại' },
         { value: 'rentreceipt', label: 'Bảng kê tiền thuê', shortLabel: 'Kê Tiền Thuê', icon: 'fa-file-invoice',     src: 'ten',  hint: 'Bảng kê các kỳ tiền thuê đã thu, số phải thu đến hiện tại và công nợ' },
         { value: 'dues',        label: 'Thông báo công nợ', shortLabel: 'Báo Công Nợ', icon: 'fa-triangle-exclamation', src: 'deal', hint: 'Bảng tổng hợp công nợ giao dịch với số tiền còn phải thanh toán nổi bật' },
         { value: 'invoice',     label: 'Hóa đơn hoa hồng', shortLabel: 'HĐ Hoa Hồng', icon: 'fa-file-invoice-dollar', src: 'deal', hint: 'Hóa đơn phí môi giới dịch vụ (mã HDHH) cho giao dịch hoàn tất' }
@@ -21197,9 +21785,10 @@
       const meta = DOC_TYPES.find((x) => x.value === docType) || DOC_TYPES[0];
       // ONE eligibility rule per type — the dropdown, the counts and the popup all read it
       const eligibleFor = useCallback((t) => {
-        if (t === 'rental') return tens;
+        if (t === 'rental' || t === 'handover') return tens;
         if (t === 'rentreceipt') return tens.filter((x) => (x.rentLog || []).length);
         if (t === 'sale') return deals.filter((x) => x.dealType === 'Sale');
+        if (t === 'exclusive') return deals;
         if (t === 'receipt') return deals.filter((x) => (x.payments || []).length);
         if (t === 'dues') return deals.filter((x) => x.status !== 'Cancelled' && x.balance > 0);
         if (t === 'invoice') return deals.filter((x) => x.status === 'Completed');
@@ -21248,8 +21837,13 @@
           <div className="desk-agreements-view">
             {/* Khối Bộ Lọc & Tạo Tài Liệu Trên Máy Tính */}
             <div className="filters-section desk-filters-section">
-              <div className="filters-header">
-                <h3><i className="fas fa-file-contract"></i> Tạo tài liệu</h3>
+              <div className="filters-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3><i className="fas fa-file-contract"></i> Tạo tài liệu & Biểu mẫu A4</h3>
+                {['Admin', 'Manager'].includes(role) && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => setTplManagerOpen(true)}>
+                    <i className="fas fa-sliders"></i> Quản lý Mẫu Biểu mẫu
+                  </button>
+                )}
               </div>
               <div className="filters-grid">
                 <SearchableDropdown label="Loại tài liệu" icon={'fas ' + meta.icon}
@@ -21267,14 +21861,14 @@
                 </div>
               </div>
               <p style={{ fontSize: 12.5, color: '#64748b', margin: '6px 2px 0' }}>
-                <i className="fas fa-circle-info"></i> {meta.hint}. Xem trước bản in chuẩn A4 — có thể in trực tiếp hoặc tải về.
+                <i className="fas fa-circle-info"></i> {meta.hint}. Xem trước bản in chuẩn A4 — có thể chỉnh sửa trực tiếp, in ngay hoặc xuất PDF.
               </p>
             </div>
 
             {/* Danh Mục Tài Liệu Chuẩn Trên Máy Tính */}
             <div className="data-section desk-agreements-catalog">
               <div className="section-header">
-                <h2><i className="fas fa-list-check"></i> Danh mục tài liệu</h2>
+                <h2><i className="fas fa-list-check"></i> Danh mục biểu mẫu chuẩn ({DOC_TYPES.length} loại)</h2>
               </div>
               <div className="desk-doc-types-list">
                 {DOC_TYPES.map((x) => {
@@ -21326,13 +21920,24 @@
             <div className="filters-section mob-agreement-creator-card">
               <div className="filters-header">
                 <h3><i className={'fas ' + meta.icon}></i> {meta.label}</h3>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setListOpen(true)}
-                  disabled={!records.length}
-                >
-                  <i className="fas fa-list-check"></i> Xem {records.length} hồ sơ
-                </button>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {['Admin', 'Manager'].includes(role) && (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setTplManagerOpen(true)}
+                      title="Quản lý Mẫu Biểu mẫu"
+                    >
+                      <i className="fas fa-sliders"></i> Mẫu
+                    </button>
+                  )}
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setListOpen(true)}
+                    disabled={!records.length}
+                  >
+                    <i className="fas fa-list-check"></i> {records.length} hồ sơ
+                  </button>
+                </div>
               </div>
               <div className="filters-grid">
                 <SearchableDropdown label="Loại tài liệu" icon={'fas ' + meta.icon}
@@ -21392,6 +21997,12 @@
             </div>
           </div>
 
+          {tplManagerOpen && (
+            <ContractTemplatesManagerModal
+              currentUser={currentUser}
+              onClose={() => setTplManagerOpen(false)}
+            />
+          )}
           {listOpen && <EligibleDocsModal meta={meta} records={records} busyId={rowBusy} onView={viewRecord} onClose={() => setListOpen(false)} />}
           {doc && <A4DocModal doc={doc} docType={docType} recId={parseInt(recId, 10)} currentUser={currentUser}
                               autoPrint={autoPrint} onClose={() => { setDoc(null); setAutoPrint(false); }} />}
