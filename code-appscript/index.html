@@ -18077,8 +18077,46 @@
                     <div className="form-grid">
                       {!editing && (
                         <SearchableDropdown label="Bất động sản giao dịch" icon="fas fa-building"
-                          options={props.filter((p) => ['Available','Reserved'].indexOf(p.status) !== -1 && !openProp[p.id]).map((p) => ({ value: String(p.id), label: (p.referenceCode || '#' + p.id) + ' — ' + p.title }))}
-                          value={form.propertyId} onChange={set('propertyId')} placeholder="Chọn BĐS đang mở bán/thuê…" required={true} />
+                          options={props.filter((p) => ['Available','Reserved'].indexOf(p.status) !== -1 && !openProp[p.id]).map((p) => {
+                            const isRent = p.listingType === 'Rent';
+                            const tag = isRent ? '🔑 [CHO THUÊ]' : '🏷️ [BÁN]';
+                            const priceText = p.price ? ' (' + fmtPKR(p.price) + (isRent ? '/tháng' : '') + ')' : '';
+                            return {
+                              value: String(p.id),
+                              label: tag + ' ' + (p.referenceCode || '#' + p.id) + ' — ' + p.title + priceText
+                            };
+                          })}
+                          value={form.propertyId} onChange={(pid) => {
+                            const selectedProp = props.find((p) => String(p.id) === String(pid));
+                            setForm((f) => ({
+                              ...f,
+                              propertyId: pid,
+                              dealAmount: selectedProp?.price || f.dealAmount
+                            }));
+                          }} placeholder="Chọn BĐS đang mở bán / cho thuê…" required={true} />
+                      )}
+                      {prop && (
+                        <div style={{
+                          gridColumn: '1 / -1',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: prop.listingType === 'Rent' ? '#eff6ff' : '#f0fdf4',
+                          border: '1px solid ' + (prop.listingType === 'Rent' ? '#bfdbfe' : '#bbf7d0'),
+                          borderRadius: '8px',
+                          padding: '9px 14px',
+                          marginBottom: '4px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className={'badge ' + (prop.listingType === 'Rent' ? 'badge-info' : 'badge-success')} style={{ fontSize: '12px', padding: '4px 8px' }}>
+                              <i className={'fas ' + (prop.listingType === 'Rent' ? 'fa-key' : 'fa-tag')}></i> {prop.listingType === 'Rent' ? 'BĐS CHO THUÊ' : 'BĐS BÁN'}
+                            </span>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>{prop.title}</span>
+                          </div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: prop.listingType === 'Rent' ? '#1d4ed8' : '#15803d' }}>
+                            {prop.listingType === 'Rent' ? fmtPKR(prop.price) + ' / tháng' : fmtPKR(prop.price)}
+                          </div>
+                        </div>
                       )}
                       <div className="form-group">
                         <label><i className="fas fa-user"></i> Người mua / Khách thuê *</label>
