@@ -201,15 +201,16 @@ async function toggleRbac(args,jwt){const [roleKey,pageKey,perm,value]=args,p=aw
 async function setAppConfig(args,jwt){const p=await currentProfile(jwt);if(p.role_key!=='Admin')return fail('Từ chối truy cập');const cfg=args[0]||{};await request('/rest/v1/app_settings?setting_key=eq.crm',{method:'PATCH',jwt,body:{setting_value:cfg,updated_at:new Date().toISOString(),updated_by:p.id}});await audit(jwt,'App Config Updated','Cập nhật cấu hình CRM');return ok({message:'Đã lưu cấu hình'});}
 
 
-let portalCache = { data: null, expiresAt: 0 };
-const PORTAL_CACHE_TTL_MS = 60 * 1000; // 60s cache
+let portalCache = { data: null, expiresAt: 0, lastGoodData: null };
+const PORTAL_CACHE_TTL_MS = 30 * 1000; // 30s cache TTL for live updates
 
 function invalidatePortalCache() {
-  portalCache = { data: null, expiresAt: 0 };
+  portalCache.data = null;
+  portalCache.expiresAt = 0;
 }
 
 function locationPath(locations, id) {
-  const map = new Map(locations.map(item => [Number(item.id),item])), parts = [], seen = new Set();
+  const map = new Map((locations || []).map(item => [Number(item.id),item])), parts = [], seen = new Set();
   let current = map.get(Number(id));
   while (current && !seen.has(current.id)) { seen.add(current.id); parts.unshift(current.name); current = map.get(Number(current.parent_id)); }
   return parts.join(' › ');
@@ -220,26 +221,41 @@ async function getPublicPortal() {
   if (portalCache.data && portalCache.expiresAt > now) {
     return ok(portalCache.data);
   }
-  const [properties,locations,amenities,links,images,settings] = await Promise.all([
-    adminSelect('properties','id,reference_code,title,slug,description,property_type,listing_type,status,price_vnd,rent_frequency,area_size,area_unit,bedrooms,bathrooms,location_id,address,latitude,longitude,is_featured,views_count,published_at','&deleted_at=is.null&published_at=not.is.null&status=in.(Available,Reserved)&order=published_at.desc'),
-    adminSelect('locations','id,name,level,parent_id','&deleted_at=is.null&order=id.asc'),
-    adminSelect('amenities','id,name,icon','&deleted_at=is.null&order=name.asc'),
-    adminSelect('property_amenities','property_id,amenity_id'),
-    adminSelect('property_images','property_id,storage_path,sort_order','&order=sort_order.asc'),
-    adminSelect('app_settings','setting_value','&setting_key=eq.crm&limit=1')
-  ]);
-  const amenityMap = new Map(amenities.map(item=>[Number(item.id),{name:item.name,icon:item.icon||''}]));
-  const linksByProperty = new Map(), imagesByProperty = new Map();
-  links.forEach(link=>{const list=linksByProperty.get(Number(link.property_id))||[];const amenity=amenityMap.get(Number(link.amenity_id));if(amenity)list.push(amenity);linksByProperty.set(Number(link.property_id),list);});
-  images.forEach(image=>{const list=imagesByProperty.get(Number(image.property_id))||[];list.push({url:image.storage_path,isPrimary:list.length===0?1:0,sortOrder:image.sort_order});imagesByProperty.set(Number(image.property_id),list);});
-  const data = {
-    properties:properties.map(item=>({id:item.id,referenceCode:item.reference_code,title:item.title,slug:item.slug,description:item.description||'',propertyType:item.property_type,listingType:item.listing_type,status:item.status,price:Number(item.price_vnd||0),rentFrequency:item.rent_frequency||'',areaSize:Number(item.area_size||0),areaUnit:item.area_unit||'m²',bedrooms:item.bedrooms,bathrooms:item.bathrooms,locationId:item.location_id,locationPath:locationPath(locations,item.location_id),address:item.address||'',latitude:item.latitude,longitude:item.longitude,isFeatured:item.is_featured?1:0,viewsCount:Number(item.views_count||0),images:imagesByProperty.get(Number(item.id))||[],amenities:linksByProperty.get(Number(item.id))||[],publishedAt:item.published_at})),
-    locations:locations.map(item=>({id:item.id,parentId:item.parent_id||null,name:item.name,level:item.level})),
-    amenities:amenities.map(item=>({id:item.id,name:item.name,icon:item.icon||''})),
-    branding:normalizeAgencyBranding(settings[0]?.setting_value?.branding)
-  };
-  portalCache = { data, expiresAt: now + PORTAL_CACHE_TTL_MS };
-  return ok(data);
+  try {
+    const [properties,locations,amenities,links,images,settings] = await Promise.all([
+      adminSelect('properties','id,reference_code,title,slug,description,property_type,listing_type,status,price_vnd,rent_frequency,area_size,area_unit,bedrooms,bathrooms,location_id,address,latitude,longitude,is_featured,views_count,published_at','&deleted_at=is.null&published_at=not.is.null&status=in.(Available,Reserved)&order=published_at.desc'),
+      adminSelect('locations','id,name,level,parent_id','&deleted_at=is.null&order=id.asc'),
+      adminSelect('amenities','id,name,icon','&deleted_at=is.null&order=name.asc'),
+      adminSelect('property_amenities','property_id,amenity_id'),
+      adminSelect('property_images','property_id,storage_path,sort_order','&order=sort_order.asc'),
+      adminSelect('app_settings','setting_value','&setting_key=eq.crm&limit=1')
+    ]);
+    const amenityMap = new Map((amenities || []).map(item=>[Number(item.id),{name:item.name,icon:item.icon||''}]));
+    const linksByProperty = new Map(), imagesByProperty = new Map();
+    (links || []).forEach(link=>{const list=linksByProperty.get(Number(link.property_id))||[];const amenity=amenityMap.get(Number(link.amenity_id));if(amenity)list.push(amenity);linksByProperty.set(Number(link.property_id),list);});
+    (images || []).forEach(image=>{const list=imagesByProperty.get(Number(image.property_id))||[];list.push({url:image.storage_path,isPrimary:list.length===0?1:0,sortOrder:image.sort_order});imagesByProperty.set(Number(image.property_id),list);});
+    const data = {
+      properties:(properties || []).map(item=>({id:item.id,referenceCode:item.reference_code,title:item.title,slug:item.slug,description:item.description||'',propertyType:item.property_type,listingType:item.listing_type,status:item.status,price:Number(item.price_vnd||0),rentFrequency:item.rent_frequency||'',areaSize:Number(item.area_size||0),areaUnit:item.area_unit||'m²',bedrooms:item.bedrooms,bathrooms:item.bathrooms,locationId:item.location_id,locationPath:locationPath(locations || [],item.location_id),address:item.address||'',latitude:item.latitude,longitude:item.longitude,isFeatured:item.is_featured?1:0,viewsCount:Number(item.views_count||0),images:imagesByProperty.get(Number(item.id))||[],amenities:linksByProperty.get(Number(item.id))||[],publishedAt:item.published_at})),
+      locations:(locations || []).map(item=>({id:item.id,parentId:item.parent_id||null,name:item.name,level:item.level})),
+      amenities:(amenities || []).map(item=>({id:item.id,name:item.name,icon:item.icon||''})),
+      branding:normalizeAgencyBranding(settings && settings[0]?.setting_value?.branding)
+    };
+    portalCache = { data, expiresAt: now + PORTAL_CACHE_TTL_MS, lastGoodData: data };
+    return ok(data);
+  } catch (err) {
+    console.error('getPublicPortal fetch error, fallback activated:', err.message);
+    if (portalCache.lastGoodData) {
+      return ok(portalCache.lastGoodData);
+    }
+    try {
+      const fallbackFile = path.join(__dirname, 'data', 'portal-data.json');
+      if (fs.existsSync(fallbackFile)) {
+        const fallback = JSON.parse(fs.readFileSync(fallbackFile, 'utf8'));
+        if (fallback && fallback.properties) return ok(fallback);
+      }
+    } catch (_) {}
+    throw err;
+  }
 }
 
 async function publicViewProperty(args) {

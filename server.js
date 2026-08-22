@@ -14,7 +14,13 @@ function readJson(filePath) {
 }
 
 function jsonResponse(res, status, payload) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+  });
   res.end(JSON.stringify(payload));
 }
 
@@ -461,6 +467,16 @@ const GOOGLE_SCRIPT_RUN_MOCK = `
 `;
 
 const appHandler = async (req, res) => {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+    });
+    res.end();
+    return;
+  }
   if (req.url && req.url.startsWith('/api/run/')) {
     const method = decodeURIComponent(req.url.slice('/api/run/'.length).split('?')[0]);
     try {
