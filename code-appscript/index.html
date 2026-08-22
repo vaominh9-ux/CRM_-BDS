@@ -1600,6 +1600,8 @@
     }
 
     /* ===== AdminLTE dashboard — small-box KPIs, info-box, lte-card (squared to match template) ===== */
+    .dash-desktop-kpis { display: block; }
+    .dash-mobile-kpis { display: none; }
     .lte-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 22px; }
     @media (max-width: 1200px) { .lte-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 576px)  { .lte-kpi-grid { grid-template-columns: 1fr; } }
@@ -4148,6 +4150,103 @@
 
     /* ===== CỔNG THÔNG TIN BĐS - TOÀN BỘ GIAO DIỆN MOBILE CHUẨN 100% TRÀN VIỀN KHÔNG THỪA KHOẢNG TRỐNG ===== */
     @media (max-width: 768px) {
+      /* ===== TỐI ƯU KHUNG KPI PHÂN TAB CAO CẤP TRÊN ĐIỆN THOẠI (MOBILE PERFORMANCE HUB) ===== */
+      .dash-desktop-kpis { display: none !important; }
+      .dash-mobile-kpis { display: block !important; }
+
+      .mob-kpi-hub-card {
+        background: #ffffff !important;
+        border-radius: 14px !important;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.04) !important;
+        border: 1px solid #edf2f7 !important;
+        margin-bottom: 14px !important;
+        overflow: hidden !important;
+      }
+      .mob-kpi-tabs {
+        display: flex !important;
+        background: #f8fafc !important;
+        padding: 5px !important;
+        gap: 5px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .mob-kpi-tab {
+        flex: 1 !important;
+        padding: 8px 3px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        border: none !important;
+        background: transparent !important;
+        color: #64748b !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        transition: all 0.2s ease !important;
+        white-space: nowrap !important;
+      }
+      .mob-kpi-tab i {
+        font-size: 12px !important;
+      }
+      .mob-kpi-tab.active {
+        background: #ffffff !important;
+        color: #001f3f !important;
+        font-weight: 750 !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;
+      }
+      .mob-kpi-tab-body {
+        padding: 6px 12px !important;
+      }
+      .mob-kpi-rows {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+      }
+      .mob-kpi-row {
+        display: flex !important;
+        align-items: center !important;
+        padding: 9px 4px !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+      }
+      .mob-kpi-row:last-child {
+        border-bottom: none !important;
+      }
+      .mob-kpi-ic {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 15px !important;
+        margin-right: 11px !important;
+      }
+      .mob-kpi-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+      }
+      .mob-kpi-label {
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        line-height: 1.3 !important;
+      }
+      .mob-kpi-sub {
+        font-size: 10px !important;
+        color: #64748b !important;
+        margin-top: 1px !important;
+      }
+      .mob-kpi-val {
+        font-size: 14.5px !important;
+        font-weight: 800 !important;
+        color: #001f3f !important;
+        letter-spacing: -0.3px !important;
+        text-align: right !important;
+        font-variant-numeric: tabular-nums lining-nums !important;
+      }
+
       /* ===== PHẦN 1: TỐI ƯU THANH TIÊU ĐỀ HEADER TRÊN ĐIỆN THOẠI (1 DÒNG SIÊU GỌN CAO CẤP) ===== */
       .header {
         display: flex !important;
@@ -5800,41 +5899,193 @@
       ];
       const viewAll = (p) => <button className="card-link" onClick={() => go(p)}>Xem tất cả <i className="fas fa-arrow-right" style={{ fontSize: 10 }}></i></button>;
 
+      const [kpiTab, setKpiTab] = useState('finance'); // 'finance' | 'leads' | 'ops'
+
       return (
         <>
-          <div className="lte-kpi-grid">
-            {KPI.map(([v, l, ic, c, page], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} onMore={() => go(page)} />)}
+          {/* GIAO DIỆN DESKTOP: Giữ nguyên 100% 4 hàng lưới AdminLTE */}
+          <div className="dash-desktop-kpis">
+            <div className="lte-kpi-grid">
+              {KPI.map(([v, l, ic, c, page], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} onMore={() => go(page)} />)}
+            </div>
+            <div className="lte-kpi-grid">
+              <InfoBox value={stats.dealsMonth || 0} label="Giao dịch chốt trong tháng" icon="fa-handshake" color="bg-navy"
+                       trend={delta(stats.dealsMonth || 0, prev.deals || 0)} sub={'Tháng trước: ' + (prev.deals || 0)} onClick={() => go('deals')} />
+              <InfoBox value={pkrShort(stats.dealsMonthValue || 0)} label="Doanh số tháng" icon="fa-sack-dollar" color="bg-success"
+                       trend={delta(stats.dealsMonthValue || 0, prev.dealsValue || 0)} sub={'Tháng trước: ' + pkrShort(prev.dealsValue || 0)} onClick={() => go('deals')} />
+              <InfoBox value={pkrShort(stats.commissionMonth || 0)} label="Hoa hồng tháng" icon="fa-percent" color="bg-info"
+                       trend={delta(stats.commissionMonth || 0, prev.commission || 0)} sub={'Tháng trước: ' + pkrShort(prev.commission || 0)} />
+              <InfoBox value={pkrShort(stats.collectedMonth || 0)} label="Đã thu trong tháng" icon="fa-money-bill-wave" color="bg-warning"
+                       trend={delta(stats.collectedMonth || 0, prev.collected || 0)} sub={'Tháng trước: ' + pkrShort(prev.collected || 0)} />
+            </div>
+            <div className="lte-kpi-grid">
+              <InfoBox value={stats.featured || 0} label="Tin đăng nổi bật" icon="fa-star" color="bg-warning" onClick={() => go('properties')} />
+              <InfoBox value={(stats.totalViews || 0).toLocaleString('vi-VN')} label="Lượt xem cổng thông tin" icon="fa-eye" color="bg-info" sub="Tất cả tin đăng, toàn thời gian" />
+              <InfoBox value={stats.wonLeads || 0} label="Khách hàng thành công" icon="fa-trophy" color="bg-success"
+                       sub={(stats.conversionRate || 0) + '% chuyển đổi'} onClick={() => go('leads')} />
+              {agency
+                ? <InfoBox value={pkrShort(stats.payable || 0)} label="Hoa hồng nhân viên cần trả" icon="fa-hand-holding-dollar" color="bg-danger" onClick={() => go('deals')} />
+                : <InfoBox value={stats.dueTodayFollowUps || 0} label="Đến hạn hôm nay" icon="fa-clock" color="bg-navy" onClick={() => go('followups')} />}
+            </div>
+            <div className="lte-kpi-grid">
+              <InfoBox value={(stats.totalLeads || 0).toLocaleString('vi-VN')} label="Tổng yêu cầu tư vấn" icon="fa-comments" color="bg-info"
+                       trend={delta(stats.leadsMonth || 0, prev.leads || 0)} sub={(stats.leadsMonth || 0) + ' trong tháng này'} onClick={() => go('leads')} />
+              <InfoBox value={pkrShort(stats.rentArrears || 0)} label="Công nợ tiền thuê" icon="fa-triangle-exclamation" color="bg-danger"
+                       sub={(stats.activeTenancies || 0) + ' hợp đồng đang hoạt động'} onClick={() => go('tenancies')} />
+              <InfoBox value={pkrShort(stats.balanceDue || 0)} label="Số tiền còn lại" icon="fa-file-invoice-dollar" color="bg-warning"
+                       sub="Giao dịch đang mở — chưa tất toán" onClick={() => go('deals')} />
+              {agency
+                ? <InfoBox value={stats.activeAgents || 0} label="Nhân viên đang hoạt động" icon="fa-user-check" color="bg-success" sub="Đang hoạt động trong danh sách nhân sự" />
+                : <InfoBox value={stats.myTarget ? targetPct + '%' : '—'} label="Mục tiêu tháng" icon="fa-bullseye" color="bg-success"
+                           sub={stats.myTarget ? pkrShort(stats.dealsMonthValue || 0) + ' / ' + pkrShort(stats.myTarget) : 'Chưa đặt mục tiêu'} />}
+            </div>
           </div>
-          <div className="lte-kpi-grid">
-            <InfoBox value={stats.dealsMonth || 0} label="Giao dịch chốt trong tháng" icon="fa-handshake" color="bg-navy"
-                     trend={delta(stats.dealsMonth || 0, prev.deals || 0)} sub={'Tháng trước: ' + (prev.deals || 0)} onClick={() => go('deals')} />
-            <InfoBox value={pkrShort(stats.dealsMonthValue || 0)} label="Doanh số tháng" icon="fa-sack-dollar" color="bg-success"
-                     trend={delta(stats.dealsMonthValue || 0, prev.dealsValue || 0)} sub={'Tháng trước: ' + pkrShort(prev.dealsValue || 0)} onClick={() => go('deals')} />
-            <InfoBox value={pkrShort(stats.commissionMonth || 0)} label="Hoa hồng tháng" icon="fa-percent" color="bg-info"
-                     trend={delta(stats.commissionMonth || 0, prev.commission || 0)} sub={'Tháng trước: ' + pkrShort(prev.commission || 0)} />
-            <InfoBox value={pkrShort(stats.collectedMonth || 0)} label="Đã thu trong tháng" icon="fa-money-bill-wave" color="bg-warning"
-                     trend={delta(stats.collectedMonth || 0, prev.collected || 0)} sub={'Tháng trước: ' + pkrShort(prev.collected || 0)} />
-          </div>
-          <div className="lte-kpi-grid">
-            <InfoBox value={stats.featured || 0} label="Tin đăng nổi bật" icon="fa-star" color="bg-warning" onClick={() => go('properties')} />
-            <InfoBox value={(stats.totalViews || 0).toLocaleString('vi-VN')} label="Lượt xem cổng thông tin" icon="fa-eye" color="bg-info" sub="Tất cả tin đăng, toàn thời gian" />
-            <InfoBox value={stats.wonLeads || 0} label="Khách hàng thành công" icon="fa-trophy" color="bg-success"
-                     sub={(stats.conversionRate || 0) + '% chuyển đổi'} onClick={() => go('leads')} />
-            {agency
-              ? <InfoBox value={pkrShort(stats.payable || 0)} label="Hoa hồng nhân viên cần trả" icon="fa-hand-holding-dollar" color="bg-danger" onClick={() => go('deals')} />
-              : <InfoBox value={stats.dueTodayFollowUps || 0} label="Đến hạn hôm nay" icon="fa-clock" color="bg-navy" onClick={() => go('followups')} />}
-          </div>
-          <div className="lte-kpi-grid">
-            <InfoBox value={(stats.totalLeads || 0).toLocaleString('vi-VN')} label="Tổng yêu cầu tư vấn" icon="fa-comments" color="bg-info"
-                     trend={delta(stats.leadsMonth || 0, prev.leads || 0)} sub={(stats.leadsMonth || 0) + ' trong tháng này'} onClick={() => go('leads')} />
-            <InfoBox value={pkrShort(stats.rentArrears || 0)} label="Công nợ tiền thuê" icon="fa-triangle-exclamation" color="bg-danger"
-                     sub={(stats.activeTenancies || 0) + ' hợp đồng đang hoạt động'} onClick={() => go('tenancies')} />
-            <InfoBox value={pkrShort(stats.balanceDue || 0)} label="Số tiền còn lại" icon="fa-file-invoice-dollar" color="bg-warning"
-                     sub="Giao dịch đang mở — chưa tất toán" onClick={() => go('deals')} />
-            {agency
-              ? <InfoBox value={stats.activeAgents || 0} label="Nhân viên đang hoạt động" icon="fa-user-check" color="bg-success" sub="Đang hoạt động trong danh sách nhân sự" />
-              : <InfoBox value={stats.myTarget ? targetPct + '%' : '—'} label="Mục tiêu tháng" icon="fa-bullseye" color="bg-success"
-                         sub={stats.myTarget ? pkrShort(stats.dealsMonthValue || 0) + ' / ' + pkrShort(stats.myTarget) : 'Chưa đặt mục tiêu'} />}
+
+          {/* GIAO DIỆN MOBILE: Lưới 2x2 Top + Thẻ Performance Hub Phân Tab Siêu Sang */}
+          <div className="dash-mobile-kpis">
+            <div className="lte-kpi-grid">
+              {KPI.map(([v, l, ic, c, page], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} onMore={() => go(page)} />)}
+            </div>
+
+            <div className="mob-kpi-hub-card">
+              <div className="mob-kpi-tabs">
+                <button className={'mob-kpi-tab ' + (kpiTab === 'finance' ? 'active' : '')} onClick={() => setKpiTab('finance')}>
+                  <i className="fas fa-wallet"></i> Tài chính
+                </button>
+                <button className={'mob-kpi-tab ' + (kpiTab === 'leads' ? 'active' : '')} onClick={() => setKpiTab('leads')}>
+                  <i className="fas fa-user-tag"></i> Khách hàng
+                </button>
+                <button className={'mob-kpi-tab ' + (kpiTab === 'ops' ? 'active' : '')} onClick={() => setKpiTab('ops')}>
+                  <i className="fas fa-building"></i> Nguồn hàng & Web
+                </button>
+              </div>
+
+              <div className="mob-kpi-tab-body">
+                {kpiTab === 'finance' && (
+                  <div className="mob-kpi-rows">
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e8f5e9', color: '#2e7d32' }}><i className="fas fa-sack-dollar"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Doanh số tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {pkrShort(prev.dealsValue || 0)}</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#2e7d32' }}>{pkrShort(stats.dealsMonthValue || 0)}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#fff8e1', color: '#f57f17' }}><i className="fas fa-money-bill-wave"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Đã thu trong tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {pkrShort(prev.collected || 0)}</div>
+                      </div>
+                      <div className="mob-kpi-val">{pkrShort(stats.collectedMonth || 0)}</div>
+                    </div>
+
+                    <div className="mob-kpi-row">
+                      <div className="mob-kpi-ic" style={{ background: '#e1f5fe', color: '#0288d1' }}><i className="fas fa-percent"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Hoa hồng tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {pkrShort(prev.commission || 0)}</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#0288d1' }}>{pkrShort(stats.commissionMonth || 0)}</div>
+                    </div>
+
+                    {agency && (
+                      <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                        <div className="mob-kpi-ic" style={{ background: '#ffebee', color: '#c62828' }}><i className="fas fa-hand-holding-dollar"></i></div>
+                        <div className="mob-kpi-info">
+                          <div className="mob-kpi-label">Hoa hồng nhân viên cần trả</div>
+                          <div className="mob-kpi-sub">Khoản chi trả môi giới</div>
+                        </div>
+                        <div className="mob-kpi-val" style={{ color: '#c62828' }}>{pkrShort(stats.payable || 0)}</div>
+                      </div>
+                    )}
+
+                    <div className="mob-kpi-row" onClick={() => go('tenancies')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#ffebee', color: '#d32f2f' }}><i className="fas fa-triangle-exclamation"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Công nợ tiền thuê</div>
+                        <div className="mob-kpi-sub">{stats.activeTenancies || 0} hợp đồng đang hoạt động</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#d32f2f' }}>{pkrShort(stats.rentArrears || 0)}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#fffde7', color: '#fbc02d' }}><i className="fas fa-file-invoice-dollar"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Số tiền còn lại</div>
+                        <div className="mob-kpi-sub">Giao dịch đang mở chưa tất toán</div>
+                      </div>
+                      <div className="mob-kpi-val">{pkrShort(stats.balanceDue || 0)}</div>
+                    </div>
+                  </div>
+                )}
+
+                {kpiTab === 'leads' && (
+                  <div className="mob-kpi-rows">
+                    <div className="mob-kpi-row" onClick={() => go('leads')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e1f5fe', color: '#0288d1' }}><i className="fas fa-comments"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Tổng yêu cầu tư vấn</div>
+                        <div className="mob-kpi-sub">{stats.leadsMonth || 0} yêu cầu trong tháng này</div>
+                      </div>
+                      <div className="mob-kpi-val">{(stats.totalLeads || 0).toLocaleString('vi-VN')}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('leads')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e8f5e9', color: '#2e7d32' }}><i className="fas fa-trophy"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Khách hàng thành công</div>
+                        <div className="mob-kpi-sub">Tỷ lệ chuyển đổi: {stats.conversionRate || 0}%</div>
+                      </div>
+                      <div className="mob-kpi-val" style={{ color: '#2e7d32' }}>{stats.wonLeads || 0}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('deals')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#e8eaf6', color: '#303f9f' }}><i className="fas fa-handshake"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Giao dịch chốt trong tháng</div>
+                        <div className="mob-kpi-sub">Tháng trước: {prev.deals || 0} giao dịch</div>
+                      </div>
+                      <div className="mob-kpi-val">{stats.dealsMonth || 0}</div>
+                    </div>
+                  </div>
+                )}
+
+                {kpiTab === 'ops' && (
+                  <div className="mob-kpi-rows">
+                    <div className="mob-kpi-row">
+                      <div className="mob-kpi-ic" style={{ background: '#e0f2fe', color: '#0369a1' }}><i className="fas fa-eye"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Lượt xem cổng thông tin</div>
+                        <div className="mob-kpi-sub">Toàn thời gian, tất cả BĐS</div>
+                      </div>
+                      <div className="mob-kpi-val">{(stats.totalViews || 0).toLocaleString('vi-VN')}</div>
+                    </div>
+
+                    <div className="mob-kpi-row" onClick={() => go('properties')} style={{ cursor: 'pointer' }}>
+                      <div className="mob-kpi-ic" style={{ background: '#fef3c7', color: '#d97706' }}><i className="fas fa-star"></i></div>
+                      <div className="mob-kpi-info">
+                        <div className="mob-kpi-label">Tin đăng nổi bật</div>
+                        <div className="mob-kpi-sub">BĐS gắn cờ VIP/Featured</div>
+                      </div>
+                      <div className="mob-kpi-val">{stats.featured || 0}</div>
+                    </div>
+
+                    {agency && (
+                      <div className="mob-kpi-row">
+                        <div className="mob-kpi-ic" style={{ background: '#f0fdf4', color: '#16a34a' }}><i className="fas fa-user-check"></i></div>
+                        <div className="mob-kpi-info">
+                          <div className="mob-kpi-label">Nhân viên đang hoạt động</div>
+                          <div className="mob-kpi-sub">Đang sẵn sàng nhận khách</div>
+                        </div>
+                        <div className="mob-kpi-val">{stats.activeAgents || 0}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="dash-grid-3">
