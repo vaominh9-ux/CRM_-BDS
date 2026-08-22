@@ -683,7 +683,11 @@
         NewPassword: '',
         ConfirmPassword: ''
       });
+      const [showCurPass, setShowCurPass] = useState(false);
+      const [showNewPass, setShowNewPass] = useState(false);
+      const [showCfmPass, setShowCfmPass] = useState(false);
       const [saving, setSaving] = useState(false);
+      const [savingPass, setSavingPass] = useState(false);
       const [uploading, setUploading] = useState(false);
       const fileInputRef = useRef(null);
 
@@ -692,7 +696,7 @@
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-          Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn một tệp hình ảnh' });
+          Swal.fire({ icon: 'error', title: 'Định dạng không hợp lệ', text: 'Vui lòng chọn một tệp hình ảnh (PNG, JPG, WEBP)' });
           return;
         }
 
@@ -713,26 +717,20 @@
                   })
                   .updateUserSettings(currentUser, { profileImage: result.fileUrl });
               } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: result.message });
               }
             })
             .withFailureHandler((err) => {
               setUploading(false);
-              Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+              Swal.fire({ icon: 'error', title: 'Lỗi tải ảnh', text: err.message });
             })
             .uploadFile(base64Data, file.name, 'profile');
         };
         reader.readAsDataURL(file);
       };
 
-      const handleSubmit = (e) => {
+      const handleUpdateInfo = (e) => {
         e.preventDefault();
-
-        if (formData.NewPassword && formData.NewPassword !== formData.ConfirmPassword) {
-          Swal.fire({ icon: 'error', title: 'Error', text: 'New passwords do not match!' });
-          return;
-        }
-
         setSaving(true);
         google.script.run
           .withSuccessHandler((result) => {
@@ -740,8 +738,49 @@
             if (result.success) {
               Swal.fire({
                 icon: 'success',
-                title: 'Success!',
-                text: result.message,
+                title: 'Thành công!',
+                text: 'Đã cập nhật thông tin tài khoản!',
+                timer: 2000,
+                showConfirmButton: false
+              });
+            } else {
+              Swal.fire({ icon: 'error', title: 'Lỗi', text: result.message });
+            }
+          })
+          .withFailureHandler((err) => {
+            setSaving(false);
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message });
+          })
+          .updateMyAccount(currentUser, { Email: formData.Email });
+      };
+
+      const handleUpdatePassword = (e) => {
+        e.preventDefault();
+
+        if (!formData.CurrentPassword) {
+          Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập mật khẩu hiện tại để xác thực!' });
+          return;
+        }
+
+        if (!formData.NewPassword) {
+          Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập mật khẩu mới!' });
+          return;
+        }
+
+        if (formData.NewPassword !== formData.ConfirmPassword) {
+          Swal.fire({ icon: 'error', title: 'Mật khẩu không khớp', text: 'Mật khẩu xác nhận không trùng khớp với mật khẩu mới!' });
+          return;
+        }
+
+        setSavingPass(true);
+        google.script.run
+          .withSuccessHandler((result) => {
+            setSavingPass(false);
+            if (result.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: 'Mật khẩu đã được thay đổi thành công!',
                 timer: 2000,
                 showConfirmButton: false
               });
@@ -752,125 +791,194 @@
                 ConfirmPassword: ''
               });
             } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+              Swal.fire({ icon: 'error', title: 'Lỗi', text: result.message });
             }
           })
           .withFailureHandler((err) => {
-            setSaving(false);
-            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            setSavingPass(false);
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message });
           })
           .updateMyAccount(currentUser, formData);
       };
 
       return (
-        <div className="profile-section">
-          <div className="profile-header">
-            <div className="profile-avatar">
-              {currentUser.charAt(0).toUpperCase()}
-            </div>
-            <div className="profile-info">
-              <h2>{currentUser}</h2>
-              <p>{role} Account</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Username (Cannot be changed)</label>
-              <input
-                type="text"
-                value={currentUser}
-                disabled
-                style={{background: '#f5f5f5', cursor: 'not-allowed'}}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Email *</label>
-              <input
-                type="email"
-                value={formData.Email}
-                onChange={(e) => setFormData({...formData, Email: e.target.value})}
-                required
-              />
-            </div>
-
-            <div style={{marginTop: '25px'}}>
-            <h3 style={{marginBottom: '18px', color: 'var(--navy-primary)', fontSize: '17px'}}>
-              <i className="fas fa-image"></i> Ảnh đại diện
-            </h3>
-            <div style={{marginBottom: '18px'}}>
+        <div className="profile-section mob-account-page">
+          {/* HERO CARD: Avatar, Tên đăng nhập & Vai trò */}
+          <div className="mob-account-hero-card">
+            <div className="mob-account-avatar-wrapper">
+              <div className="mob-account-avatar" style={{ background: getLeadAvatarColor(currentUser) }}>
+                {getLeadInitials(currentUser)}
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
-                style={{display: 'none'}}
+                style={{ display: 'none' }}
               />
               <button
-                className="btn btn-primary"
-                onClick={() => fileInputRef.current.click()}
+                type="button"
+                className="mob-account-avatar-cam-btn"
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
                 disabled={uploading}
+                title="Thay đổi ảnh đại diện"
               >
-                {uploading ? (
-                  <><i className="fas fa-spinner fa-spin"></i> Đang tải lên...</>
-                ) : (
-                  <><i className="fas fa-upload"></i> Tải ảnh lên</>
-                )}
+                <i className={'fas ' + (uploading ? 'fa-spinner fa-spin' : 'fa-camera')}></i>
               </button>
-              <p style={{marginTop: '10px', fontSize: '13px', color: '#666'}}>
-                Tải ảnh đại diện mới (tự động đồng bộ làm Logo &amp; Ảnh đại diện toàn hệ thống). Kích thước đề xuất: 200×200 px
-              </p>
+            </div>
+            <div className="mob-account-hero-info">
+              <h2 className="mob-account-hero-title">{currentUser}</h2>
+              <div className="mob-account-hero-meta">
+                <span className={'mob-user-role-badge ' + String(role || 'agent').toLowerCase()}>
+                  {viEnum(role) || role}
+                </span>
+                <span className="mob-account-email-pill">
+                  <i className="fas fa-envelope"></i> {formData.Email || 'Chưa có email'}
+                </span>
+              </div>
             </div>
           </div>
 
-          <hr style={{margin: '25px 0', border: 'none', borderTop: '2px solid #e0e0e0'}} />
+          <div className="mob-account-grid">
+            {/* THẺ 1: THÔNG TIN CÁ NHÂN */}
+            <div className="mob-account-card">
+              <div className="mob-account-card-header">
+                <div className="mob-account-header-icon info">
+                  <i className="fas fa-id-card"></i>
+                </div>
+                <div>
+                  <h3 className="mob-account-card-title">Thông tin tài khoản</h3>
+                  <p className="mob-account-card-desc">Cập nhật địa chỉ email liên hệ nhận thông báo</p>
+                </div>
+              </div>
 
-            <h3 style={{color: 'var(--navy-primary)', marginBottom: '18px', fontSize: '18px'}}>
-              <i className="fas fa-lock"></i> Đổi mật khẩu
-            </h3>
+              <form onSubmit={handleUpdateInfo}>
+                <div className="form-group" style={{ marginBottom: 14 }}>
+                  <label><i className="fas fa-user-lock"></i> Tên đăng nhập</label>
+                  <input
+                    type="text"
+                    value={currentUser}
+                    disabled
+                    className="filter-input"
+                    style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }}
+                  />
+                  <small style={{ color: '#94a3b8', fontSize: 11.5, marginTop: 4, display: 'block' }}>
+                    <i className="fas fa-lock"></i> Tên đăng nhập là định danh cố định của hệ thống và không thể thay đổi.
+                  </small>
+                </div>
 
-            <div className="form-group">
-              <label>Current Password *</label>
-              <input
-                type="password"
-                value={formData.CurrentPassword}
-                onChange={(e) => setFormData({...formData, CurrentPassword: e.target.value})}
-                required
-                autoComplete="current-password"
-              />
+                <div className="form-group" style={{ marginBottom: 16 }}>
+                  <label><i className="fas fa-envelope"></i> Địa chỉ Email *</label>
+                  <input
+                    type="email"
+                    value={formData.Email}
+                    onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
+                    required
+                    className="filter-input"
+                    placeholder="email@congty.com"
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-primary mob-account-save-btn" disabled={saving}>
+                  {saving ? (
+                    <><i className="fas fa-spinner fa-spin"></i> Đang lưu...</>
+                  ) : (
+                    <><i className="fas fa-floppy-disk"></i> Cập nhật thông tin</>
+                  )}
+                </button>
+              </form>
             </div>
 
-            <div className="form-group">
-              <label>New Password (Leave blank to keep current)</label>
-              <input
-                type="password"
-                value={formData.NewPassword}
-                onChange={(e) => setFormData({...formData, NewPassword: e.target.value})}
-                autoComplete="new-password"
-              />
-            </div>
+            {/* THẺ 2: ĐỔI MẬT KHẨU */}
+            <div className="mob-account-card">
+              <div className="mob-account-card-header">
+                <div className="mob-account-header-icon security">
+                  <i className="fas fa-shield-halved"></i>
+                </div>
+                <div>
+                  <h3 className="mob-account-card-title">Bảo mật & Mật khẩu</h3>
+                  <p className="mob-account-card-desc">Thay đổi mật khẩu đăng nhập định kỳ để đảm bảo an toàn</p>
+                </div>
+              </div>
 
-            <div className="form-group">
-              <label>Confirm New Password</label>
-              <input
-                type="password"
-                value={formData.ConfirmPassword}
-                onChange={(e) => setFormData({...formData, ConfirmPassword: e.target.value})}
-                autoComplete="new-password"
-              />
-            </div>
+              <form onSubmit={handleUpdatePassword}>
+                <div className="form-group" style={{ marginBottom: 14 }}>
+                  <label><i className="fas fa-key"></i> Mật khẩu hiện tại *</label>
+                  <div className="mob-password-input-wrap">
+                    <input
+                      type={showCurPass ? 'text' : 'password'}
+                      value={formData.CurrentPassword}
+                      onChange={(e) => setFormData({ ...formData, CurrentPassword: e.target.value })}
+                      required
+                      autoComplete="current-password"
+                      className="filter-input"
+                      placeholder="Nhập mật khẩu hiện tại..."
+                    />
+                    <button
+                      type="button"
+                      className="mob-pwd-toggle-btn"
+                      onClick={() => setShowCurPass(!showCurPass)}
+                      tabIndex="-1"
+                    >
+                      <i className={'fas ' + (showCurPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                    </button>
+                  </div>
+                </div>
 
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? (
-                  <><i className="fas fa-spinner fa-spin"></i> Saving...</>
-                ) : (
-                  <><i className="fas fa-save"></i> Update Account</>
-                )}
-              </button>
+                <div className="form-group" style={{ marginBottom: 14 }}>
+                  <label><i className="fas fa-lock"></i> Mật khẩu mới</label>
+                  <div className="mob-password-input-wrap">
+                    <input
+                      type={showNewPass ? 'text' : 'password'}
+                      value={formData.NewPassword}
+                      onChange={(e) => setFormData({ ...formData, NewPassword: e.target.value })}
+                      autoComplete="new-password"
+                      className="filter-input"
+                      placeholder="Nhập mật khẩu mới..."
+                    />
+                    <button
+                      type="button"
+                      className="mob-pwd-toggle-btn"
+                      onClick={() => setShowNewPass(!showNewPass)}
+                      tabIndex="-1"
+                    >
+                      <i className={'fas ' + (showNewPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 16 }}>
+                  <label><i className="fas fa-check-double"></i> Xác nhận mật khẩu mới</label>
+                  <div className="mob-password-input-wrap">
+                    <input
+                      type={showCfmPass ? 'text' : 'password'}
+                      value={formData.ConfirmPassword}
+                      onChange={(e) => setFormData({ ...formData, ConfirmPassword: e.target.value })}
+                      autoComplete="new-password"
+                      className="filter-input"
+                      placeholder="Nhập lại mật khẩu mới..."
+                    />
+                    <button
+                      type="button"
+                      className="mob-pwd-toggle-btn"
+                      onClick={() => setShowCfmPass(!showCfmPass)}
+                      tabIndex="-1"
+                    >
+                      <i className={'fas ' + (showCfmPass ? 'fa-eye-slash' : 'fa-eye')}></i>
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-secondary mob-account-save-btn" disabled={savingPass || !formData.CurrentPassword || !formData.NewPassword}>
+                  {savingPass ? (
+                    <><i className="fas fa-spinner fa-spin"></i> Đang đổi mật khẩu...</>
+                  ) : (
+                    <><i className="fas fa-lock"></i> Đổi mật khẩu</>
+                  )}
+                </button>
+              </form>
             </div>
-          </form>
+          </div>
         </div>
       );
     }
