@@ -4067,6 +4067,260 @@
         justify-content: center !important;
         gap: 6px !important;
       }
+
+      /* ===== PHÂN HỆ NGƯỜI DÙNG TRÊN ĐIỆN THOẠI (LUXURY USERS UI) ===== */
+      .desk-users-table-wrap {
+        display: none !important;
+      }
+      .mob-users-sub-toolbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin: 2px 0 10px 0 !important;
+        padding: 0 2px !important;
+      }
+      .mob-users-cards-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .mob-user-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+      }
+      .mob-user-card:active {
+        transform: scale(0.99) !important;
+      }
+      body.dark-mode .mob-user-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      /* Hàng 1: Avatar, Tên, Vai trò & Trạng thái */
+      .mob-user-header-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+      }
+      .mob-user-info {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+      }
+      .mob-user-name {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 14.5px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+      }
+      body.dark-mode .mob-user-name {
+        color: #f1f5f9 !important;
+      }
+      .mob-user-role-badge {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        padding: 2px 6px !important;
+        border-radius: 5px !important;
+      }
+      .mob-user-role-badge.admin {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+        border: 1px solid #fecaca !important;
+      }
+      .mob-user-role-badge.manager {
+        background: #f0f9ff !important;
+        color: #0284c7 !important;
+        border: 1px solid #bae6fd !important;
+      }
+      .mob-user-role-badge.agent {
+        background: #f0fdf4 !important;
+        color: #16a34a !important;
+        border: 1px solid #bbf7d0 !important;
+      }
+      body.dark-mode .mob-user-role-badge.admin {
+        background: rgba(220, 38, 38, 0.2) !important;
+        color: #fca5a5 !important;
+        border-color: rgba(220, 38, 38, 0.35) !important;
+      }
+      body.dark-mode .mob-user-role-badge.manager {
+        background: rgba(2, 132, 199, 0.2) !important;
+        color: #38bdf8 !important;
+        border-color: rgba(2, 132, 199, 0.35) !important;
+      }
+      body.dark-mode .mob-user-role-badge.agent {
+        background: rgba(22, 163, 74, 0.2) !important;
+        color: #86efac !important;
+        border-color: rgba(22, 163, 74, 0.35) !important;
+      }
+
+      .mob-user-email {
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+      }
+      body.dark-mode .mob-user-email {
+        color: #94a3b8 !important;
+      }
+
+      /* Hàng 2: Mục tiêu tháng & Ngày tạo */
+      .mob-user-meta-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        font-size: 11.5px !important;
+        color: #64748b !important;
+        margin-top: 8px !important;
+        padding-top: 8px !important;
+        border-top: 1px dashed #e2e8f0 !important;
+      }
+      body.dark-mode .mob-user-meta-row {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+      }
+      .mob-user-target {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+      .mob-user-target strong {
+        color: #1e293b !important;
+      }
+      body.dark-mode .mob-user-target strong {
+        color: #f1f5f9 !important;
+      }
+      .mob-user-date {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+      }
+
+      /* Hàng 3: Các nút hành động */
+      .mob-user-actions {
+        display: flex !important;
+        gap: 8px !important;
+        margin-top: 8px !important;
+      }
+      .mob-user-actions .mob-btn {
+        flex: 1 !important;
+        height: 32px !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        cursor: pointer !important;
+      }
+      .mob-user-actions .mob-btn-edit {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        border: 1px solid #e2e8f0 !important;
+      }
+      .mob-user-actions .mob-btn-reassign {
+        flex: 1.2 !important;
+        background: #eff6ff !important;
+        color: #2563eb !important;
+        border: 1px solid #bfdbfe !important;
+      }
+      .mob-user-actions .mob-btn-del {
+        background: #fef2f2 !important;
+        color: #ef4444 !important;
+        border: 1px solid #fecaca !important;
+      }
+      .mob-user-actions .mob-btn-activate {
+        background: #f0fdf4 !important;
+        color: #16a34a !important;
+        border: 1px solid #bbf7d0 !important;
+      }
+      body.dark-mode .mob-user-actions .mob-btn-edit {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      body.dark-mode .mob-user-actions .mob-btn-reassign {
+        background: rgba(37, 99, 235, 0.15) !important;
+        color: #93c5fd !important;
+        border-color: rgba(37, 99, 235, 0.3) !important;
+      }
+      body.dark-mode .mob-user-actions .mob-btn-del {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+      }
+      body.dark-mode .mob-user-actions .mob-btn-activate {
+        background: rgba(22, 163, 74, 0.15) !important;
+        color: #86efac !important;
+        border-color: rgba(22, 163, 74, 0.3) !important;
+      }
+
+      /* Modal Người Dùng & Chuyển Giao Việc dạng Bottom Sheet trên Mobile */
+      .modal.modal-user-form,
+      .modal.modal-reassign-form {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin: auto 0 0 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border: none !important;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
+        animation: slideUp 0.25s ease !important;
+      }
+      .modal-user-form .modal-header,
+      .modal-reassign-form .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+      }
+      .modal-user-form .modal-body,
+      .modal-reassign-form .modal-body {
+        padding: 14px 16px 28px 14px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .modal-user-form .form-actions,
+      .modal-reassign-form .form-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1.5fr !important;
+        gap: 10px !important;
+        margin-top: 18px !important;
+        padding-top: 14px !important;
+        border-top: 1px solid #e2e8f0 !important;
+      }
+      body.dark-mode .modal-user-form .form-actions,
+      body.dark-mode .modal-reassign-form .form-actions {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      .modal-user-form .form-actions .btn,
+      .modal-reassign-form .form-actions .btn {
+        height: 42px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+      }
     }
   
   

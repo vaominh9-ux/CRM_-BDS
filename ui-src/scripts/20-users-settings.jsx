@@ -6,27 +6,46 @@
       const { data: res, error, mutate } = useSWR('users:all', () => gsRun('getAllUsers', currentUser), SWR_LIVE);
       const rows = res ? (res.success ? res.data : []) : undefined;
       const loading = rows === undefined && !error;
+      const [showModal, setShowModal] = useState(false);
+      const [editingUser, setEditingUser] = useState(null);
+      const [reassigning, setReassigning] = useState(null); // offboarding: move a user's whole book to someone else
+      const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+      const tableInstanceRef = useRef(null);
+
+      const [filters, setFilters] = useState({ role: '', status: '', search: initialSearch || '' });
+      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]); // seed from 360 search
+
+      const counts = useMemo(() => {
+        const o = { Admin: 0, Manager: 0, Agent: 0 };
+        (rows || []).forEach((u) => { if (o[u.Role] !== undefined) o[u.Role]++; });
+        return o;
+      }, [rows]);
+
+      const visible = useMemo(() => {
+        const q = String(filters.search || '').trim().toLowerCase();
+        return (rows || []).filter((u) => {
+          if (filters.role && u.Role !== filters.role) return false;
+          if (filters.status && u.Status !== filters.status) return false;
+          if (q && ![u.Username, u.Email, u.Role, u.Status, viEnum(u.Role), viEnum(u.Status)].some((val) => String(val || '').toLowerCase().includes(q))) return false;
+          return true;
+        });
+      }, [rows, filters.role, filters.status, filters.search]);
+      const activeFiltersCount = (filters.search ? 1 : 0) + (filters.role ? 1 : 0) + (filters.status ? 1 : 0);
+
       // kpi from cached rows — [value, label, icon, color]
       const kpi = useMemo(() => {
         const list = rows || [], active = list.filter((u) => u.Status === 'Active').length;
         return [
-          [list.length,          'Total Users',  'fa-users',       'bg-navy'],
-          [active,               'Active Users', 'fa-user-check',  'bg-success'],
-          [list.length - active, 'Inactive',     'fa-user-clock',  'bg-warning'],
-          [list.filter((u) => u.Role === 'Admin').length, 'Admin Users', 'fa-user-shield', 'bg-info'],
+          [list.length,          'Tổng người dùng',   'fa-users',       'bg-navy'],
+          [active,               'Đang hoạt động',    'fa-user-check',  'bg-success'],
+          [list.length - active, 'Ngừng hoạt động',   'fa-user-clock',  'bg-warning'],
+          [list.filter((u) => u.Role === 'Admin').length, 'Quản trị viên', 'fa-user-shield', 'bg-info'],
         ];
       }, [rows]);
-      const [showModal, setShowModal] = useState(false);
-      const [editingUser, setEditingUser] = useState(null);
-      const [reassigning, setReassigning] = useState(null); // offboarding: move a user's whole book to someone else
-      const tableInstanceRef = useRef(null);
-
-      const [filters, setFilters] = useState({ role: '', status: '', search: '' });
-      useEffect(() => { if (initialSearch) setFilters((f) => ({ ...f, search: initialSearch })); }, [initialSearch]); // seed from 360 search
 
       // surface a server error (e.g. access denied) once
       useEffect(() => {
-        if (res && !res.success) Swal.fire({ icon: 'error', title: 'Error', text: res.message || 'Failed to load users' });
+        if (res && !res.success) Swal.fire({ icon: 'error', title: 'Lỗi', text: res.message || 'Không thể tải danh sách người dùng' });
       }, [res]);
 
       // rows change: same data -> untouched · changed -> in-place swap (keeps page/search) · first load -> full build
@@ -51,22 +70,22 @@
         const done = () => { e.target.value = ''; }; // reset so same file re-imports
         file.text().then((text) => {
           const rows = parseCSV(text);
-          if (rows.length < 2) { done(); return Swal.fire({ icon: 'error', title: 'Import', text: 'CSV is empty or missing header row' }); }
+          if (rows.length < 2) { done(); return Swal.fire({ icon: 'error', title: 'Nhập CSV', text: 'Tệp CSV trống hoặc thiếu dòng tiêu đề' }); }
           const headers = rows[0].map((h) => h.replace(/^\uFEFF/, '').trim()); // strip BOM
-          if (headers.indexOf('Username') === -1) { done(); return Swal.fire({ icon: 'error', title: 'Import', text: 'Missing Username column — download the Template for the exact shape' }); }
+          if (headers.indexOf('Username') === -1) { done(); return Swal.fire({ icon: 'error', title: 'Nhập CSV', text: 'Thiếu cột Username — tải tệp mẫu để xem cấu trúc chuẩn' }); }
           const records = rows.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => [h, (r[i] || '').trim()])));
-          Swal.fire({ icon: 'question', title: `Import ${records.length} rows?`, text: 'Invalid rows are skipped — errors shown after.',
-                      showCancelButton: true, confirmButtonText: 'Import', confirmButtonColor: '#001f3f' })
+          Swal.fire({ icon: 'question', title: `Nhập ${records.length} người dùng?`, text: 'Các dòng không hợp lệ sẽ tự động bỏ qua.',
+                      showCancelButton: true, confirmButtonText: 'Nhập ngay', confirmButtonColor: '#001f3f' })
             .then((cf) => {
               if (!cf.isConfirmed) return done();
               gsRun('bulkImportUsers', records, currentUser).then((res) => {
                 done();
-                if (!res || !res.success) return Swal.fire({ icon: 'error', title: 'Import failed', text: (res && res.message) || 'Import failed' });
+                if (!res || !res.success) return Swal.fire({ icon: 'error', title: 'Nhập thất bại', text: (res && res.message) || 'Thao tác thất bại' });
                 mutate(); // refetch list
                 const skipped = (res.errors || []).length;
                 if (skipped) console.warn('Import errors:', res.errors);
-                Swal.fire({ icon: 'success', title: 'Import complete', text: `${res.count} imported${skipped ? ', ' + skipped + ' skipped' : ''}` });
-              }).catch(() => { done(); Swal.fire({ icon: 'error', title: 'Error', text: 'Import failed' }); });
+                Swal.fire({ icon: 'success', title: 'Nhập hoàn tất', text: `Đã nhập thành công ${res.count} tài khoản${skipped ? ', bỏ qua ' + skipped + ' dòng' : ''}` });
+              }).catch(() => { done(); Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Nhập thất bại' }); });
             });
         });
       };
@@ -110,88 +129,42 @@
               destroy: true,
               language: DT_VI_LANGUAGE,
               columns: [
-                { data: 'Username', title: 'Username' },
+                { data: 'Username', title: 'Tên đăng nhập', render: (d) => '<strong>' + esc(d) + '</strong>' },
                 { data: 'Email', title: 'Email' },
-                { data: 'Role', title: 'Role' },
+                { data: 'Role', title: 'Vai trò', render: (d) => roleBadge(d) },
                 {
                   data: 'Status',
-                  title: 'Status',
-                  render: (d) => `<span class="status-badge ${d === 'Active' ? 'status-active' : 'status-inactive'}">${d}</span>`
+                  title: 'Trạng thái',
+                  render: (d) => `<span class="status-badge ${d === 'Active' ? 'st-green' : 'st-gray'}">${viEnum(d) || d}</span>`
                 },
                 {
                   data: 'CreatedAt',
-                  title: 'Created',
-                  render: (d, type, row) => {
-                    // Handle null, undefined, or empty values
-                    if (d === null || d === undefined || d === '' || d === 'N/A') {
-                      return '<span style="color: #999;">N/A</span>';
-                    }
-
-                    try {
-                      let date;
-
-                      // Parse different date formats
-                      if (typeof d === 'string') {
-                        // Handle string dates
-                        if (d.trim() === '') return '<span style="color: #999;">N/A</span>';
-                        date = new Date(d);
-                      } else if (typeof d === 'number') {
-                        // Handle Excel serial numbers
-                        if (d <= 0) return '<span style="color: #999;">N/A</span>';
-                        date = new Date((d - 25569) * 86400 * 1000);
-                      } else if (d instanceof Date) {
-                        date = d;
-                      } else {
-                        return '<span style="color: #999;">N/A</span>';
-                      }
-
-                      // Validate the date object
-                      if (!date || isNaN(date.getTime()) || date.getTime() === 0) {
-                        return '<span style="color: #999;">N/A</span>';
-                      }
-
-                      // Additional validation - check if year is reasonable
-                      const year = date.getFullYear();
-                      if (year < 1900 || year > 2100) {
-                        return '<span style="color: #999;">N/A</span>';
-                      }
-
-                      // Safe date formatting
-                      const month = date.toLocaleString('en-US', { month: 'short' });
-                      const day = String(date.getDate()).padStart(2, '0');
-                      const formattedYear = date.getFullYear();
-
-                      return `${month} ${day}, ${formattedYear}`;
-
-                    } catch (e) {
-                      console.error('Date rendering error:', e, 'Value:', d);
-                      return '<span style="color: #999;">N/A</span>';
-                    }
-                  }
+                  title: 'Ngày tạo',
+                  render: (d) => fmtDate(d)
                 },
                 {
                   data: null,
-                  title: 'Actions',
+                  title: 'Thao tác',
                   orderable: false,
                   className: 'dt-actions actions-3',
                   width: '106px',
                   render: (d, t, row) => `<div class="table-actions slots-3">
                     ${canEdit ? `<button class="action-icon edit-icon" data-action="edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>` : ''}
-                    ${canDel ? `<button class="action-icon assign-icon" data-action="reassign" title="Reassign work"><i class="fas fa-people-arrows"></i></button>` : ''}
-                    ${canDel ? `<button class="action-icon delete-icon" data-action="delete" title="Deactivate"><i class="fas fa-user-slash"></i></button>` : ''}
+                    ${canDel ? `<button class="action-icon assign-icon" data-action="reassign" title="Chuyển giao việc"><i class="fas fa-people-arrows"></i></button>` : ''}
+                    ${canDel ? `<button class="action-icon delete-icon" data-action="delete" title="Ngừng hoạt động"><i class="fas fa-user-slash"></i></button>` : ''}
                     ${!canEdit && !canDel ? '<span style="color:#999;">—</span>' : ''}
                   </div>`
                 }
               ],
               pageLength: 10,
-              lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+              lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tất cả"]],
               responsive: true,
               columnDefs: [{ targets: '_all', defaultContent: '' }], // missing keys render blank, never warn
               dom: 'lfrtip', // no B — buttons render in the page header, fired via buttons API
               buttons: [
                 { extend: 'csv',   text: 'CSV',   exportOptions: { columns: ':not(:last-child)' } },
                 { extend: 'pdf',   text: 'PDF',   exportOptions: { columns: ':not(:last-child)' } },
-                { extend: 'print', text: 'Print', exportOptions: { columns: ':not(:last-child)' } }
+                { extend: 'print', text: 'In', exportOptions: { columns: ':not(:last-child)' } }
               ],
               order: [[4, 'desc']]
             });
@@ -215,7 +188,7 @@
             if (filters.search || filters.role || filters.status) applyFilters(); // re-apply active filter after (re)build
           } catch (e) {
             console.error('DataTable initialization error:', e);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to initialize table: ' + e.message });
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể khởi tạo bảng: ' + e.message });
           }
         }, 150);
       };
@@ -262,7 +235,7 @@
               setEditingUser(null);
               Swal.fire({
                 icon: 'success',
-                title: 'Success!',
+                title: 'Thành công!',
                 text: result.message,
                 timer: 2000,
                 showConfirmButton: false
@@ -270,23 +243,25 @@
               mutate();                  // refresh users list
               swrMutate('dash:stats');   // + dashboard KPIs
             } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: result.message });
+              Swal.fire({ icon: 'error', title: 'Lỗi', text: result.message });
             }
           })
           .withFailureHandler((err) => {
-            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message });
           })
           [action](...params);
       };
 
       const handleDelete = (user) => {
+        const isCurrentlyActive = user.Status === 'Active';
         Swal.fire({
           icon: 'warning',
-          title: 'Deactivate User?',
-          text: `"${user.Username}" is set Inactive — login blocked, history and lead attribution kept. You can reactivate later from Edit.`,
+          title: isCurrentlyActive ? 'Khóa tài khoản người dùng?' : 'Kích hoạt lại tài khoản?',
+          text: isCurrentlyActive ? `"${user.Username}" sẽ bị ngừng hoạt động — chặn đăng nhập, bảo toàn toàn bộ lịch sử và phân công khách. Bạn có thể kích hoạt lại sau.` : `Kích hoạt lại tài khoản "${user.Username}" để cho phép đăng nhập lại hệ thống?`,
           showCancelButton: true,
-          confirmButtonColor: '#ea4335',
-          confirmButtonText: 'Deactivate'
+          confirmButtonColor: isCurrentlyActive ? '#ea4335' : '#16a34a',
+          confirmButtonText: isCurrentlyActive ? 'Khóa tài khoản' : 'Kích hoạt lại',
+          cancelButtonText: 'Hủy'
         }).then((result) => {
           if (result.isConfirmed) {
             google.script.run
@@ -295,18 +270,18 @@
                   mutate();
                   swrMutate('dash:stats');
                   if (r.openLeads > 0) { // offboarding: offer the one-action reassign right away
-                    Swal.fire({ icon: 'warning', title: 'User deactivated', text: r.openLeads + ' open lead(s) still assigned — reassign their work now?',
-                                showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Reassign now', cancelButtonText: 'Later' })
+                    Swal.fire({ icon: 'warning', title: 'Đã khóa tài khoản', text: r.openLeads + ' khách tiềm năng đang giao cho người này — bạn có muốn chuyển giao công việc ngay không?',
+                                showCancelButton: true, confirmButtonColor: '#001f3f', confirmButtonText: 'Chuyển việc ngay', cancelButtonText: 'Để sau' })
                       .then((rr) => { if (rr.isConfirmed) setReassigning(user); });
                   } else {
                     Swal.fire({ icon: 'success', text: r.message, timer: 2000, showConfirmButton: false });
                   }
                 } else {
-                  Swal.fire({ icon: 'error', title: 'Error', text: r.message });
+                  Swal.fire({ icon: 'error', title: 'Lỗi', text: r.message });
                 }
               })
               .withFailureHandler((err) => {
-                Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message });
               })
               .deleteUser(user.Username, currentUser);
           }
@@ -314,49 +289,227 @@
       };
 
       return (
-        <div className="data-section">
-          {loading ? <KpiSkeleton /> : (
-            <div className="lte-kpi-grid">
-              {kpi.map(([v, l, ic, c], i) => <SmallBox key={i} value={v} label={l} icon={ic} color={c} />)}
-            </div>
-          )}
+        <>
+          <KpiRow items={kpi} />
 
-          {!loading && (
-            <div className="filters-section">
-              <div className="filters-header">
-                <h3><i className="fas fa-filter"></i> Filters</h3>
-                <button className="btn btn-secondary btn-sm" onClick={clearFilters}>
-                  <i className="fas fa-times-circle"></i> Clear
-                </button>
-              </div>
-              <div className="filters-grid">
-                <div className="filter-group">
-                  <label><i className="fas fa-search"></i> Search</label>
-                  <input
-                    type="text"
-                    value={filters.search}
-                    onChange={(e) => setFilters({...filters, search: e.target.value})}
-                    placeholder="Search users..."
-                    className="filter-input"
-                  />
-                </div>
-                <SearchableDropdown label="Role" icon="fas fa-user-tag"
-                  options={opts(['Admin', 'Manager', 'Agent'])}
-                  value={filters.role} onChange={(v) => setFilters({ ...filters, role: v })} placeholder="All Roles" />
-                <SearchableDropdown label="Status" icon="fas fa-check-circle"
-                  options={opts(['Active', 'Inactive'])}
-                  value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} placeholder="All Status" />
-              </div>
+          {/* 1. Mobile Horizontally Scrollable Role Pills */}
+          <div className="mob-pipeline-bar">
+            <div className="mob-pills-scroll">
+              <button
+                className={'mob-pill ' + (!filters.role ? 'active' : '')}
+                onClick={() => setFilters((f) => ({ ...f, role: '' }))}
+              >
+                <span>Tất cả vai trò</span>
+                <span className="mob-pill-badge">{(rows || []).length}</span>
+              </button>
+              {['Admin', 'Manager', 'Agent'].map((r) => {
+                const count = counts[r] || 0;
+                const col = r === 'Admin' ? '#dc2626' : r === 'Manager' ? '#0284c7' : '#16a34a';
+                return (
+                  <button
+                    key={r}
+                    className={'mob-pill ' + (filters.role === r ? 'active' : '') + (count === 0 ? ' empty' : '')}
+                    onClick={() => setFilters((f) => ({ ...f, role: f.role === r ? '' : r }))}
+                  >
+                    <span className="mob-pill-dot" style={{ background: col }}></span>
+                    <span>{viEnum(r)}</span>
+                    <span className="mob-pill-badge">{count}</span>
+                  </button>
+                );
+              })}
             </div>
-          )}
-
-          {loading && <TableSkeleton rows={8} columns={6} />}
-          <div style={{ display: loading ? 'none' : 'block' }}>
-            <table id="usersTable" className="display" style={{width: '100%'}}></table>
           </div>
 
-          {/* hidden — opened by the Import CSV toolbar button */}
-          <input type="file" id="usersCsvImport" accept=".csv" style={{display: 'none'}} onChange={handleImport} />
+          {/* 2. Mobile Sub-Toolbar */}
+          <div className="mob-users-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Người dùng {filters.role ? `· ${viEnum(filters.role)}` : ''}
+              </span>
+            </div>
+            <div className="mob-sub-toolbar-right">
+              {canAdd && (
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditingUser(null); setShowModal(true); }} title="Thêm người dùng">
+                  <i className="fas fa-plus"></i>
+                </button>
+              )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc người dùng">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Desktop Filters Section */}
+          <div className="filters-section desk-filters-section">
+            <div className="filters-header">
+              <h3><i className="fas fa-filter"></i> Bộ lọc</h3>
+              <button className="btn btn-secondary btn-sm" onClick={clearFilters}>
+                <i className="fas fa-rotate-left"></i> Xóa
+              </button>
+            </div>
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm</label>
+                <input
+                  type="text"
+                  value={filters.search}
+                  onChange={(e) => setFilters({...filters, search: e.target.value})}
+                  placeholder="Tên đăng nhập, email…"
+                  className="filter-input"
+                />
+              </div>
+              <SearchableDropdown label="Vai trò" icon="fas fa-user-tag"
+                options={opts(['Admin', 'Manager', 'Agent'])}
+                value={filters.role} onChange={(v) => setFilters({ ...filters, role: v })} placeholder="Tất cả vai trò" />
+              <SearchableDropdown label="Trạng thái" icon="fas fa-toggle-on"
+                options={opts(['Active', 'Inactive'])}
+                value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} placeholder="Tất cả trạng thái" />
+            </div>
+          </div>
+
+          {/* 4. Data Section: Desktop Table & Mobile Luxury Cards */}
+          <div className="data-section">
+            {/* hidden — opened by the Import CSV toolbar button */}
+            <input type="file" id="usersCsvImport" accept=".csv" style={{display: 'none'}} onChange={handleImport} />
+
+            {/* Desktop Table View */}
+            <div className="desk-users-table-wrap">
+              {loading ? <TableSkeleton rows={8} columns={6} /> : (
+                <div style={{ overflowX: 'auto' }}><table id="usersTable" className="display" style={{width: '100%'}}></table></div>
+              )}
+            </div>
+
+            {/* Mobile Luxury Cards List View */}
+            <div className="mob-users-cards-container">
+              {loading ? (
+                <div className="mob-users-skeleton-list">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mob-user-card-skeleton">
+                      <div className="sk-line w50"></div>
+                      <div className="sk-line w80"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="mob-users-empty-state">
+                  <div className="empty-circle"><i className="fas fa-users-slash"></i></div>
+                  <h4>Chưa có người dùng phù hợp</h4>
+                  <p>Thử tìm kiếm từ khóa khác hoặc thêm tài khoản mới</p>
+                  {canAdd && (
+                    <button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setEditingUser(null); setShowModal(true); }}>
+                      <i className="fas fa-plus"></i> Thêm người dùng
+                    </button>
+                  )}
+                </div>
+              ) : (
+                visible.map((u) => {
+                  const roleClass = (u.Role || 'agent').toLowerCase();
+                  const isActive = u.Status === 'Active';
+                  return (
+                    <div key={u.Username} className={'mob-user-card role-' + roleClass}>
+                      {/* HÀNG 1: Avatar + Tên người dùng + Huy hiệu vai trò & Trạng thái */}
+                      <div className="mob-user-header-row">
+                        <div className="mob-lead-avatar" style={{ background: getLeadAvatarColor(u.Username) }}>
+                          {getLeadInitials(u.Username)}
+                        </div>
+                        <div className="mob-user-info">
+                          <div className="mob-user-name">
+                            <strong>{u.Username}</strong>
+                            <span className={'mob-user-role-badge ' + roleClass}>
+                              {viEnum(u.Role) || u.Role}
+                            </span>
+                          </div>
+                          <div className="mob-user-email">
+                            <i className="fas fa-envelope"></i> {u.Email || 'Chưa có email'}
+                          </div>
+                        </div>
+                        <span className={'status-badge ' + (isActive ? 'st-green' : 'st-gray')}>
+                          {viEnum(u.Status) || u.Status}
+                        </span>
+                      </div>
+
+                      {/* HÀNG 2: Mục tiêu tháng & Ngày tạo tài khoản */}
+                      <div className="mob-user-meta-row">
+                        <div className="mob-user-target">
+                          <i className="fas fa-bullseye"></i> Mục tiêu: <strong>{u.MonthlyTarget > 0 ? fmtPKR(u.MonthlyTarget) : 'Không đặt'}</strong>
+                        </div>
+                        <div className="mob-user-date">
+                          <i className="fas fa-calendar"></i> {fmtDate(u.CreatedAt)}
+                        </div>
+                      </div>
+
+                      {/* HÀNG 3: Các nút hành động 1-chạm */}
+                      {(canEdit || canDel) && (
+                        <div className="mob-user-actions">
+                          {canEdit && (
+                            <button className="mob-btn mob-btn-edit" onClick={() => { setEditingUser(u); setShowModal(true); }} title="Chỉnh sửa tài khoản">
+                              <i className="fas fa-pen-to-square"></i> Sửa
+                            </button>
+                          )}
+                          {canDel && (
+                            <button className="mob-btn mob-btn-reassign" onClick={() => setReassigning(u)} title="Chuyển giao việc">
+                              <i className="fas fa-people-arrows"></i> Chuyển việc
+                            </button>
+                          )}
+                          {canDel && (
+                            <button className={'mob-btn ' + (isActive ? 'mob-btn-del' : 'mob-btn-activate')} onClick={() => handleDelete(u)} title={isActive ? 'Khóa tài khoản' : 'Kích hoạt lại'}>
+                              <i className={'fas ' + (isActive ? 'fa-user-slash' : 'fa-user-check')}></i> {isActive ? 'Khóa' : 'Kích hoạt'}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* 5. Mobile Filter Drawer (Bottom Sheet) */}
+          {showFilterDrawer && (
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <h4><i className="fas fa-sliders"></i> Bộ lọc người dùng</h4>
+                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+                </div>
+                <div className="mob-sheet-body">
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-magnifying-glass"></i> Tìm kiếm người dùng</label>
+                    <input className="filter-input" value={filters.search} placeholder="Tên đăng nhập, email..." onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label><i className="fas fa-user-tag"></i> Vai trò</label>
+                    <select className="filter-input" value={filters.role} onChange={(e) => setFilters({ ...filters, role: e.target.value })}>
+                      <option value="">Tất cả vai trò</option>
+                      {['Admin', 'Manager', 'Agent'].map((r) => (
+                        <option key={r} value={r}>{viEnum(r)}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label><i className="fas fa-toggle-on"></i> Trạng thái</label>
+                    <select className="filter-input" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
+                      <option value="">Tất cả trạng thái</option>
+                      {['Active', 'Inactive'].map((s) => (
+                        <option key={s} value={s}>{viEnum(s)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="mob-sheet-footer">
+                  <button className="btn btn-secondary" onClick={() => { clearFilters(); setShowFilterDrawer(false); }}>
+                    <i className="fas fa-rotate-left"></i> Đặt lại
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length} Người dùng)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {showModal && (
             <UserModal
@@ -375,7 +528,7 @@
                                onSaved={() => { setReassigning(null); mutate();
                                  ['props:all', 'leads:all', 'fus:all', 'appts:all', 'dash:stats', 'lookups'].forEach((k) => swrMutate(k)); }} />
           )}
-        </div>
+        </>
       );
     }
 
@@ -393,29 +546,31 @@
           if (r && r.success) {
             const m = r.moved || {};
             Swal.fire({ icon: 'success', title: r.message,
-              html: '<small>Properties: ' + (m.Properties || 0) + ' · Leads: ' + (m.Leads || 0) + ' · Follow-ups: ' + (m.FollowUps || 0) + ' · Appointments: ' + (m.Appointments || 0) + '</small>' });
+              html: '<small>Bất động sản: ' + (m.Properties || 0) + ' · Tiềm năng: ' + (m.Leads || 0) + ' · Chăm sóc: ' + (m.FollowUps || 0) + ' · Lịch hẹn: ' + (m.Appointments || 0) + '</small>' });
             onSaved();
-          } else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
-        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+          } else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Thao tác thất bại' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Lỗi', text: String((err && err.message) || err) }); });
       };
       return (
         <div className="modal-overlay">
           <TopLoadingBar active={saving} />
-          <div className="modal" style={{ maxWidth: 440 }}>
+          <div className="modal modal-reassign-form" style={{ maxWidth: 460 }}>
             <div className="modal-header">
-              <h3><i className="fas fa-people-arrows"></i> Reassign "{fromUser.Username}"'s work</h3>
+              <h3><i className="fas fa-people-arrows"></i> Chuyển giao việc của "{fromUser.Username}"</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
-              <p style={{ color: '#789', fontSize: 13.5, marginBottom: 12 }}>Every property, lead, follow-up and appointment assigned to <strong>{fromUser.Username}</strong> moves to the user you pick — the standard offboarding step before deactivation.</p>
+              <p style={{ color: '#64748b', fontSize: 13, marginBottom: 14, background: '#f8fafc', padding: '10px 12px', borderRadius: 8, border: '1px dashed #e2e8f0' }}>
+                <i className="fas fa-info-circle" style={{ color: '#0284c7' }}></i> Toàn bộ BĐS, khách tiềm năng, lịch chăm sóc và cuộc hẹn được phân công cho <strong>{fromUser.Username}</strong> sẽ chuyển sang người bạn chọn.
+              </p>
               <form onSubmit={submit}>
-                <SearchableDropdown label="Move everything to" icon="fas fa-user-tie"
-                  options={targets.map((u) => ({ value: u.Username, label: u.Username + ' (' + u.Role + ')' }))}
-                  value={toUser} onChange={setToUser} placeholder="Pick a user…" required={true} />
+                <SearchableDropdown label="Chuyển toàn bộ dữ liệu sang" icon="fas fa-user-tie"
+                  options={targets.map((u) => ({ value: u.Username, label: u.Username + ' (' + viEnum(u.Role) + ')' }))}
+                  value={toUser} onChange={setToUser} placeholder="Chọn nhân viên tiếp nhận…" required={true} />
                 <div className="form-actions">
                   <button type="button" className="btn btn-secondary" onClick={onClose}>Hủy</button>
                   <button type="submit" className="btn btn-primary" disabled={saving || !toUser}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Moving…</> : <><i className="fas fa-people-arrows"></i> Reassign All</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang chuyển…</> : <><i className="fas fa-people-arrows"></i> Chuyển giao toàn bộ</>}
                   </button>
                 </div>
               </form>
@@ -445,10 +600,10 @@
 
       return (
         <div className="modal-overlay" onClick={onClose}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal modal-user-form" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 500 }}>
             <div className="modal-header">
               <h3>
-                <i className="fas fa-user-edit"></i> {user ? 'Sửa người dùng' : 'Thêm người dùng'}
+                <i className={'fas ' + (user ? 'fa-user-pen' : 'fa-user-plus')}></i> {user ? 'Chỉnh sửa tài khoản' : 'Thêm người dùng mới'}
               </h3>
               <button className="close-btn" onClick={onClose}>
                 <i className="fas fa-times"></i>
@@ -458,56 +613,59 @@
               <form onSubmit={handleSubmit}>
                 <div className="form-grid">
                   <div className="form-group">
-                    <label>Tên đăng nhập *</label>
+                    <label><i className="fas fa-user"></i> Tên đăng nhập *</label>
                     <input
                       type="text"
                       value={formData.Username}
                       onChange={(e) => setFormData({...formData, Username: e.target.value})}
                       required
                       disabled={!!user}
+                      placeholder="Ví dụ: agent_nam"
                     />
                   </div>
                   <div className="form-group">
-                    <label>Email *</label>
+                    <label><i className="fas fa-envelope"></i> Email liên hệ *</label>
                     <input
                       type="email"
                       value={formData.Email}
                       onChange={(e) => setFormData({...formData, Email: e.target.value})}
                       required
+                      placeholder="agent@company.com"
                     />
                   </div>
                   <div className="form-group">
-                    <label>Mật khẩu {user ? '(để trống nếu giữ mật khẩu hiện tại)' : '*'}</label>
+                    <label><i className="fas fa-key"></i> Mật khẩu {user ? '(để trống nếu giữ mật khẩu hiện tại)' : '*'}</label>
                     <input
                       type="password"
                       value={formData.Password}
                       onChange={(e) => setFormData({...formData, Password: e.target.value})}
                       required={!user}
                       autoComplete="new-password"
+                      placeholder={user ? '••••••••' : 'Nhập mật khẩu...'}
                     />
                   </div>
-                  <SearchableDropdown label="Role" icon="fas fa-user-shield"
+                  <SearchableDropdown label="Vai trò hệ thống" icon="fas fa-user-shield"
                     options={opts(['Admin', 'Manager', 'Agent'])}
-                    value={formData.Role} onChange={(v) => setFormData({ ...formData, Role: v })} placeholder="Role…" required={true} />
-                  <SearchableDropdown label="Status" icon="fas fa-toggle-on"
+                    value={formData.Role} onChange={(v) => setFormData({ ...formData, Role: v })} placeholder="Chọn vai trò…" required={true} />
+                  <SearchableDropdown label="Trạng thái tài khoản" icon="fas fa-toggle-on"
                     options={opts(['Active', 'Inactive'])}
-                    value={formData.Status} onChange={(v) => setFormData({ ...formData, Status: v })} placeholder="Status…" required={true} />
+                    value={formData.Status} onChange={(v) => setFormData({ ...formData, Status: v })} placeholder="Chọn trạng thái…" required={true} />
                   <div className="form-group">
-                    <label><i className="fas fa-bullseye"></i> Mục tiêu tháng (VNĐ) <small style={{ color: '#999', textTransform: 'none' }}>(0 = không đặt mục tiêu — dùng tính tỷ lệ bảng xếp hạng)</small></label>
+                    <label><i className="fas fa-bullseye"></i> Mục tiêu doanh số tháng (VNĐ) <small style={{ color: '#64748b', textTransform: 'none' }}>(0 = không đặt mục tiêu)</small></label>
                     <input type="number" min="0" step="any" value={formData.MonthlyTarget}
-                           onChange={(e) => setFormData({...formData, MonthlyTarget: e.target.value})} />
+                           onChange={(e) => setFormData({...formData, MonthlyTarget: e.target.value})} placeholder="Ví dụ: 100000000" />
                   </div>
                 </div>
                 <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>
+                    <i className="fas fa-times"></i> Hủy
+                  </button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
                     {saving ? (
                       <><i className="fas fa-spinner fa-spin"></i> Đang lưu...</>
                     ) : (
-                      <><i className="fas fa-save"></i> Lưu</>
+                      <><i className="fas fa-save"></i> {user ? 'Cập nhật tài khoản' : 'Lưu người dùng'}</>
                     )}
-                  </button>
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>
-                    <i className="fas fa-times"></i> Hủy
                   </button>
                 </div>
               </form>
