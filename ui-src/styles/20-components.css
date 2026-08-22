@@ -87,6 +87,55 @@
     .profile-info p {
       color: #666;
       font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+
+    /* User Role Badges (Global & Desktop) */
+    .user-role-badge {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: 0.2px;
+      line-height: 1.3;
+      vertical-align: middle;
+    }
+    .user-role-badge.role-admin {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+    }
+    .user-role-badge.role-manager {
+      background: #fef3c7;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+    .user-role-badge.role-agent {
+      background: #e0f2fe;
+      color: #0284c7;
+      border: 1px solid #bae6fd;
+    }
+
+    body.dark-mode .user-role-badge.role-admin {
+      background: rgba(220, 38, 38, 0.2);
+      color: #fca5a5;
+      border-color: rgba(220, 38, 38, 0.35);
+    }
+    body.dark-mode .user-role-badge.role-manager {
+      background: rgba(217, 119, 6, 0.2);
+      color: #fef08a;
+      border-color: rgba(217, 119, 6, 0.35);
+    }
+    body.dark-mode .user-role-badge.role-agent {
+      background: rgba(2, 132, 199, 0.2);
+      color: #38bdf8;
+      border-color: rgba(2, 132, 199, 0.35);
     }
 
     /* Color Preview Cards */
