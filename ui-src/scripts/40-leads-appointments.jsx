@@ -859,22 +859,22 @@
           </div>
 
           {/* 3. Mobile Sub-Toolbar */}
-          <div className="mob-sub-toolbar">
-            <div className="mob-sub-toolbar-title">
-              <strong>{visible.length}</strong> Lịch chăm sóc {stage ? '· ' + (FU_STAGES.find((x) => x.key === stage)?.label || stage) : ''}
+          <div className="mob-followups-sub-toolbar">
+            <div className="mob-sub-toolbar-left">
+              <span className="mob-sub-count">
+                <strong>{visible.length}</strong> Lịch chăm sóc {stage ? `· ${FU_STAGES.find((x) => x.key === stage)?.label || stage}` : ''}
+              </span>
             </div>
-            <div className="mob-sub-toolbar-actions">
-              <button
-                className={'btn btn-sm ' + (activeFiltersCount > 0 ? 'btn-primary' : 'btn-secondary')}
-                onClick={() => setShowFilterDrawer(!showFilterDrawer)}
-              >
-                <i className="fas fa-filter"></i> Bộ lọc {activeFiltersCount > 0 && `(${activeFiltersCount})`}
-              </button>
+            <div className="mob-sub-toolbar-right">
               {canAdd && (
-                <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowModal(true); }}>
-                  <i className="fas fa-plus"></i> Thêm
+                <button className="mob-tool-btn mob-tool-btn-primary" onClick={() => { setEditing(null); setShowModal(true); }} title="Thêm lịch chăm sóc">
+                  <i className="fas fa-plus"></i>
                 </button>
               )}
+              <button className={'mob-tool-btn mob-tool-filter ' + (activeFiltersCount > 0 ? 'active' : '')} onClick={() => setShowFilterDrawer(true)} title="Bộ lọc chăm sóc">
+                <i className="fas fa-sliders"></i>
+                {activeFiltersCount > 0 && <span className="mob-filter-dot"></span>}
+              </button>
             </div>
           </div>
 
@@ -896,15 +896,19 @@
             </div>
           </div>
 
-          {/* 5. Mobile Filter Drawer (Bottom Sheet) */}
+          {/* 5. Mobile Filter Drawer (Luxury Bottom Sheet) */}
           {showFilterDrawer && (
-            <div className="modal-overlay mob-filter-drawer-overlay" onClick={() => setShowFilterDrawer(false)}>
-              <div className="mob-filter-drawer" onClick={(e) => e.stopPropagation()}>
-                <div className="mob-filter-drawer-header">
-                  <h3><i className="fas fa-sliders"></i> Bộ lọc chăm sóc</h3>
-                  <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+            <div className="mob-filter-sheet-overlay" onClick={() => setShowFilterDrawer(false)}>
+              <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="mob-sheet-handle"></div>
+                <div className="mob-sheet-header">
+                  <div className="mob-sheet-title">
+                    <i className="fas fa-sliders"></i>
+                    <h3>Bộ lọc chăm sóc</h3>
+                  </div>
+                  <button className="mob-sheet-close" onClick={() => setShowFilterDrawer(false)}>&times;</button>
                 </div>
-                <div className="mob-filter-drawer-body">
+                <div className="mob-sheet-body">
                   <div className="form-group" style={{ marginBottom: 12 }}>
                     <label><i className="fas fa-magnifying-glass"></i> Từ khóa tìm kiếm</label>
                     <input
@@ -923,15 +927,15 @@
                     </div>
                   )}
                 </div>
-                <div className="mob-filter-drawer-footer">
+                <div className="mob-sheet-footer">
                   <button
-                    className="btn btn-secondary"
+                    className="btn btn-secondary btn-block"
                     onClick={() => { setFilters({ search: '', type: '', agent: '' }); setStage(''); setShowFilterDrawer(false); }}
                   >
-                    Xóa lọc
+                    <i className="fas fa-rotate-left"></i> Xóa lọc
                   </button>
-                  <button className="btn btn-primary" onClick={() => setShowFilterDrawer(false)}>
-                    Áp dụng ({visible.length})
+                  <button className="btn btn-primary btn-block" onClick={() => setShowFilterDrawer(false)}>
+                    <i className="fas fa-check"></i> Áp dụng ({visible.length})
                   </button>
                 </div>
               </div>
@@ -1068,16 +1072,16 @@
 
       const submit = (e) => {
         e.preventDefault();
-        if (!form.leadId) return Swal.fire({ icon: 'warning', title: 'Pick a lead' });
+        if (!form.leadId) return Swal.fire({ icon: 'warning', title: 'Chưa chọn khách hàng', text: 'Vui lòng chọn khách hàng cần chăm sóc!' });
         setSaving(true);
         const payload = editing
           ? { id: fu.id, type: form.type, notes: form.notes, dueAt: form.dueAt, status: form.status, assignedAgent: form.assignedAgent }
           : { leadId: form.leadId, type: form.type, notes: form.notes, dueAt: form.dueAt, assignedAgent: form.assignedAgent };
         gsRun(editing ? 'updateFollowUp' : 'addFollowUp', payload, currentUser).then((r) => {
           setSaving(false);
-          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message, timer: 2200, showConfirmButton: false }); onSaved(); }
-          else Swal.fire({ icon: 'error', title: 'Error', text: (r && r.message) || 'Failed' });
-        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Error', text: String((err && err.message) || err) }); });
+          if (r && r.success) { Swal.fire({ icon: 'success', title: r.message || 'Đã lưu lịch chăm sóc!', timer: 1800, showConfirmButton: false }); onSaved(); }
+          else Swal.fire({ icon: 'error', title: 'Lỗi', text: (r && r.message) || 'Không thể lưu lịch chăm sóc' });
+        }).catch((err) => { setSaving(false); Swal.fire({ icon: 'error', title: 'Lỗi', text: String((err && err.message) || err) }); });
       };
 
       return (
@@ -1085,39 +1089,39 @@
           <TopLoadingBar active={saving} />
           <div className="modal" style={{ maxWidth: 560 }}>
             <div className="modal-header">
-              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-bell')}></i> {editing ? 'Edit Follow-Up #' + fu.id : 'Add Follow-Up'}</h3>
+              <h3><i className={'fas ' + (editing ? 'fa-pen-to-square' : 'fa-headset')}></i> {editing ? 'Sửa lịch chăm sóc #' + fu.id : 'Tạo lịch chăm sóc mới'}</h3>
               <button className="close-btn" onClick={onClose}>&times;</button>
             </div>
             <div className="modal-body">
               <form onSubmit={submit}>
                 {!editing && (
-                  <SearchableDropdown label="Lead" icon="fas fa-user-tag"
-                    options={leads.map((l) => ({ value: String(l.id), label: l.fullName + ' (' + l.phone + ') · ' + l.status }))}
-                    value={form.leadId} onChange={set('leadId')} placeholder="Search lead…" required={true} />
+                  <SearchableDropdown label="Khách hàng tiềm năng *" icon="fas fa-user-tag"
+                    options={leads.map((l) => ({ value: String(l.id), label: (l.fullName || 'Khách #' + l.id) + ' (' + (l.phone || 'Không có SĐT') + ') · ' + (viEnum(l.status) || l.status) }))}
+                    value={form.leadId} onChange={set('leadId')} placeholder="Tìm kiếm và chọn khách hàng…" required={true} />
                 )}
                 <div className="form-grid">
-                  <SearchableDropdown label="Type" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={form.type} onChange={set('type')} placeholder="Chọn loại tài liệu…" required={true} />
+                  <SearchableDropdown label="Hình thức chăm sóc *" icon="fas fa-list" options={opts(ENUMS.followUpType)} value={form.type} onChange={set('type')} placeholder="Chọn hình thức…" required={true} />
                   <div className="form-group">
-                    <label><i className="fas fa-clock"></i> Due At <small style={{ color: '#999', textTransform: 'none' }}>(empty = log past activity)</small></label>
-                    <input type="datetime-local" value={form.dueAt} onChange={(e) => setForm((f) => ({ ...f, dueAt: e.target.value }))} />
+                    <label><i className="fas fa-clock"></i> Thời hạn thực hiện <small style={{ color: '#94a3b8', textTransform: 'none' }}>(để trống = ghi nhận đã tương tác)</small></label>
+                    <input type="datetime-local" value={form.dueAt} onChange={(e) => setForm((f) => ({ ...f, dueAt: e.target.value }))} className="filter-input" />
                   </div>
                   {all && (
-                    <SearchableDropdown label="Assigned To" icon="fas fa-user-tie"
-                      options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))}
-                      value={form.assignedAgent} onChange={set('assignedAgent')} placeholder="Agent…" />
+                    <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie"
+                      options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + (viEnum(a.role) || a.role) + ')' }))}
+                      value={form.assignedAgent} onChange={set('assignedAgent')} placeholder="Chọn nhân viên…" />
                   )}
                   {editing && (
-                    <SearchableDropdown label="Status" icon="fas fa-flag" options={opts(ENUMS.followUpStatus)} value={form.status} onChange={set('status')} placeholder="Status…" />
+                    <SearchableDropdown label="Trạng thái" icon="fas fa-flag" options={opts(ENUMS.followUpStatus)} value={form.status} onChange={set('status')} placeholder="Trạng thái…" />
                   )}
                 </div>
-                <div className="form-group">
-                  <label><i className="fas fa-align-left"></i> Ghi chú</label>
-                  <textarea rows="3" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="What needs to happen / what happened…"></textarea>
+                <div className="form-group" style={{ marginTop: 10 }}>
+                  <label><i className="fas fa-align-left"></i> Nội dung / Ghi chú chăm sóc</label>
+                  <textarea rows="3" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Nội dung cần trao đổi hoặc kết quả tương tác với khách hàng..." className="filter-input" style={{ width: '100%' }}></textarea>
                 </div>
-                <div className="form-actions">
-                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                <div className="form-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Đóng</button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Saving…</> : <><i className="fas fa-save"></i> {editing ? 'Update' : 'Save'}</>}
+                    {saving ? <><i className="fas fa-spinner fa-spin"></i> Đang lưu…</> : <><i className="fas fa-save"></i> {editing ? 'Cập nhật' : 'Tạo lịch'}</>}
                   </button>
                 </div>
               </form>

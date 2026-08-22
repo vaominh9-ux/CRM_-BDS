@@ -1232,8 +1232,15 @@
         color: #ffffff !important;
       }
 
-      /* 2. Thanh Phụ Tinh Gọn (Sub-Toolbar) */
-      .mob-leads-sub-toolbar {
+      /* 2. Thanh Phụ Tinh Gọn (Sub-Toolbar) Dùng Chung Các Phân Hệ */
+      .mob-leads-sub-toolbar,
+      .mob-props-sub-toolbar,
+      .mob-followups-sub-toolbar,
+      .mob-appts-sub-toolbar,
+      .mob-deals-sub-toolbar,
+      .mob-tenancies-sub-toolbar,
+      .mob-owners-sub-toolbar,
+      .mob-users-sub-toolbar {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
@@ -1272,6 +1279,11 @@
         position: relative !important;
         transition: all 0.15s ease !important;
       }
+      .mob-tool-btn-primary {
+        background: var(--navy-primary, #001f3f) !important;
+        color: #ffffff !important;
+        border-color: var(--navy-primary, #001f3f) !important;
+      }
       .mob-tool-btn.active {
         background: var(--navy-primary, #001f3f) !important;
         color: #ffffff !important;
@@ -1281,6 +1293,11 @@
         background: #1e293b !important;
         border-color: rgba(255, 255, 255, 0.08) !important;
         color: #94a3b8 !important;
+      }
+      body.dark-mode .mob-tool-btn-primary {
+        background: var(--navy-accent, #0074D9) !important;
+        border-color: var(--navy-accent, #0074D9) !important;
+        color: #ffffff !important;
       }
       body.dark-mode .mob-tool-btn.active {
         background: var(--navy-accent, #0074D9) !important;
