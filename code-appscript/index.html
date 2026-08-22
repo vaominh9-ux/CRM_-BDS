@@ -4390,64 +4390,136 @@
     .lightbox .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.14); border: none; color: #fff; font-size: 22px; padding: 12px 14px; cursor: pointer; border-radius: var(--r-md); }
     .a4-frame { width: 100%; height: 72vh; border: 1px solid #ccd5df; border-radius: var(--r-md); background: #eef1f5; }
 
-    /* ---- AI chat assistant ---- */
-    /* ===== AI Assistant — full-bleed Gemini-style chat (height is measured at runtime, see AiChatView) ===== */
-    .ai-wrap { display: flex; flex-direction: column; width: 100%; height: calc(100dvh - 150px); min-height: 380px;
-      background: #fff; border: 1px solid #e3e7ee; border-radius: var(--r-md); overflow: hidden; }
-    .ai-scroll { flex: 1; overflow-y: auto; padding: 24px 20px 4px; }
-    .ai-thread { max-width: 820px; width: 100%; margin: 0 auto; }
+    /* ---- AI Chat Assistant (Ultra-Premium Copilot) ---- */
+    .ai-wrap { display: flex; flex-direction: column; width: 100%; height: calc(100dvh - 140px); min-height: 460px;
+      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.03); position: relative; }
+    
+    /* Top Bar */
+    .ai-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+    .ai-model-pill { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: #1e293b; }
+    .ai-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.2); animation: notif-pulse 2s infinite; }
+    .ai-top-actions { display: flex; align-items: center; gap: 8px; }
+    .ai-top-btn { border: none; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .16s; }
+    .ai-top-btn:hover { background: #f1f5f9; color: var(--navy-primary); border-color: #94a3b8; }
 
-    .ai-hello { padding: 7vh 2px 0; }
-    .ai-hello h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 700; line-height: 1.18; margin-bottom: 8px;
-      background: linear-gradient(90deg, #1b6ef3 0%, #8b5cf6 46%, #d94f8a 100%);
+    /* Scroll Area & Thread */
+    .ai-scroll { flex: 1; overflow-y: auto; padding: 20px 20px 8px; scroll-behavior: smooth; }
+    .ai-thread { max-width: 860px; width: 100%; margin: 0 auto; }
+
+    /* Hero Greeting */
+    .ai-hello { padding: 4vh 10px 16px; text-align: center; }
+    .ai-hero-orb { width: 68px; height: 68px; margin: 0 auto 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+      box-shadow: 0 10px 28px rgba(139,92,246,.35); animation: aiOrbPulse 3s ease-in-out infinite; }
+    @keyframes aiOrbPulse { 0%, 100% { transform: scale(1); box-shadow: 0 10px 28px rgba(139,92,246,.35); } 50% { transform: scale(1.05); box-shadow: 0 14px 36px rgba(236,72,153,.45); } }
+    .ai-hello h2 { font-size: clamp(24px, 3.5vw, 34px); font-weight: 800; line-height: 1.25; margin-bottom: 8px;
+      background: linear-gradient(90deg, #1e40af 0%, #7c3aed 50%, #db2777 100%);
       -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-    .ai-hello p { font-size: 15px; color: #8b9aa8; margin-bottom: 22px; }
-    .ai-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .ai-card { position: relative; text-align: left; border: 1px solid #e3e7ee; background: #f7f9fc; border-radius: var(--r-md);
-      padding: 15px 46px 15px 15px; font-size: 13.5px; line-height: 1.5; color: #37485c; cursor: pointer; min-height: 92px; transition: all .18s; }
-    .ai-card:hover { background: #fff; border-color: var(--navy-accent); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
-    .ai-card i { position: absolute; right: 12px; bottom: 12px; width: 28px; height: 28px; border-radius: 50%; background: #fff;
-      border: 1px solid #e3e7ee; display: flex; align-items: center; justify-content: center; color: var(--navy-accent); font-size: 12px; }
+    .ai-hello p { font-size: 14.5px; color: #64748b; max-width: 600px; margin: 0 auto 24px; line-height: 1.5; }
+    
+    /* Prompt Categories & Cards */
+    .ai-cat-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .ai-cat-btn { border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all .18s; display: flex; align-items: center; gap: 6px; }
+    .ai-cat-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .ai-cat-btn.active { background: var(--navy-primary); color: #ffffff; border-color: var(--navy-primary); box-shadow: 0 4px 12px rgba(0,31,63,.15); }
+    
+    .ai-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; text-align: left; }
+    .ai-card { position: relative; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 12px;
+      padding: 16px 44px 16px 16px; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: #334155; cursor: pointer; min-height: 84px; transition: all .2s ease; box-shadow: 0 2px 6px rgba(0,0,0,.02); }
+    .ai-card:hover { background: #ffffff; border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.06); color: var(--navy-primary); }
+    .ai-card i { position: absolute; right: 14px; bottom: 14px; width: 28px; height: 28px; border-radius: 50%; background: #ffffff;
+      border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: #6366f1; font-size: 12px; transition: all .2s; }
+    .ai-card:hover i { background: #6366f1; color: #ffffff; border-color: #6366f1; }
 
-    .ai-turn { display: flex; gap: 12px; margin-bottom: 22px; }
+    /* Chat Turns */
+    .ai-turn { display: flex; gap: 12px; margin-bottom: 20px; animation: aiFadeIn .25s ease-out; }
+    @keyframes aiFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .ai-turn.me { justify-content: flex-end; }
-    .ai-av { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #1b6ef3, #8b5cf6); color: #fff; font-size: 13px; }
-    .ai-said { max-width: 76%; background: #eef3f9; color: #223; padding: 11px 15px; border-radius: 18px 18px 4px 18px;
-      font-size: 14px; line-height: 1.6; overflow-wrap: break-word; white-space: pre-wrap; }
-    .ai-reply { flex: 1; min-width: 0; padding-top: 3px; font-size: 14.5px; line-height: 1.75; color: #26323f; overflow-wrap: break-word; }
-    .ai-reply b { color: var(--navy-primary); }
-    .ai-reply ul { margin: 8px 0 8px 20px; } .ai-reply li { margin: 4px 0; }
-    .ai-reply.err { color: #b02a1f; }
-    .ai-note { background: #fdecea; border: 1px solid #f4c3bd; color: #b02a1f; padding: 11px 15px; border-radius: var(--r-md); font-size: 13.5px; margin-bottom: 18px; }
+    .ai-av { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; font-size: 13px; box-shadow: 0 3px 10px rgba(99,102,241,.25); }
+    .ai-user-av { width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    
+    .ai-said { max-width: 78%; background: var(--navy-primary); color: #ffffff; padding: 12px 18px; border-radius: 18px 18px 4px 18px;
+      font-size: 14px; line-height: 1.6; overflow-wrap: break-word; white-space: pre-wrap; box-shadow: 0 4px 14px rgba(0,31,63,.12); }
+    
+    .ai-msg-body { flex: 1; min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px 18px 18px 18px; padding: 14px 18px; box-shadow: 0 2px 8px rgba(0,0,0,.02); }
+    .ai-reply { font-size: 14.5px; line-height: 1.75; color: #1e293b; overflow-wrap: break-word; }
+    .ai-reply strong { color: var(--navy-primary); font-weight: 700; }
+    .ai-reply.err { color: #dc2626; }
+    .ai-inline-code { background: #e2e8f0; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+    .ai-md-h2 { font-size: 16px; font-weight: 800; color: var(--navy-primary); margin: 12px 0 6px; }
+    .ai-md-h3 { font-size: 15px; font-weight: 700; color: #0369a1; margin: 10px 0 4px; }
+    .ai-md-h4 { font-size: 14px; font-weight: 700; color: #334155; margin: 8px 0 4px; }
+    .ai-md-bullet { display: flex; gap: 8px; margin: 4px 0; line-height: 1.6; }
+    .ai-md-bullet .bullet-dot { color: #6366f1; font-weight: 900; }
+    .ai-md-num { display: flex; gap: 8px; margin: 4px 0; line-height: 1.6; }
+    .ai-md-num .num-badge { color: #0284c7; font-weight: 700; min-width: 18px; }
 
-    .ai-composer-wrap { padding: 10px 20px 14px; background: #fff; }
-    .ai-composer { max-width: 820px; margin: 0 auto; display: flex; align-items: flex-end; gap: 8px; background: #f0f4f9;
-      border: 1px solid #e0e7ef; border-radius: 26px; padding: 6px 6px 6px 18px; transition: border-color .2s, box-shadow .2s, background .2s; }
-    .ai-composer:focus-within { background: #fff; border-color: var(--navy-accent); box-shadow: 0 0 0 4px rgba(0,116,217,.12); }
+    /* Message Action Buttons */
+    .ai-msg-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 11.5px; color: #64748b; }
+    .ai-act-btn { border: none; background: transparent; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; padding: 2px 6px; border-radius: 4px; transition: all .15s; }
+    .ai-act-btn:hover { background: #e2e8f0; color: var(--navy-primary); }
+
+    /* Typing Indicator */
+    .ai-typing-box { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px 18px 18px 18px; font-size: 13px; color: #64748b; font-weight: 600; }
+    .ai-typing-dots { display: flex; gap: 4px; }
+    .ai-typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: #6366f1; animation: aiDotPulse 1.2s infinite ease-in-out; }
+    .ai-typing-dots span:nth-child(2) { animation-delay: .2s; }
+    .ai-typing-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes aiDotPulse { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1.1); opacity: 1; } }
+
+    /* Floating Island Composer */
+    .ai-composer-wrap { padding: 12px 20px 14px; background: #ffffff; border-top: 1px solid #f1f5f9; position: relative; }
+    .ai-quick-pills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-bottom: 8px; max-width: 860px; margin-left: auto; margin-right: auto; padding-bottom: 2px; }
+    .ai-quick-pills::-webkit-scrollbar { display: none; }
+    .ai-quick-pill { flex: 0 0 auto; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; padding: 4px 10px; border-radius: 14px; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: all .16s; }
+    .ai-quick-pill:hover { background: #f1f5f9; border-color: #38bdf8; color: var(--navy-primary); }
+
+    .ai-composer { max-width: 860px; margin: 0 auto; display: flex; align-items: flex-end; gap: 8px; background: #f8fafc;
+      border: 1.5px solid #cbd5e1; border-radius: 24px; padding: 6px 8px 6px 18px; transition: all .2s cubic-bezier(.4,0,.2,1); }
+    .ai-composer:focus-within { background: #ffffff; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,.12); }
     .ai-composer textarea { flex: 1; border: none; background: transparent; resize: none; outline: none; font-family: inherit;
-      font-size: 16px; line-height: 1.5; padding: 11px 0; max-height: 160px; color: #223; }
-    .ai-send { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--navy-primary); color: #fff; cursor: pointer;
-      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background .18s; }
-    .ai-send:hover:not(:disabled) { background: var(--navy-accent); }
-    .ai-send:disabled { background: #c8ced6; cursor: default; }
-    .ai-foot { max-width: 820px; margin: 8px auto 0; text-align: center; font-size: 11.5px; color: #9aa8b5; }
+      font-size: 14.5px; line-height: 1.5; padding: 9px 0; max-height: 160px; color: #0f172a; }
+    .ai-send { width: 38px; height: 38px; border-radius: 50%; border: none; background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; cursor: pointer;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all .18s; box-shadow: 0 3px 8px rgba(99,102,241,.25); }
+    .ai-send:hover:not(:disabled) { transform: scale(1.06); filter: brightness(1.1); }
+    .ai-send:disabled { background: #cbd5e1; box-shadow: none; cursor: default; }
+    .ai-foot { max-width: 860px; margin: 6px auto 0; text-align: center; font-size: 11px; color: #94a3b8; }
 
-    .ai-typing { display: flex; gap: 5px; padding-top: 11px; }
-    .ai-typing span { width: 7px; height: 7px; border-radius: 50%; background: #9ab; animation: aiB 1.2s infinite; }
-    .ai-typing span:nth-child(2) { animation-delay: .2s; } .ai-typing span:nth-child(3) { animation-delay: .4s; }
+    /* Dark Mode */
+    body.dark-mode .ai-wrap { background: #0f172a; border-color: #334155; }
+    body.dark-mode .ai-header-bar { background: #1e293b; border-color: #334155; }
+    body.dark-mode .ai-model-pill { color: #f8fafc; }
+    body.dark-mode .ai-top-btn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+    body.dark-mode .ai-cat-btn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+    body.dark-mode .ai-card { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+    body.dark-mode .ai-card:hover { background: #334155; }
+    body.dark-mode .ai-card i { background: #0f172a; border-color: #334155; }
+    body.dark-mode .ai-msg-body { background: #1e293b; border-color: #334155; }
+    body.dark-mode .ai-reply { color: #e2e8f0; }
+    body.dark-mode .ai-reply strong { color: #38bdf8; }
+    body.dark-mode .ai-inline-code { background: #334155; color: #38bdf8; }
+    body.dark-mode .ai-composer-wrap { background: #0f172a; border-color: #334155; }
+    body.dark-mode .ai-quick-pill { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+    body.dark-mode .ai-composer { background: #1e293b; border-color: #334155; }
+    body.dark-mode .ai-composer:focus-within { background: #0f172a; }
+    body.dark-mode .ai-composer textarea { color: #f8fafc; }
+    body.dark-mode .ai-typing-box { background: #1e293b; border-color: #334155; color: #94a3b8; }
+    body.dark-mode .ai-msg-actions { border-color: #334155; }
+    body.dark-mode .ai-act-btn:hover { background: #334155; color: #f8fafc; }
 
-    body.dark-mode .ai-wrap, body.dark-mode .ai-composer-wrap { background: #1a1a1a; }
-    body.dark-mode .ai-wrap { border-color: #2f2f2f; }
-    body.dark-mode .ai-composer { background: #262626; border-color: #3a3a3a; }
-    body.dark-mode .ai-composer:focus-within { background: #2b2b2b; }
-    body.dark-mode .ai-composer textarea { color: #e6ecf3; }
-    body.dark-mode .ai-said { background: #2b3a4a; color: #e6ecf3; }
-    body.dark-mode .ai-reply { color: #d6dfe8; }
-    body.dark-mode .ai-reply b { color: #9fc9ff; }
-    body.dark-mode .ai-card { background: #242424; border-color: #3a3a3a; color: #cfd9e4; }
-    body.dark-mode .ai-card:hover { background: #2b2b2b; }
-    body.dark-mode .ai-card i { background: #1a1a1a; border-color: #3a3a3a; }
+    /* Mobile AI (≤ 768px) */
+    @media (max-width: 768px) {
+      .ai-wrap { height: calc(100dvh - 120px); border-radius: 0; border-left: none; border-right: none; }
+      .ai-scroll { padding: 12px 10px 4px; }
+      .ai-hello { padding: 2vh 4px 12px; }
+      .ai-cards { grid-template-columns: 1fr; gap: 8px; }
+      .ai-card { min-height: 64px; padding: 12px 38px 12px 12px; font-size: 12.5px; }
+      .ai-said { max-width: 88%; font-size: 13.5px; padding: 10px 14px; }
+      .ai-msg-body { padding: 12px 14px; }
+      .ai-composer-wrap { padding: 8px 10px 10px; }
+      .ai-composer textarea { font-size: 14px; }
+    }
     body.dark-mode .ai-hello p { color: #9aa8b5; }
     @media (max-width: 640px) { .ai-cards { grid-template-columns: 1fr; } .ai-hello { padding-top: 3vh; } .ai-scroll { padding: 16px 12px 4px; } .ai-composer-wrap { padding: 8px 12px 12px; } }
     @keyframes aiB { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-5px); opacity: 1; } }
@@ -20411,12 +20483,28 @@
       );
     }
 
-    // ============== AI Assistant — chat over the caller's own-scope CRM data (key stays server-side) ==============
-    const mdLite = (s) => esc(s) // minimal markdown: bold + bullets + line breaks, everything else stays escaped text
-      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-      .replace(/^#{1,3} (.*)$/gm, '<b>$1</b>')
-      .replace(/^[-*] /gm, '• ')
-      .replace(/\n/g, '<br>');
+    // ============== AI Assistant — Ultra-Premium Real Estate Copilot ==============
+    const mdLite = (s) => {
+      if (!s) return '';
+      let h = esc(String(s));
+      // bold & italic
+      h = h.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      // inline code
+      h = h.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+      // headers
+      h = h.replace(/^### (.*$)/gm, '<div class="ai-md-h4">$1</div>');
+      h = h.replace(/^## (.*$)/gm, '<div class="ai-md-h3">$1</div>');
+      h = h.replace(/^# (.*$)/gm, '<div class="ai-md-h2">$1</div>');
+      // bullet items
+      h = h.replace(/^[-*] (.*$)/gm, '<div class="ai-md-bullet"><span class="bullet-dot">•</span><span>$1</span></div>');
+      // numbered list
+      h = h.replace(/^(\d+)\. (.*$)/gm, '<div class="ai-md-num"><span class="num-badge">$1.</span><span>$2</span></div>');
+      // line breaks
+      h = h.replace(/\n/g, '<br>');
+      return h;
+    };
 
     function AiChatView({ currentUser, role }) {
       const { data: cfgRes } = useSWR('ai:cfg', () => gsRun('getAiConfig', currentUser), SWR_LIVE);
@@ -20424,86 +20512,263 @@
       const [msgs, setMsgs] = useState([]);
       const [input, setInput] = useState('');
       const [busy, setBusy] = useState(false);
+      const [cat, setCat] = useState('finance');
+      const [copiedIdx, setCopiedIdx] = useState(null);
       const endRef = useRef(null), wrapRef = useRef(null), taRef = useRef(null);
-      // fill the viewport exactly — measured, so no dead strip is left under the composer whatever sits above
+
+      // Viewport auto-fit
       useEffect(() => {
-        const fit = () => { const el = wrapRef.current; if (el) el.style.height = Math.max(380, window.innerHeight - el.getBoundingClientRect().top - 16) + 'px'; };
-        fit(); const raf = requestAnimationFrame(fit);
+        const fit = () => {
+          const el = wrapRef.current;
+          if (el) el.style.height = Math.max(460, window.innerHeight - el.getBoundingClientRect().top - 16) + 'px';
+        };
+        fit();
+        const raf = requestAnimationFrame(fit);
         window.addEventListener('resize', fit);
         return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', fit); };
       }, []);
-      useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: 'smooth' }); }, [msgs, busy]);
-      useEffect(() => {
-        setPageActions(msgs.length ? [{ icon: 'fa-broom', label: 'Xóa cuộc trò chuyện', onClick: () => setMsgs([]) }] : []);
-        return () => setPageActions([]);
-      }, [msgs.length]);
 
-      const grow = () => { const t = taRef.current; if (t) { t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight) + 'px'; } };
+      useEffect(() => {
+        if (endRef.current) endRef.current.scrollIntoView({ behavior: 'smooth' });
+      }, [msgs, busy]);
+
+      const grow = () => {
+        const t = taRef.current;
+        if (t) { t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight) + 'px'; }
+      };
+
       const send = (text) => {
         const q = String(text || input).trim();
         if (!q || busy) return;
-        const hist = [...msgs, { role: 'user', content: q }];
-        setMsgs(hist); setInput(''); setBusy(true);
+        const hist = [...msgs, { role: 'user', content: q, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }];
+        setMsgs(hist);
+        setInput('');
+        setBusy(true);
         if (taRef.current) taRef.current.style.height = 'auto';
+
         gsRun('aiChat', hist.map(({ role: r0, content }) => ({ role: r0, content })), currentUser).then((r) => {
           setBusy(false);
           setMsgs(r && r.success
-            ? [...hist, { role: 'assistant', content: r.reply }]
-            : [...hist, { role: 'assistant', content: (r && r.message) || 'Thao tác thất bại — vui lòng thử lại.', err: true }]);
-        }).catch((e) => { setBusy(false); setMsgs([...hist, { role: 'assistant', content: String((e && e.message) || e), err: true }]); });
+            ? [...hist, { role: 'assistant', content: r.reply, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }]
+            : [...hist, { role: 'assistant', content: (r && r.message) || 'Thao tác thất bại — vui lòng kiểm tra kết nối.', err: true, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }]);
+        }).catch((e) => {
+          setBusy(false);
+          setMsgs([...hist, { role: 'assistant', content: String((e && e.message) || e), err: true, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }]);
+        });
       };
 
-      const STARTERS = scopeAll(role)
-        ? [['Lịch chăm sóc nào đang quá hạn và do ai phụ trách?', 'fa-bell'], ['Tóm tắt giao dịch và hoa hồng tháng này', 'fa-sack-dollar'],
-           ['Người thuê nào đang có công nợ?', 'fa-house-circle-exclamation'], ['Tin đăng nào đã quá 90 ngày chưa phát sinh giao dịch?', 'fa-hourglass-half']]
-        : [['Hôm nay tôi nên ưu tiên công việc nào?', 'fa-list-check'], ['Khách hàng nào của tôi đang có chào giá mở?', 'fa-scale-balanced'],
-           ['Lịch xem của tôi trong tuần này?', 'fa-calendar-check'], ['Người thuê nào của tôi đang nợ tiền thuê?', 'fa-house-circle-exclamation']];
+      const copyText = (txt, idx) => {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(txt);
+          setCopiedIdx(idx);
+          setTimeout(() => setCopiedIdx(null), 2000);
+        }
+      };
+
+      const speakText = (txt) => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(txt.replace(/[#*`_]/g, ''));
+          utter.lang = 'vi-VN';
+          utter.rate = 1.05;
+          window.speechSynthesis.speak(utter);
+        }
+      };
+
+      // Prompt Library by Category
+      const PROMPTS_BY_CAT = {
+        finance: [
+          ['Tóm tắt doanh số, hoa hồng và số dư còn nợ trong tháng này', 'fa-sack-dollar'],
+          ['Hợp đồng thuê nào đang có công nợ quá hạn cần nhắc thu tiền?', 'fa-house-circle-exclamation'],
+          ['Tổng kết các giao dịch đã hoàn tất và hoa hồng chi trả cho nhân viên', 'fa-hand-holding-dollar'],
+          ['Tình hình thu tiền thuê nhà tháng này đạt bao nhiêu phần trăm?', 'fa-chart-line']
+        ],
+        leads: [
+          ['Khách hàng nào đang có trạng thái Nóng (Hot) cần ưu tiên chăm sóc?', 'fa-fire'],
+          ['Lịch chăm sóc nào đang bị quá hạn và do ai phụ trách?', 'fa-bell'],
+          ['Tổng hợp các khách hàng mới để lại thông tin từ Cổng thông tin', 'fa-globe'],
+          ['Những khách hàng nào đã xem nhà nhưng chưa phát sinh giao dịch?', 'fa-user-check']
+        ],
+        props: [
+          ['BĐS nào đang có sẵn và có mức giá tốt nhất hiện nay?', 'fa-tag'],
+          ['Tin đăng nào đã quá 60 ngày chưa phát sinh giao dịch hoặc lịch xem?', 'fa-hourglass-half'],
+          ['Danh sách các căn hộ cho thuê còn trống sẵn sàng bàn giao', 'fa-key'],
+          ['Khu vực nào đang có lượng BĐS phong phú nhất trong hệ thống?', 'fa-map-location-dot']
+        ],
+        copywrite: [
+          ['Viết một bài đăng Facebook chuyên nghiệp để quảng cáo căn hộ cao cấp', 'fa-pen-fancy'],
+          ['Soạn tin nhắn Zalo lịch sự và trang trọng nhắc khách đóng tiền thuê nhà', 'fa-comment-sms'],
+          ['Soạn kịch bản gọi điện mời khách hàng tiềm năng đi xem nhà mẫu', 'fa-phone-volume'],
+          ['Viết email cảm ơn khách hàng sau khi hoàn tất giao dịch mua bán BĐS', 'fa-envelope-open-text']
+        ]
+      };
+
+      const QUICK_FOLLOWUPS = [
+        'Tóm tắt doanh số tháng này',
+        'Khách hàng nào cần chăm sóc gấp?',
+        'Hợp đồng thuê đang có công nợ',
+        'BĐS cho thuê còn trống'
+      ];
 
       return (
         <div className="ai-wrap" ref={wrapRef}>
+          {/* Top Bar */}
+          <div className="ai-header-bar">
+            <div className="ai-model-pill">
+              <span className="ai-status-dot"></span>
+              <span>Trợ lý AI Bất Động Sản</span>
+              <span className="badge badge-info" style={{ fontSize: 11, padding: '2px 7px' }}>
+                <i className="fas fa-brain"></i> {cfg && cfg.model ? cfg.model : 'OpenAI Neural Engine'}
+              </span>
+            </div>
+            <div className="ai-top-actions">
+              {msgs.length > 0 && (
+                <button className="ai-top-btn" onClick={() => setMsgs([])} title="Xóa toàn bộ cuộc trò chuyện">
+                  <i className="fas fa-broom"></i> Xóa đoạn chat
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Main Scrollable Thread */}
           <div className="ai-scroll">
             <div className="ai-thread">
               {cfg && !cfg.hasKey && (
-                <div className="ai-note">
-                  <i className="fas fa-key"></i> Chưa thiết lập khóa API OpenAI{role === 'Admin' ? ' — hãy thêm khóa trong Cài đặt → Trợ lý AI.' : ' — hãy liên hệ quản trị viên để thiết lập.'}
+                <div className="ai-note" style={{ background: '#fff7ed', border: '1px solid #fed7aa', color: '#c2410c', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
+                  <i className="fas fa-key" style={{ marginRight: 8 }}></i>
+                  Chưa cấu hình khóa API OpenAI{role === 'Admin' ? ' — bạn có thể thêm khóa trong [Cài đặt → Trợ lý AI] để kích hoạt AI trực tiếp.' : ' — hãy liên hệ Quản trị viên để thiết lập khóa API.'}
                 </div>
               )}
+
+              {/* Zero state: Hero greeting + Prompt library */}
               {msgs.length === 0 && (
                 <div className="ai-hello">
+                  <div className="ai-hero-orb">
+                    <i className="fas fa-wand-magic-sparkles"></i>
+                  </div>
                   <h2>Xin chào, {currentUser}</h2>
-                  <p>Hãy hỏi bất kỳ điều gì về dữ liệu CRM {scopeAll(role) ? 'của công ty' : 'được phân quyền cho bạn'} — khách hàng, giao dịch, tiền thuê và tin đăng.{cfg && cfg.model ? ' · ' + cfg.model : ''}</p>
+                  <p>
+                    Tôi là trợ lý AI chuyên biệt cho BĐS Master CRM. Bạn có thể hỏi bất kỳ điều gì về dữ liệu khách hàng, giao dịch, hợp đồng thuê và nguồn hàng {scopeAll(role) ? 'của toàn công ty' : 'được phân công cho bạn'}.
+                  </p>
+
+                  {/* Category Filter Tabs */}
+                  <div className="ai-cat-tabs">
+                    <button className={'ai-cat-btn ' + (cat === 'finance' ? 'active' : '')} onClick={() => setCat('finance')}>
+                      <i className="fas fa-sack-dollar"></i> Tài chính & Doanh số
+                    </button>
+                    <button className={'ai-cat-btn ' + (cat === 'leads' ? 'active' : '')} onClick={() => setCat('leads')}>
+                      <i className="fas fa-user-tag"></i> Khách hàng & Chăm sóc
+                    </button>
+                    <button className={'ai-cat-btn ' + (cat === 'props' ? 'active' : '')} onClick={() => setCat('props')}>
+                      <i className="fas fa-building"></i> Kho Bất Động Sản
+                    </button>
+                    <button className={'ai-cat-btn ' + (cat === 'copywrite' ? 'active' : '')} onClick={() => setCat('copywrite')}>
+                      <i className="fas fa-pen-nib"></i> Soạn thảo & Nội dung
+                    </button>
+                  </div>
+
+                  {/* Prompt Suggestion Cards */}
                   <div className="ai-cards">
-                    {STARTERS.map(([s, ic], i) => <button key={i} className="ai-card" onClick={() => send(s)}>{s}<i className={'fas ' + ic}></i></button>)}
+                    {(PROMPTS_BY_CAT[cat] || []).map(([s, ic], i) => (
+                      <button key={i} className="ai-card" onClick={() => send(s)}>
+                        <span>{s}</span>
+                        <i className={'fas ' + ic}></i>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
-              {msgs.map((m, i) => (m.role === 'user' ? (
-                <div className="ai-turn me" key={i}><div className="ai-said">{m.content}</div></div>
-              ) : (
-                <div className="ai-turn" key={i}>
-                  <div className="ai-av"><i className="fas fa-wand-magic-sparkles"></i></div>
-                  <div className={'ai-reply' + (m.err ? ' err' : '')} dangerouslySetInnerHTML={{ __html: mdLite(m.content) }}></div>
+
+              {/* Message Turns */}
+              {msgs.map((m, i) => (
+                <div className={'ai-turn ' + (m.role === 'user' ? 'me' : '')} key={i}>
+                  {m.role !== 'user' && (
+                    <div className="ai-av" title="Trợ lý AI">
+                      <i className="fas fa-wand-magic-sparkles"></i>
+                    </div>
+                  )}
+
+                  {m.role === 'user' ? (
+                    <div>
+                      <div className="ai-said">{m.content}</div>
+                      <div style={{ textAlign: 'right', fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{m.time}</div>
+                    </div>
+                  ) : (
+                    <div className="ai-msg-body">
+                      <div className={'ai-reply' + (m.err ? ' err' : '')} dangerouslySetInnerHTML={{ __html: mdLite(m.content) }}></div>
+                      <div className="ai-msg-actions">
+                        <span>{m.time || ''}</span>
+                        <span style={{ margin: '0 4px' }}>•</span>
+                        <button className="ai-act-btn" onClick={() => copyText(m.content, i)} title="Sao chép nội dung">
+                          <i className={`fas ${copiedIdx === i ? 'fa-check' : 'fa-copy'}`} style={{ color: copiedIdx === i ? '#16a34a' : 'inherit' }}></i>
+                          {copiedIdx === i ? 'Đã chép' : 'Sao chép'}
+                        </button>
+                        <button className="ai-act-btn" onClick={() => speakText(m.content)} title="Đọc nội dung bằng giọng nói">
+                          <i className="fas fa-volume-high"></i> Đọc
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {m.role === 'user' && (
+                    <div className="ai-user-av" title={currentUser}>
+                      {String(currentUser || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
-              )))}
+              ))}
+
+              {/* Typing Shimmer */}
               {busy && (
                 <div className="ai-turn">
-                  <div className="ai-av"><i className="fas fa-wand-magic-sparkles"></i></div>
-                  <div className="ai-typing"><span></span><span></span><span></span></div>
+                  <div className="ai-av">
+                    <i className="fas fa-wand-magic-sparkles"></i>
+                  </div>
+                  <div className="ai-typing-box">
+                    <div className="ai-typing-dots">
+                      <span></span><span></span><span></span>
+                    </div>
+                    <span>AI đang tra cứu dữ liệu CRM & phân tích câu trả lời…</span>
+                  </div>
                 </div>
               )}
               <div ref={endRef}></div>
             </div>
           </div>
+
+          {/* Floating Composer */}
           <div className="ai-composer-wrap">
+            {/* Quick Follow-up Pills */}
+            <div className="ai-quick-pills">
+              {QUICK_FOLLOWUPS.map((q, idx) => (
+                <button key={idx} className="ai-quick-pill" onClick={() => send(q)} disabled={busy}>
+                  <i className="fas fa-sparkles" style={{ color: '#6366f1', marginRight: 4 }}></i> {q}
+                </button>
+              ))}
+            </div>
+
             <div className="ai-composer">
-              <textarea ref={taRef} rows={1} value={input} placeholder="Hỏi về dữ liệu của bạn…" disabled={busy}
-                        onChange={(e) => { setInput(e.target.value); grow(); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
-              <button className="ai-send" onClick={() => send()} disabled={busy || !input.trim()} title="Gửi">
+              <textarea
+                ref={taRef}
+                rows={1}
+                value={input}
+                placeholder="Hỏi bất kỳ điều gì về khách hàng, BĐS, doanh số, hợp đồng… (Enter để gửi, Shift+Enter xuống dòng)"
+                disabled={busy}
+                onChange={(e) => { setInput(e.target.value); grow(); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                  }
+                }}
+              />
+              <button className="ai-send" onClick={() => send()} disabled={busy || !input.trim()} title="Gửi tin nhắn">
                 <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-paper-plane')}></i>
               </button>
             </div>
-            <div className="ai-foot">Trợ lý RS đọc dữ liệu CRM theo phạm vi quyền của bạn · hãy kiểm tra thông tin quan trọng trước khi thực hiện</div>
+            <div className="ai-foot">
+              Trợ lý AI phân tích theo phạm vi quyền của bạn · Hãy kiểm tra kỹ thông tin trước khi thực hiện giao dịch quan trọng
+            </div>
           </div>
         </div>
       );

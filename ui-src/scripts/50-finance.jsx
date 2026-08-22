@@ -1927,12 +1927,28 @@
       );
     }
 
-    // ============== AI Assistant — chat over the caller's own-scope CRM data (key stays server-side) ==============
-    const mdLite = (s) => esc(s) // minimal markdown: bold + bullets + line breaks, everything else stays escaped text
-      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-      .replace(/^#{1,3} (.*)$/gm, '<b>$1</b>')
-      .replace(/^[-*] /gm, '• ')
-      .replace(/\n/g, '<br>');
+    // ============== AI Assistant — Ultra-Premium Real Estate Copilot ==============
+    const mdLite = (s) => {
+      if (!s) return '';
+      let h = esc(String(s));
+      // bold & italic
+      h = h.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      // inline code
+      h = h.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+      // headers
+      h = h.replace(/^### (.*$)/gm, '<div class="ai-md-h4">$1</div>');
+      h = h.replace(/^## (.*$)/gm, '<div class="ai-md-h3">$1</div>');
+      h = h.replace(/^# (.*$)/gm, '<div class="ai-md-h2">$1</div>');
+      // bullet items
+      h = h.replace(/^[-*] (.*$)/gm, '<div class="ai-md-bullet"><span class="bullet-dot">•</span><span>$1</span></div>');
+      // numbered list
+      h = h.replace(/^(\d+)\. (.*$)/gm, '<div class="ai-md-num"><span class="num-badge">$1.</span><span>$2</span></div>');
+      // line breaks
+      h = h.replace(/\n/g, '<br>');
+      return h;
+    };
 
     function AiChatView({ currentUser, role }) {
       const { data: cfgRes } = useSWR('ai:cfg', () => gsRun('getAiConfig', currentUser), SWR_LIVE);
@@ -1940,86 +1956,263 @@
       const [msgs, setMsgs] = useState([]);
       const [input, setInput] = useState('');
       const [busy, setBusy] = useState(false);
+      const [cat, setCat] = useState('finance');
+      const [copiedIdx, setCopiedIdx] = useState(null);
       const endRef = useRef(null), wrapRef = useRef(null), taRef = useRef(null);
-      // fill the viewport exactly — measured, so no dead strip is left under the composer whatever sits above
+
+      // Viewport auto-fit
       useEffect(() => {
-        const fit = () => { const el = wrapRef.current; if (el) el.style.height = Math.max(380, window.innerHeight - el.getBoundingClientRect().top - 16) + 'px'; };
-        fit(); const raf = requestAnimationFrame(fit);
+        const fit = () => {
+          const el = wrapRef.current;
+          if (el) el.style.height = Math.max(460, window.innerHeight - el.getBoundingClientRect().top - 16) + 'px';
+        };
+        fit();
+        const raf = requestAnimationFrame(fit);
         window.addEventListener('resize', fit);
         return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', fit); };
       }, []);
-      useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: 'smooth' }); }, [msgs, busy]);
-      useEffect(() => {
-        setPageActions(msgs.length ? [{ icon: 'fa-broom', label: 'Xóa cuộc trò chuyện', onClick: () => setMsgs([]) }] : []);
-        return () => setPageActions([]);
-      }, [msgs.length]);
 
-      const grow = () => { const t = taRef.current; if (t) { t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight) + 'px'; } };
+      useEffect(() => {
+        if (endRef.current) endRef.current.scrollIntoView({ behavior: 'smooth' });
+      }, [msgs, busy]);
+
+      const grow = () => {
+        const t = taRef.current;
+        if (t) { t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight) + 'px'; }
+      };
+
       const send = (text) => {
         const q = String(text || input).trim();
         if (!q || busy) return;
-        const hist = [...msgs, { role: 'user', content: q }];
-        setMsgs(hist); setInput(''); setBusy(true);
+        const hist = [...msgs, { role: 'user', content: q, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }];
+        setMsgs(hist);
+        setInput('');
+        setBusy(true);
         if (taRef.current) taRef.current.style.height = 'auto';
+
         gsRun('aiChat', hist.map(({ role: r0, content }) => ({ role: r0, content })), currentUser).then((r) => {
           setBusy(false);
           setMsgs(r && r.success
-            ? [...hist, { role: 'assistant', content: r.reply }]
-            : [...hist, { role: 'assistant', content: (r && r.message) || 'Thao tác thất bại — vui lòng thử lại.', err: true }]);
-        }).catch((e) => { setBusy(false); setMsgs([...hist, { role: 'assistant', content: String((e && e.message) || e), err: true }]); });
+            ? [...hist, { role: 'assistant', content: r.reply, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }]
+            : [...hist, { role: 'assistant', content: (r && r.message) || 'Thao tác thất bại — vui lòng kiểm tra kết nối.', err: true, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }]);
+        }).catch((e) => {
+          setBusy(false);
+          setMsgs([...hist, { role: 'assistant', content: String((e && e.message) || e), err: true, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }]);
+        });
       };
 
-      const STARTERS = scopeAll(role)
-        ? [['Lịch chăm sóc nào đang quá hạn và do ai phụ trách?', 'fa-bell'], ['Tóm tắt giao dịch và hoa hồng tháng này', 'fa-sack-dollar'],
-           ['Người thuê nào đang có công nợ?', 'fa-house-circle-exclamation'], ['Tin đăng nào đã quá 90 ngày chưa phát sinh giao dịch?', 'fa-hourglass-half']]
-        : [['Hôm nay tôi nên ưu tiên công việc nào?', 'fa-list-check'], ['Khách hàng nào của tôi đang có chào giá mở?', 'fa-scale-balanced'],
-           ['Lịch xem của tôi trong tuần này?', 'fa-calendar-check'], ['Người thuê nào của tôi đang nợ tiền thuê?', 'fa-house-circle-exclamation']];
+      const copyText = (txt, idx) => {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(txt);
+          setCopiedIdx(idx);
+          setTimeout(() => setCopiedIdx(null), 2000);
+        }
+      };
+
+      const speakText = (txt) => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(txt.replace(/[#*`_]/g, ''));
+          utter.lang = 'vi-VN';
+          utter.rate = 1.05;
+          window.speechSynthesis.speak(utter);
+        }
+      };
+
+      // Prompt Library by Category
+      const PROMPTS_BY_CAT = {
+        finance: [
+          ['Tóm tắt doanh số, hoa hồng và số dư còn nợ trong tháng này', 'fa-sack-dollar'],
+          ['Hợp đồng thuê nào đang có công nợ quá hạn cần nhắc thu tiền?', 'fa-house-circle-exclamation'],
+          ['Tổng kết các giao dịch đã hoàn tất và hoa hồng chi trả cho nhân viên', 'fa-hand-holding-dollar'],
+          ['Tình hình thu tiền thuê nhà tháng này đạt bao nhiêu phần trăm?', 'fa-chart-line']
+        ],
+        leads: [
+          ['Khách hàng nào đang có trạng thái Nóng (Hot) cần ưu tiên chăm sóc?', 'fa-fire'],
+          ['Lịch chăm sóc nào đang bị quá hạn và do ai phụ trách?', 'fa-bell'],
+          ['Tổng hợp các khách hàng mới để lại thông tin từ Cổng thông tin', 'fa-globe'],
+          ['Những khách hàng nào đã xem nhà nhưng chưa phát sinh giao dịch?', 'fa-user-check']
+        ],
+        props: [
+          ['BĐS nào đang có sẵn và có mức giá tốt nhất hiện nay?', 'fa-tag'],
+          ['Tin đăng nào đã quá 60 ngày chưa phát sinh giao dịch hoặc lịch xem?', 'fa-hourglass-half'],
+          ['Danh sách các căn hộ cho thuê còn trống sẵn sàng bàn giao', 'fa-key'],
+          ['Khu vực nào đang có lượng BĐS phong phú nhất trong hệ thống?', 'fa-map-location-dot']
+        ],
+        copywrite: [
+          ['Viết một bài đăng Facebook chuyên nghiệp để quảng cáo căn hộ cao cấp', 'fa-pen-fancy'],
+          ['Soạn tin nhắn Zalo lịch sự và trang trọng nhắc khách đóng tiền thuê nhà', 'fa-comment-sms'],
+          ['Soạn kịch bản gọi điện mời khách hàng tiềm năng đi xem nhà mẫu', 'fa-phone-volume'],
+          ['Viết email cảm ơn khách hàng sau khi hoàn tất giao dịch mua bán BĐS', 'fa-envelope-open-text']
+        ]
+      };
+
+      const QUICK_FOLLOWUPS = [
+        'Tóm tắt doanh số tháng này',
+        'Khách hàng nào cần chăm sóc gấp?',
+        'Hợp đồng thuê đang có công nợ',
+        'BĐS cho thuê còn trống'
+      ];
 
       return (
         <div className="ai-wrap" ref={wrapRef}>
+          {/* Top Bar */}
+          <div className="ai-header-bar">
+            <div className="ai-model-pill">
+              <span className="ai-status-dot"></span>
+              <span>Trợ lý AI Bất Động Sản</span>
+              <span className="badge badge-info" style={{ fontSize: 11, padding: '2px 7px' }}>
+                <i className="fas fa-brain"></i> {cfg && cfg.model ? cfg.model : 'OpenAI Neural Engine'}
+              </span>
+            </div>
+            <div className="ai-top-actions">
+              {msgs.length > 0 && (
+                <button className="ai-top-btn" onClick={() => setMsgs([])} title="Xóa toàn bộ cuộc trò chuyện">
+                  <i className="fas fa-broom"></i> Xóa đoạn chat
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Main Scrollable Thread */}
           <div className="ai-scroll">
             <div className="ai-thread">
               {cfg && !cfg.hasKey && (
-                <div className="ai-note">
-                  <i className="fas fa-key"></i> Chưa thiết lập khóa API OpenAI{role === 'Admin' ? ' — hãy thêm khóa trong Cài đặt → Trợ lý AI.' : ' — hãy liên hệ quản trị viên để thiết lập.'}
+                <div className="ai-note" style={{ background: '#fff7ed', border: '1px solid #fed7aa', color: '#c2410c', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
+                  <i className="fas fa-key" style={{ marginRight: 8 }}></i>
+                  Chưa cấu hình khóa API OpenAI{role === 'Admin' ? ' — bạn có thể thêm khóa trong [Cài đặt → Trợ lý AI] để kích hoạt AI trực tiếp.' : ' — hãy liên hệ Quản trị viên để thiết lập khóa API.'}
                 </div>
               )}
+
+              {/* Zero state: Hero greeting + Prompt library */}
               {msgs.length === 0 && (
                 <div className="ai-hello">
+                  <div className="ai-hero-orb">
+                    <i className="fas fa-wand-magic-sparkles"></i>
+                  </div>
                   <h2>Xin chào, {currentUser}</h2>
-                  <p>Hãy hỏi bất kỳ điều gì về dữ liệu CRM {scopeAll(role) ? 'của công ty' : 'được phân quyền cho bạn'} — khách hàng, giao dịch, tiền thuê và tin đăng.{cfg && cfg.model ? ' · ' + cfg.model : ''}</p>
+                  <p>
+                    Tôi là trợ lý AI chuyên biệt cho BĐS Master CRM. Bạn có thể hỏi bất kỳ điều gì về dữ liệu khách hàng, giao dịch, hợp đồng thuê và nguồn hàng {scopeAll(role) ? 'của toàn công ty' : 'được phân công cho bạn'}.
+                  </p>
+
+                  {/* Category Filter Tabs */}
+                  <div className="ai-cat-tabs">
+                    <button className={'ai-cat-btn ' + (cat === 'finance' ? 'active' : '')} onClick={() => setCat('finance')}>
+                      <i className="fas fa-sack-dollar"></i> Tài chính & Doanh số
+                    </button>
+                    <button className={'ai-cat-btn ' + (cat === 'leads' ? 'active' : '')} onClick={() => setCat('leads')}>
+                      <i className="fas fa-user-tag"></i> Khách hàng & Chăm sóc
+                    </button>
+                    <button className={'ai-cat-btn ' + (cat === 'props' ? 'active' : '')} onClick={() => setCat('props')}>
+                      <i className="fas fa-building"></i> Kho Bất Động Sản
+                    </button>
+                    <button className={'ai-cat-btn ' + (cat === 'copywrite' ? 'active' : '')} onClick={() => setCat('copywrite')}>
+                      <i className="fas fa-pen-nib"></i> Soạn thảo & Nội dung
+                    </button>
+                  </div>
+
+                  {/* Prompt Suggestion Cards */}
                   <div className="ai-cards">
-                    {STARTERS.map(([s, ic], i) => <button key={i} className="ai-card" onClick={() => send(s)}>{s}<i className={'fas ' + ic}></i></button>)}
+                    {(PROMPTS_BY_CAT[cat] || []).map(([s, ic], i) => (
+                      <button key={i} className="ai-card" onClick={() => send(s)}>
+                        <span>{s}</span>
+                        <i className={'fas ' + ic}></i>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
-              {msgs.map((m, i) => (m.role === 'user' ? (
-                <div className="ai-turn me" key={i}><div className="ai-said">{m.content}</div></div>
-              ) : (
-                <div className="ai-turn" key={i}>
-                  <div className="ai-av"><i className="fas fa-wand-magic-sparkles"></i></div>
-                  <div className={'ai-reply' + (m.err ? ' err' : '')} dangerouslySetInnerHTML={{ __html: mdLite(m.content) }}></div>
+
+              {/* Message Turns */}
+              {msgs.map((m, i) => (
+                <div className={'ai-turn ' + (m.role === 'user' ? 'me' : '')} key={i}>
+                  {m.role !== 'user' && (
+                    <div className="ai-av" title="Trợ lý AI">
+                      <i className="fas fa-wand-magic-sparkles"></i>
+                    </div>
+                  )}
+
+                  {m.role === 'user' ? (
+                    <div>
+                      <div className="ai-said">{m.content}</div>
+                      <div style={{ textAlign: 'right', fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{m.time}</div>
+                    </div>
+                  ) : (
+                    <div className="ai-msg-body">
+                      <div className={'ai-reply' + (m.err ? ' err' : '')} dangerouslySetInnerHTML={{ __html: mdLite(m.content) }}></div>
+                      <div className="ai-msg-actions">
+                        <span>{m.time || ''}</span>
+                        <span style={{ margin: '0 4px' }}>•</span>
+                        <button className="ai-act-btn" onClick={() => copyText(m.content, i)} title="Sao chép nội dung">
+                          <i className={`fas ${copiedIdx === i ? 'fa-check' : 'fa-copy'}`} style={{ color: copiedIdx === i ? '#16a34a' : 'inherit' }}></i>
+                          {copiedIdx === i ? 'Đã chép' : 'Sao chép'}
+                        </button>
+                        <button className="ai-act-btn" onClick={() => speakText(m.content)} title="Đọc nội dung bằng giọng nói">
+                          <i className="fas fa-volume-high"></i> Đọc
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {m.role === 'user' && (
+                    <div className="ai-user-av" title={currentUser}>
+                      {String(currentUser || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
-              )))}
+              ))}
+
+              {/* Typing Shimmer */}
               {busy && (
                 <div className="ai-turn">
-                  <div className="ai-av"><i className="fas fa-wand-magic-sparkles"></i></div>
-                  <div className="ai-typing"><span></span><span></span><span></span></div>
+                  <div className="ai-av">
+                    <i className="fas fa-wand-magic-sparkles"></i>
+                  </div>
+                  <div className="ai-typing-box">
+                    <div className="ai-typing-dots">
+                      <span></span><span></span><span></span>
+                    </div>
+                    <span>AI đang tra cứu dữ liệu CRM & phân tích câu trả lời…</span>
+                  </div>
                 </div>
               )}
               <div ref={endRef}></div>
             </div>
           </div>
+
+          {/* Floating Composer */}
           <div className="ai-composer-wrap">
+            {/* Quick Follow-up Pills */}
+            <div className="ai-quick-pills">
+              {QUICK_FOLLOWUPS.map((q, idx) => (
+                <button key={idx} className="ai-quick-pill" onClick={() => send(q)} disabled={busy}>
+                  <i className="fas fa-sparkles" style={{ color: '#6366f1', marginRight: 4 }}></i> {q}
+                </button>
+              ))}
+            </div>
+
             <div className="ai-composer">
-              <textarea ref={taRef} rows={1} value={input} placeholder="Hỏi về dữ liệu của bạn…" disabled={busy}
-                        onChange={(e) => { setInput(e.target.value); grow(); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
-              <button className="ai-send" onClick={() => send()} disabled={busy || !input.trim()} title="Gửi">
+              <textarea
+                ref={taRef}
+                rows={1}
+                value={input}
+                placeholder="Hỏi bất kỳ điều gì về khách hàng, BĐS, doanh số, hợp đồng… (Enter để gửi, Shift+Enter xuống dòng)"
+                disabled={busy}
+                onChange={(e) => { setInput(e.target.value); grow(); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                  }
+                }}
+              />
+              <button className="ai-send" onClick={() => send()} disabled={busy || !input.trim()} title="Gửi tin nhắn">
                 <i className={'fas ' + (busy ? 'fa-spinner fa-spin' : 'fa-paper-plane')}></i>
               </button>
             </div>
-            <div className="ai-foot">Trợ lý RS đọc dữ liệu CRM theo phạm vi quyền của bạn · hãy kiểm tra thông tin quan trọng trước khi thực hiện</div>
+            <div className="ai-foot">
+              Trợ lý AI phân tích theo phạm vi quyền của bạn · Hãy kiểm tra kỹ thông tin trước khi thực hiện giao dịch quan trọng
+            </div>
           </div>
         </div>
       );
