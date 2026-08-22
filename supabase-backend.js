@@ -127,8 +127,62 @@ async function getProperties(jwt){
   return ok({data:rows.map(row=>({...mapProperty(row),ownerId:row.owner_id,images:imagesBy.get(Number(row.id))||[],amenityIds:amenitiesBy.get(Number(row.id))||[]}))});
 }
 async function getLeads(jwt){const rows=await select('leads','*,profiles!leads_assigned_agent_id_fkey(username)',jwt,'&deleted_at=is.null&order=created_at.desc');return ok({data:rows.map(mapLead)});}
-async function getLocations(jwt){await currentProfile(jwt);const rows=await adminSelectAll('locations','*','&deleted_at=is.null&order=id.asc');return ok({data:rows.map(r=>({id:r.id,name:r.name,level:r.level,parentId:r.parent_id,slug:r.slug,created:r.created_at,updated:r.updated_at}))});}
-async function getAmenities(jwt){const rows=await select('amenities','*',jwt,'&deleted_at=is.null&order=name.asc');return ok({data:rows.map(r=>({id:r.id,name:r.name,icon:r.icon||'',created:r.created_at,updated:r.updated_at}))});}
+async function getLocations(jwt){
+  await currentProfile(jwt);
+  const [rows, properties] = await Promise.all([
+    adminSelectAll('locations','*','&deleted_at=is.null&order=id.asc'),
+    select('properties','id,location_id',jwt,'&deleted_at=is.null')
+  ]);
+  const propCountMap = new Map();
+  (properties || []).forEach(p => {
+    if (p.location_id) {
+      propCountMap.set(Number(p.location_id), (propCountMap.get(Number(p.location_id)) || 0) + 1);
+    }
+  });
+  const locMap = new Map(rows.map(r => [Number(r.id), r]));
+  const getPath = (id) => {
+    const out = [], seen = new Set();
+    let cur = locMap.get(Number(id));
+    while (cur && !seen.has(cur.id)) {
+      seen.add(cur.id);
+      if (cur.name) out.unshift(cur.name);
+      cur = locMap.get(Number(cur.parent_id));
+    }
+    return out.join(' › ');
+  };
+  return ok({data:rows.map(r=>({
+    id:r.id,
+    name:r.name,
+    level:r.level,
+    parentId:r.parent_id,
+    path:getPath(r.id),
+    fullPath:getPath(r.id),
+    slug:r.slug,
+    propertyCount:propCountMap.get(Number(r.id)) || 0,
+    created:r.created_at,
+    updated:r.updated_at
+  }))});
+}
+async function getAmenities(jwt){
+  const [rows, propertyAmenities] = await Promise.all([
+    select('amenities','*',jwt,'&deleted_at=is.null&order=name.asc'),
+    select('property_amenities','property_id,amenity_id',jwt)
+  ]);
+  const countMap = new Map();
+  (propertyAmenities || []).forEach(pa => {
+    if (pa.amenity_id) {
+      countMap.set(Number(pa.amenity_id), (countMap.get(Number(pa.amenity_id)) || 0) + 1);
+    }
+  });
+  return ok({data:rows.map(r=>({
+    id:r.id,
+    name:r.name,
+    icon:r.icon||'',
+    propertyCount:countMap.get(Number(r.id)) || 0,
+    created:r.created_at,
+    updated:r.updated_at
+  }))});
+}
 async function getOwners(jwt){
   const [rows,properties,deals]=await Promise.all([
     select('owners','*',jwt,'&deleted_at=is.null&order=created_at.desc'),

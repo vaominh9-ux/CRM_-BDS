@@ -173,6 +173,38 @@ async function runLocalApi(req, res, method) {
     }));
     return jsonResponse(res, 200, { success: true, data });
   }
+  if (method === 'getLocations') {
+    const props = (crm.sheets.Properties || []).filter(p => !p.deleted);
+    const locs = (crm.sheets.Locations || []).filter(l => !l.deleted);
+    const propCountMap = {};
+    props.forEach(p => {
+      if (p.locationId) {
+        propCountMap[p.locationId] = (propCountMap[p.locationId] || 0) + 1;
+      }
+    });
+    const data = locs.map(l => ({
+      ...l,
+      path: locationPath(crm.sheets.Locations, l.id),
+      fullPath: locationPath(crm.sheets.Locations, l.id),
+      propertyCount: propCountMap[l.id] || 0
+    }));
+    return jsonResponse(res, 200, { success: true, data });
+  }
+  if (method === 'getAmenities') {
+    const props = (crm.sheets.Properties || []).filter(p => !p.deleted);
+    const amens = (crm.sheets.Amenities || []).filter(a => !a.deleted);
+    const countMap = {};
+    props.forEach(p => {
+      (p.amenityIds || []).forEach(aid => {
+        countMap[aid] = (countMap[aid] || 0) + 1;
+      });
+    });
+    const data = amens.map(a => ({
+      ...a,
+      propertyCount: countMap[a.id] || 0
+    }));
+    return jsonResponse(res, 200, { success: true, data });
+  }
   if (sheetMap[method]) {
     let data = crm.sheets[sheetMap[method]] || [];
     if (method === 'getProperties') data = data.map(item => ({ ...item, locationPath:locationPath(crm.sheets.Locations, item.locationId) }));
