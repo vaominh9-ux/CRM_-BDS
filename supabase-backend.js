@@ -2,6 +2,28 @@ const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+const envLocalPath = path.join(__dirname, '.env.supabase.local');
+if (fs.existsSync(envLocalPath)) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile(envLocalPath);
+    } else {
+      const content = fs.readFileSync(envLocalPath, 'utf8');
+      content.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#')) {
+          const idx = trimmed.indexOf('=');
+          if (idx !== -1) {
+            const key = trimmed.slice(0, idx).trim();
+            const val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+            if (!process.env[key]) process.env[key] = val;
+          }
+        }
+      });
+    }
+  } catch (_) {}
+}
+
 const SUPABASE_URL = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || '';
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';

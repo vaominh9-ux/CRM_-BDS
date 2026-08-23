@@ -1,6 +1,30 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+
+// Auto-load .env.supabase.local so localhost and production share the exact same Supabase database
+const envLocalPath = path.join(__dirname, '.env.supabase.local');
+if (fs.existsSync(envLocalPath)) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile(envLocalPath);
+    } else {
+      const content = fs.readFileSync(envLocalPath, 'utf8');
+      content.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#')) {
+          const idx = trimmed.indexOf('=');
+          if (idx !== -1) {
+            const key = trimmed.slice(0, idx).trim();
+            const val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+            if (!process.env[key]) process.env[key] = val;
+          }
+        }
+      });
+    }
+  } catch (_) {}
+}
+
 const localBackend = require('./local-backend');
 const supabaseBackend = require('./supabase-backend');
 
