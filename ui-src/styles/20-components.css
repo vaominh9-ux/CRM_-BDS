@@ -1131,8 +1131,9 @@
     .about-card p { color: #555; line-height: 1.7; font-size: 15px; }
     .about-features { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .about-features li { padding: 14px 16px; background: #f8f9fa; border-radius: 3px; color: #333; font-size: 14px; font-weight: 600; display: flex; align-items: center; }
-    .about-features li i { color: var(--navy-primary); margin-inline-end: 10px; font-size: 16px; flex-shrink: 0; }
     .about-table-wrapper { overflow-x: auto; margin: 15px 0; }
+    .desk-leaderboard-wrapper { display: block; }
+    .mob-leaderboard-cards { display: none; }
     .about-roles-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .about-roles-table th, .about-roles-table td { padding: 12px 15px; text-align: center; border: 1px solid #e0e0e0; }
     .about-roles-table th { background: var(--navy-primary); color: white; font-weight: 600; }

@@ -460,22 +460,86 @@
                 {(stats.leaderboard || []).length === 0
                   ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>Chưa có số liệu nhân viên</p>
                   : (
-                    <div className="about-table-wrapper">
-                      <table className="about-roles-table">
-                        <thead><tr><th>Nhân viên</th><th>Tin đăng</th><th>Khách đang mở</th><th>Thành công</th><th>Quá hạn</th><th>Đã chốt trong tháng</th><th>Mục tiêu</th></tr></thead>
-                        <tbody>
-                          {stats.leaderboard.map((a) => (
-                            <tr key={a.agent}>
-                              <td>{a.agent}</td><td>{a.listings}</td><td>{a.openLeads}</td>
-                              <td style={{ color: '#2e7d32', fontWeight: 700 }}>{a.won}</td>
-                              <td style={{ color: a.overdue ? '#c62828' : 'inherit', fontWeight: a.overdue ? 700 : 400 }}>{a.overdue}</td>
-                              <td style={{ fontWeight: 700 }}>{pkrShort(a.dealValueM || 0)}</td>
-                              <td>{a.target > 0 ? Math.round((a.dealValueM || 0) / a.target * 100) + '%' : '—'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    <>
+                      {/* 1. BẢNG MÁY TÍNH (DESKTOP) — GIỮ NGUYÊN 100% */}
+                      <div className="desk-leaderboard-wrapper about-table-wrapper">
+                        <table className="about-roles-table">
+                          <thead><tr><th>Nhân viên</th><th>Tin đăng</th><th>Khách đang mở</th><th>Thành công</th><th>Quá hạn</th><th>Đã chốt trong tháng</th><th>Mục tiêu</th></tr></thead>
+                          <tbody>
+                            {stats.leaderboard.map((a) => (
+                              <tr key={a.agent}>
+                                <td>{a.agent}</td><td>{a.listings}</td><td>{a.openLeads}</td>
+                                <td style={{ color: '#2e7d32', fontWeight: 700 }}>{a.won}</td>
+                                <td style={{ color: a.overdue ? '#c62828' : 'inherit', fontWeight: a.overdue ? 700 : 400 }}>{a.overdue}</td>
+                                <td style={{ fontWeight: 700 }}>{pkrShort(a.dealValueM || 0)}</td>
+                                <td>{a.target > 0 ? Math.round((a.dealValueM || 0) / a.target * 100) + '%' : '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 2. DANH SÁCH THẺ MOBILE (LEADERBOARD CARDS) */}
+                      <div className="mob-leaderboard-cards">
+                        {stats.leaderboard.map((a, idx) => {
+                          const pct = a.target > 0 ? Math.round((a.dealValueM || 0) / a.target * 100) : null;
+                          const rankIcon = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null;
+                          return (
+                            <div key={a.agent} className={'mob-lb-card' + (idx < 3 ? ' top-' + (idx + 1) : '')}>
+                              <div className="mob-lb-header">
+                                <div className="mob-lb-user">
+                                  <div className="mob-lb-rank">
+                                    {rankIcon ? <span className="rank-medal">{rankIcon}</span> : <span className="rank-num">#{idx + 1}</span>}
+                                  </div>
+                                  <div className="mob-lb-avatar" style={{ background: typeof getLeadAvatarColor === 'function' ? getLeadAvatarColor(a.agent) : 'linear-gradient(135deg, #1e3a8a, #3b82f6)' }}>
+                                    {String(a.agent || '').slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="mob-lb-name-box">
+                                    <span className="mob-lb-name">{a.agent}</span>
+                                    {a.target > 0 && <span className="mob-lb-kpi-sub">KPI: {pkrShort(a.target)}</span>}
+                                  </div>
+                                </div>
+                                <div className="mob-lb-revenue">
+                                  <span className="mob-lb-rev-label">Đã chốt (tháng)</span>
+                                  <span className="mob-lb-rev-val">{pkrShort(a.dealValueM || 0)}</span>
+                                </div>
+                              </div>
+
+                              {pct !== null && (
+                                <div className="mob-lb-progress-wrap">
+                                  <div className="mob-lb-progress-info">
+                                    <span>Tiến độ mục tiêu</span>
+                                    <span className={'mob-lb-pct ' + (pct >= 100 ? 'done' : pct >= 50 ? 'good' : 'warn')}>{pct}%</span>
+                                  </div>
+                                  <div className="mob-lb-progress-bar">
+                                    <div className={'mob-lb-progress-fill ' + (pct >= 100 ? 'done' : pct >= 50 ? 'good' : 'warn')} style={{ width: Math.min(100, pct) + '%' }}></div>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="mob-lb-stats-grid">
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-building"></i> Tin đăng</span>
+                                  <span className="stat-val">{a.listings || 0}</span>
+                                </div>
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-user-tag"></i> Khách mở</span>
+                                  <span className="stat-val">{a.openLeads || 0}</span>
+                                </div>
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-trophy"></i> Thành công</span>
+                                  <span className="stat-val won">{a.won || 0}</span>
+                                </div>
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-clock-rotate-left"></i> Quá hạn</span>
+                                  <span className={'stat-val' + (a.overdue ? ' overdue' : '')}>{a.overdue || 0}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
               </LteCard>
             ) : (

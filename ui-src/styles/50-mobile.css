@@ -6401,6 +6401,198 @@
         background: #fee2e2 !important;
         color: #dc2626 !important;
       }
+
+      /* ===== BẢNG XẾP HẠNG NHÂN VIÊN TRÊN MOBILE (LEADERBOARD CARDS) ===== */
+      .desk-leaderboard-wrapper {
+        display: none !important;
+      }
+      .mob-leaderboard-cards {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-top: 4px !important;
+      }
+      .mob-lb-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+      }
+      .mob-lb-card.top-1 {
+        border-left: 4px solid #eab308 !important;
+        background: linear-gradient(180deg, #fefce8 0%, #ffffff 40px) !important;
+      }
+      .mob-lb-card.top-2 {
+        border-left: 4px solid #94a3b8 !important;
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 40px) !important;
+      }
+      .mob-lb-card.top-3 {
+        border-left: 4px solid #d97706 !important;
+        background: linear-gradient(180deg, #fffbeb 0%, #ffffff 40px) !important;
+      }
+      .mob-lb-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 10px !important;
+      }
+      .mob-lb-user {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+      }
+      .mob-lb-rank {
+        min-width: 24px !important;
+        text-align: center !important;
+      }
+      .mob-lb-rank .rank-medal {
+        font-size: 18px !important;
+        line-height: 1 !important;
+      }
+      .mob-lb-rank .rank-num {
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        color: #64748b !important;
+      }
+      .mob-lb-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        color: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+      }
+      .mob-lb-name-box {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .mob-lb-name {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        line-height: 1.2 !important;
+      }
+      .mob-lb-kpi-sub {
+        font-size: 11px !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+      }
+      .mob-lb-revenue {
+        text-align: right !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .mob-lb-rev-label {
+        font-size: 10.5px !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.2px !important;
+      }
+      .mob-lb-rev-val {
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        line-height: 1.2 !important;
+      }
+      .mob-lb-progress-wrap {
+        margin-bottom: 10px !important;
+        padding: 6px 10px !important;
+        background: #f8fafc !important;
+        border-radius: 8px !important;
+        border: 1px solid #f1f5f9 !important;
+      }
+      .mob-lb-progress-info {
+        display: flex !important;
+        justify-content: space-between !important;
+        font-size: 11px !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        margin-bottom: 4px !important;
+      }
+      .mob-lb-pct.done { color: #16a34a !important; font-weight: 700 !important; }
+      .mob-lb-pct.good { color: #0284c7 !important; font-weight: 700 !important; }
+      .mob-lb-pct.warn { color: #d97706 !important; font-weight: 700 !important; }
+      .mob-lb-progress-bar {
+        width: 100% !important;
+        height: 6px !important;
+        background: #e2e8f0 !important;
+        border-radius: 3px !important;
+        overflow: hidden !important;
+      }
+      .mob-lb-progress-fill.done { background: #16a34a !important; height: 100% !important; border-radius: 3px !important; }
+      .mob-lb-progress-fill.good { background: #0284c7 !important; height: 100% !important; border-radius: 3px !important; }
+      .mob-lb-progress-fill.warn { background: #f59e0b !important; height: 100% !important; border-radius: 3px !important; }
+      .mob-lb-stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px !important;
+        background: #f8fafc !important;
+        padding: 8px 6px !important;
+        border-radius: 8px !important;
+        text-align: center !important;
+        border: 1px solid #f1f5f9 !important;
+      }
+      .mob-lb-stat-item .stat-label {
+        display: block !important;
+        font-size: 10.5px !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        margin-bottom: 2px !important;
+      }
+      .mob-lb-stat-item .stat-label i {
+        font-size: 10px !important;
+        margin-right: 2px !important;
+        color: #94a3b8 !important;
+      }
+      .mob-lb-stat-item .stat-val {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        color: #334155 !important;
+      }
+      .mob-lb-stat-item .stat-val.won {
+        color: #16a34a !important;
+      }
+      .mob-lb-stat-item .stat-val.overdue {
+        color: #dc2626 !important;
+      }
+      body.dark-mode .mob-lb-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      body.dark-mode .mob-lb-card.top-1 {
+        background: linear-gradient(180deg, rgba(234, 179, 8, 0.12) 0%, #1e293b 40px) !important;
+      }
+      body.dark-mode .mob-lb-card.top-2 {
+        background: linear-gradient(180deg, rgba(148, 163, 184, 0.12) 0%, #1e293b 40px) !important;
+      }
+      body.dark-mode .mob-lb-card.top-3 {
+        background: linear-gradient(180deg, rgba(217, 119, 6, 0.12) 0%, #1e293b 40px) !important;
+      }
+      body.dark-mode .mob-lb-name {
+        color: #f1f5f9 !important;
+      }
+      body.dark-mode .mob-lb-kpi-sub {
+        color: #94a3b8 !important;
+      }
+      body.dark-mode .mob-lb-rev-val {
+        color: #38bdf8 !important;
+      }
+      body.dark-mode .mob-lb-progress-wrap,
+      body.dark-mode .mob-lb-stats-grid {
+        background: rgba(0, 0, 0, 0.25) !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+      }
+      body.dark-mode .mob-lb-stat-item .stat-val {
+        color: #e2e8f0 !important;
+      }
     }
   
   

@@ -2761,8 +2761,9 @@
     .about-card p { color: #555; line-height: 1.7; font-size: 15px; }
     .about-features { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .about-features li { padding: 14px 16px; background: #f8f9fa; border-radius: 3px; color: #333; font-size: 14px; font-weight: 600; display: flex; align-items: center; }
-    .about-features li i { color: var(--navy-primary); margin-inline-end: 10px; font-size: 16px; flex-shrink: 0; }
     .about-table-wrapper { overflow-x: auto; margin: 15px 0; }
+    .desk-leaderboard-wrapper { display: block; }
+    .mob-leaderboard-cards { display: none; }
     .about-roles-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .about-roles-table th, .about-roles-table td { padding: 12px 15px; text-align: center; border: 1px solid #e0e0e0; }
     .about-roles-table th { background: var(--navy-primary); color: white; font-weight: 600; }
@@ -12190,6 +12191,198 @@
         background: #fee2e2 !important;
         color: #dc2626 !important;
       }
+
+      /* ===== BẢNG XẾP HẠNG NHÂN VIÊN TRÊN MOBILE (LEADERBOARD CARDS) ===== */
+      .desk-leaderboard-wrapper {
+        display: none !important;
+      }
+      .mob-leaderboard-cards {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-top: 4px !important;
+      }
+      .mob-lb-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+      }
+      .mob-lb-card.top-1 {
+        border-left: 4px solid #eab308 !important;
+        background: linear-gradient(180deg, #fefce8 0%, #ffffff 40px) !important;
+      }
+      .mob-lb-card.top-2 {
+        border-left: 4px solid #94a3b8 !important;
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 40px) !important;
+      }
+      .mob-lb-card.top-3 {
+        border-left: 4px solid #d97706 !important;
+        background: linear-gradient(180deg, #fffbeb 0%, #ffffff 40px) !important;
+      }
+      .mob-lb-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 10px !important;
+      }
+      .mob-lb-user {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+      }
+      .mob-lb-rank {
+        min-width: 24px !important;
+        text-align: center !important;
+      }
+      .mob-lb-rank .rank-medal {
+        font-size: 18px !important;
+        line-height: 1 !important;
+      }
+      .mob-lb-rank .rank-num {
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        color: #64748b !important;
+      }
+      .mob-lb-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        color: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+      }
+      .mob-lb-name-box {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .mob-lb-name {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        line-height: 1.2 !important;
+      }
+      .mob-lb-kpi-sub {
+        font-size: 11px !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+      }
+      .mob-lb-revenue {
+        text-align: right !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .mob-lb-rev-label {
+        font-size: 10.5px !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.2px !important;
+      }
+      .mob-lb-rev-val {
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        line-height: 1.2 !important;
+      }
+      .mob-lb-progress-wrap {
+        margin-bottom: 10px !important;
+        padding: 6px 10px !important;
+        background: #f8fafc !important;
+        border-radius: 8px !important;
+        border: 1px solid #f1f5f9 !important;
+      }
+      .mob-lb-progress-info {
+        display: flex !important;
+        justify-content: space-between !important;
+        font-size: 11px !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        margin-bottom: 4px !important;
+      }
+      .mob-lb-pct.done { color: #16a34a !important; font-weight: 700 !important; }
+      .mob-lb-pct.good { color: #0284c7 !important; font-weight: 700 !important; }
+      .mob-lb-pct.warn { color: #d97706 !important; font-weight: 700 !important; }
+      .mob-lb-progress-bar {
+        width: 100% !important;
+        height: 6px !important;
+        background: #e2e8f0 !important;
+        border-radius: 3px !important;
+        overflow: hidden !important;
+      }
+      .mob-lb-progress-fill.done { background: #16a34a !important; height: 100% !important; border-radius: 3px !important; }
+      .mob-lb-progress-fill.good { background: #0284c7 !important; height: 100% !important; border-radius: 3px !important; }
+      .mob-lb-progress-fill.warn { background: #f59e0b !important; height: 100% !important; border-radius: 3px !important; }
+      .mob-lb-stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px !important;
+        background: #f8fafc !important;
+        padding: 8px 6px !important;
+        border-radius: 8px !important;
+        text-align: center !important;
+        border: 1px solid #f1f5f9 !important;
+      }
+      .mob-lb-stat-item .stat-label {
+        display: block !important;
+        font-size: 10.5px !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        margin-bottom: 2px !important;
+      }
+      .mob-lb-stat-item .stat-label i {
+        font-size: 10px !important;
+        margin-right: 2px !important;
+        color: #94a3b8 !important;
+      }
+      .mob-lb-stat-item .stat-val {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        color: #334155 !important;
+      }
+      .mob-lb-stat-item .stat-val.won {
+        color: #16a34a !important;
+      }
+      .mob-lb-stat-item .stat-val.overdue {
+        color: #dc2626 !important;
+      }
+      body.dark-mode .mob-lb-card {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+      }
+      body.dark-mode .mob-lb-card.top-1 {
+        background: linear-gradient(180deg, rgba(234, 179, 8, 0.12) 0%, #1e293b 40px) !important;
+      }
+      body.dark-mode .mob-lb-card.top-2 {
+        background: linear-gradient(180deg, rgba(148, 163, 184, 0.12) 0%, #1e293b 40px) !important;
+      }
+      body.dark-mode .mob-lb-card.top-3 {
+        background: linear-gradient(180deg, rgba(217, 119, 6, 0.12) 0%, #1e293b 40px) !important;
+      }
+      body.dark-mode .mob-lb-name {
+        color: #f1f5f9 !important;
+      }
+      body.dark-mode .mob-lb-kpi-sub {
+        color: #94a3b8 !important;
+      }
+      body.dark-mode .mob-lb-rev-val {
+        color: #38bdf8 !important;
+      }
+      body.dark-mode .mob-lb-progress-wrap,
+      body.dark-mode .mob-lb-stats-grid {
+        background: rgba(0, 0, 0, 0.25) !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+      }
+      body.dark-mode .mob-lb-stat-item .stat-val {
+        color: #e2e8f0 !important;
+      }
     }
   
   </style>
@@ -13773,22 +13966,86 @@
                 {(stats.leaderboard || []).length === 0
                   ? <p style={{ color: '#789', textAlign: 'center', padding: '20px 0' }}>Chưa có số liệu nhân viên</p>
                   : (
-                    <div className="about-table-wrapper">
-                      <table className="about-roles-table">
-                        <thead><tr><th>Nhân viên</th><th>Tin đăng</th><th>Khách đang mở</th><th>Thành công</th><th>Quá hạn</th><th>Đã chốt trong tháng</th><th>Mục tiêu</th></tr></thead>
-                        <tbody>
-                          {stats.leaderboard.map((a) => (
-                            <tr key={a.agent}>
-                              <td>{a.agent}</td><td>{a.listings}</td><td>{a.openLeads}</td>
-                              <td style={{ color: '#2e7d32', fontWeight: 700 }}>{a.won}</td>
-                              <td style={{ color: a.overdue ? '#c62828' : 'inherit', fontWeight: a.overdue ? 700 : 400 }}>{a.overdue}</td>
-                              <td style={{ fontWeight: 700 }}>{pkrShort(a.dealValueM || 0)}</td>
-                              <td>{a.target > 0 ? Math.round((a.dealValueM || 0) / a.target * 100) + '%' : '—'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    <>
+                      {/* 1. BẢNG MÁY TÍNH (DESKTOP) — GIỮ NGUYÊN 100% */}
+                      <div className="desk-leaderboard-wrapper about-table-wrapper">
+                        <table className="about-roles-table">
+                          <thead><tr><th>Nhân viên</th><th>Tin đăng</th><th>Khách đang mở</th><th>Thành công</th><th>Quá hạn</th><th>Đã chốt trong tháng</th><th>Mục tiêu</th></tr></thead>
+                          <tbody>
+                            {stats.leaderboard.map((a) => (
+                              <tr key={a.agent}>
+                                <td>{a.agent}</td><td>{a.listings}</td><td>{a.openLeads}</td>
+                                <td style={{ color: '#2e7d32', fontWeight: 700 }}>{a.won}</td>
+                                <td style={{ color: a.overdue ? '#c62828' : 'inherit', fontWeight: a.overdue ? 700 : 400 }}>{a.overdue}</td>
+                                <td style={{ fontWeight: 700 }}>{pkrShort(a.dealValueM || 0)}</td>
+                                <td>{a.target > 0 ? Math.round((a.dealValueM || 0) / a.target * 100) + '%' : '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 2. DANH SÁCH THẺ MOBILE (LEADERBOARD CARDS) */}
+                      <div className="mob-leaderboard-cards">
+                        {stats.leaderboard.map((a, idx) => {
+                          const pct = a.target > 0 ? Math.round((a.dealValueM || 0) / a.target * 100) : null;
+                          const rankIcon = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null;
+                          return (
+                            <div key={a.agent} className={'mob-lb-card' + (idx < 3 ? ' top-' + (idx + 1) : '')}>
+                              <div className="mob-lb-header">
+                                <div className="mob-lb-user">
+                                  <div className="mob-lb-rank">
+                                    {rankIcon ? <span className="rank-medal">{rankIcon}</span> : <span className="rank-num">#{idx + 1}</span>}
+                                  </div>
+                                  <div className="mob-lb-avatar" style={{ background: typeof getLeadAvatarColor === 'function' ? getLeadAvatarColor(a.agent) : 'linear-gradient(135deg, #1e3a8a, #3b82f6)' }}>
+                                    {String(a.agent || '').slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="mob-lb-name-box">
+                                    <span className="mob-lb-name">{a.agent}</span>
+                                    {a.target > 0 && <span className="mob-lb-kpi-sub">KPI: {pkrShort(a.target)}</span>}
+                                  </div>
+                                </div>
+                                <div className="mob-lb-revenue">
+                                  <span className="mob-lb-rev-label">Đã chốt (tháng)</span>
+                                  <span className="mob-lb-rev-val">{pkrShort(a.dealValueM || 0)}</span>
+                                </div>
+                              </div>
+
+                              {pct !== null && (
+                                <div className="mob-lb-progress-wrap">
+                                  <div className="mob-lb-progress-info">
+                                    <span>Tiến độ mục tiêu</span>
+                                    <span className={'mob-lb-pct ' + (pct >= 100 ? 'done' : pct >= 50 ? 'good' : 'warn')}>{pct}%</span>
+                                  </div>
+                                  <div className="mob-lb-progress-bar">
+                                    <div className={'mob-lb-progress-fill ' + (pct >= 100 ? 'done' : pct >= 50 ? 'good' : 'warn')} style={{ width: Math.min(100, pct) + '%' }}></div>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="mob-lb-stats-grid">
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-building"></i> Tin đăng</span>
+                                  <span className="stat-val">{a.listings || 0}</span>
+                                </div>
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-user-tag"></i> Khách mở</span>
+                                  <span className="stat-val">{a.openLeads || 0}</span>
+                                </div>
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-trophy"></i> Thành công</span>
+                                  <span className="stat-val won">{a.won || 0}</span>
+                                </div>
+                                <div className="mob-lb-stat-item">
+                                  <span className="stat-label"><i className="fas fa-clock-rotate-left"></i> Quá hạn</span>
+                                  <span className={'stat-val' + (a.overdue ? ' overdue' : '')}>{a.overdue || 0}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
               </LteCard>
             ) : (
