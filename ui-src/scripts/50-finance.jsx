@@ -1708,8 +1708,8 @@ function TenanciesView({ currentUser, role, perms, initialSearch }) {
                         <i className="fas fa-money-bill-wave"></i> Thu tiền
                       </button>
                     )}
-                    <button className="mob-btn mob-btn-view" onClick={() => onAction('view', t)} title="Hợp đồng thuê 360">
-                      <i className="fas fa-eye"></i> 360
+                    <button className="mob-btn mob-btn-view" onClick={() => onAction('view', t)} title="Xem chi tiết hợp đồng">
+                      <i className="fas fa-eye"></i>
                     </button>
                     <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', t)} title="Nhắn Zalo khách thuê">
                       <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
