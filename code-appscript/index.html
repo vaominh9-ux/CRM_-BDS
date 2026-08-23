@@ -9153,6 +9153,11 @@
         border: 1px solid #bae6fd !important;
         flex: 0 0 34px !important;
       }
+      .mob-tenancy-actions .mob-btn-zalo {
+        background: #f0f9ff !important;
+        border: 1px solid #bae6fd !important;
+        flex: 0 0 34px !important;
+      }
       .mob-btn-renew {
         background: #f8fafc !important;
         color: #475569 !important;
@@ -21354,12 +21359,11 @@ function TenanciesView({ currentUser, role, perms, initialSearch }) {
                       <i className="fas fa-eye"></i>
                     </button>
                     <button className="mob-btn mob-btn-zalo" onClick={() => onAction('wa', t)} title="Nhắn Zalo khách thuê">
-                      <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 14, height: 14, marginRight: 5 }}>
+                      <svg className="zalo-logo-img" viewBox="0 0 100 100" style={{ width: 16, height: 16 }}>
                         <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#008fe5" strokeWidth="4.5" />
                         <path d="M 50 15 C 69.33 15 85 30.67 85 50 C 85 69.33 69.33 85 50 85 C 44.2 85 38.7 83.6 33.8 81.1 L 18 86.5 L 22.8 72.3 C 17.9 66.2 15 58.4 15 50 C 15 30.67 30.67 15 50 15 Z" fill="#008fe5" />
                         <text x="50.5" y="58" fill="#ffffff" fontFamily="system-ui, sans-serif" fontSize="28" fontWeight="900" textAnchor="middle" letterSpacing="-1.2">Zalo</text>
                       </svg>
-                      Zalo
                     </button>
                     {all && t.status === 'Active' && (
                       <button className="mob-btn mob-btn-renew" onClick={() => onAction('renew', t)} title="Gia hạn hợp đồng">
