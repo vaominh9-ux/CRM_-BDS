@@ -1732,6 +1732,43 @@
         grid-template-columns: 1fr 1.5fr !important;
         gap: 10px !important;
       }
+      .mob-filter-segmented {
+        display: flex !important;
+        background: #f1f5f9 !important;
+        padding: 4px !important;
+        border-radius: 10px !important;
+        gap: 4px !important;
+      }
+      .mob-filter-seg-btn {
+        flex: 1 !important;
+        border: none !important;
+        background: transparent !important;
+        color: #64748b !important;
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        border-radius: 7px !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        text-align: center !important;
+      }
+      .mob-filter-seg-btn.active {
+        background: #ffffff !important;
+        color: var(--navy-primary, #001f3f) !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+      }
+      body.dark-mode .mob-filter-segmented {
+        background: rgba(0, 0, 0, 0.3) !important;
+      }
+      body.dark-mode .mob-filter-seg-btn {
+        color: #94a3b8 !important;
+      }
+      body.dark-mode .mob-filter-seg-btn.active {
+        background: #1e293b !important;
+        color: #38bdf8 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+      }
 
       /* 5. Giao diện Modal / Popup chuẩn Bottom Sheet di động */
       .modal-overlay {

@@ -719,22 +719,25 @@ function DealsView({ currentUser, role, perms, initialSearch }) {
           <div className="mob-filter-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="mob-sheet-handle"></div>
             <div className="mob-sheet-header">
-              <h3><i className="fas fa-filter"></i> Bộ lọc giao dịch</h3>
-              <button className="mob-sheet-close" onClick={() => setShowFilterDrawer(false)}>&times;</button>
+              <h4><i className="fas fa-sliders"></i> Bộ lọc giao dịch</h4>
+              <button className="close-btn" onClick={() => setShowFilterDrawer(false)}>&times;</button>
             </div>
             <div className="mob-sheet-body">
-              <div className="mob-sheet-field">
-                <label>Loại hình</label>
-                <div className="mob-sheet-chips">
-                  <button className={'mob-sheet-chip ' + (!filters.type ? 'active' : '')} onClick={() => setFilters({ ...filters, type: '' })}>Tất cả</button>
-                  <button className={'mob-sheet-chip ' + (filters.type === 'Sale' ? 'active' : '')} onClick={() => setFilters({ ...filters, type: 'Sale' })}>Mua bán</button>
-                  <button className={'mob-sheet-chip ' + (filters.type === 'Rent' ? 'active' : '')} onClick={() => setFilters({ ...filters, type: 'Rent' })}>Cho thuê</button>
+              <div className="form-group" style={{ marginBottom: 12 }}>
+                <label><i className="fas fa-magnifying-glass"></i> Từ khóa tìm kiếm</label>
+                <input className="filter-input" value={filters.search} placeholder="Mã giao dịch, khách hàng, BĐS..." onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+              </div>
+              <div className="form-group" style={{ marginBottom: 14 }}>
+                <label><i className="fas fa-tags"></i> Loại hình giao dịch</label>
+                <div className="mob-filter-segmented">
+                  <button className={'mob-filter-seg-btn ' + (!filters.type ? 'active' : '')} onClick={() => setFilters({ ...filters, type: '' })}>Tất cả</button>
+                  <button className={'mob-filter-seg-btn ' + (filters.type === 'Sale' ? 'active' : '')} onClick={() => setFilters({ ...filters, type: 'Sale' })}>Mua bán</button>
+                  <button className={'mob-filter-seg-btn ' + (filters.type === 'Rent' ? 'active' : '')} onClick={() => setFilters({ ...filters, type: 'Rent' })}>Cho thuê</button>
                 </div>
               </div>
               {all && (
-                <div className="mob-sheet-field">
-                  <label>Nhân viên phụ trách</label>
-                  <SearchableDropdown label="" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + a.role + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />
+                <div className="form-group" style={{ marginBottom: 8 }}>
+                  <SearchableDropdown label="Nhân viên phụ trách" icon="fas fa-user-tie" options={(lookups.agents || []).map((a) => ({ value: a.username, label: a.username + ' (' + viEnum(a.role) + ')' }))} value={filters.agent} onChange={(v) => setFilters({ ...filters, agent: v })} placeholder="Tất cả nhân viên" />
                 </div>
               )}
             </div>
