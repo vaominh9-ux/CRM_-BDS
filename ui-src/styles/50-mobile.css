@@ -5733,6 +5733,7 @@
       .mob-fu-btn.edit {
         background: #f1f5f9 !important;
         color: #475569 !important;
+        flex: 0 0 34px !important;
       }
       .mob-fu-btn.del {
         background: #fef2f2 !important;

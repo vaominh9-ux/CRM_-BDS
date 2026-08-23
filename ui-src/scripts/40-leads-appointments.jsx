@@ -1031,7 +1031,7 @@
                           )}
                           {canEdit && (
                             <button className="mob-fu-btn edit" onClick={() => onAction('edit', f)} title="Chỉnh sửa">
-                              <i className="fas fa-pen"></i> <span>Sửa</span>
+                              <i className="fas fa-pen"></i>
                             </button>
                           )}
                           {canDel && (
