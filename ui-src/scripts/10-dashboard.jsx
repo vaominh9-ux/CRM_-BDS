@@ -72,10 +72,10 @@
 
     // ============== Dashboard widgets (donut / trend / lists / funnel / agents) ==============
     // status doughnut with the total in the hole + share legend
-    function StatusDonut({ counts, order, total, caption, onPick }) {
+    function StatusDonut({ counts, order, total, caption }) {
       const labels = order.filter((s) => counts[s]);
       if (!labels.length) return <p className="dash-empty"><i className="fas fa-chart-pie"></i>Nothing to chart yet</p>;
-      const data = { labels: labels.map((s) => viEnum(s)), datasets: [{ data: labels.map((s) => counts[s]), backgroundColor: labels.map((s) => STAGE_COLORS[s] || '#6c757d'), borderWidth: 0 }] };
+      const data = { labels, datasets: [{ data: labels.map((s) => counts[s]), backgroundColor: labels.map((s) => STAGE_COLORS[s] || '#6c757d'), borderWidth: 0 }] };
       return (
         <div className="donut-box">
           <div className="donut-hold">
@@ -84,9 +84,9 @@
           </div>
           <div className="donut-legend">
             {labels.map((s) => (
-              <div className="dl-item" key={s} onClick={() => onPick && onPick(s)} style={{ cursor: onPick ? 'pointer' : 'default' }} title={onPick ? `Xem BĐS ${viEnum(s)}` : undefined}>
+              <div className="dl-item" key={s}>
                 <span className="dl-dot" style={{ background: STAGE_COLORS[s] || '#6c757d' }}></span>
-                <span className="dl-name">{viEnum(s)}</span>
+                <span className="dl-name">{s}</span>
                 <span className="dl-num">{counts[s]}</span>
                 <span className="dl-pct">({total ? Math.round((counts[s] / total) * 1000) / 10 : 0}%)</span>
               </div>
@@ -385,7 +385,7 @@
 
           <div className="dash-grid-3">
             <LteCard title="Trạng thái bất động sản" icon="fa-house-chimney" tools={viewAll('properties')}>
-              <StatusDonut counts={inv} order={ENUMS.propertyStatus} total={invTotal} caption="Tổng cộng" onPick={() => go('properties')} />
+              <StatusDonut counts={inv} order={ENUMS.propertyStatus} total={invTotal} caption="Tổng cộng" />
             </LteCard>
             <LteCard title="Tổng quan khách hàng" icon="fa-chart-line"
                      tools={[7, 30, 90].map((d) => (
